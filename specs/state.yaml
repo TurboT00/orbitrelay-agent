@@ -1,0 +1,43 @@
+active_flow: planning
+release:
+  current_version: 0.1.0
+  next_target: provider-and-auth-profiles
+git:
+  branch: main
+  base_hash: 8a7eb7ef966f9e67a523223a7b8beca2527dddc0
+  handoff_ref: HEAD
+  remote: origin/main
+  push_requested: false
+working_tree:
+  expected_after_handoff: clean
+verification:
+  command: ./scripts/check.sh
+  result: passed
+  project_tests: 37
+  example_tests: 9
+handoff:
+  last_step_completed: roadmap and local verification handoff
+  required_reading:
+    - README.md
+    - docs/project-roadmap.md
+    - specs/state.yaml
+    - src/orbitrelay/config.py
+    - src/orbitrelay/agent.py
+    - src/orbitrelay/tools/__init__.py
+  open_decisions:
+    - Choose the credential-store contract before implementing profile secrets.
+    - Confirm Codex CLI minimum version and subscription-use expectations.
+    - Approve session storage and retention before conversation persistence.
+    - Approve certified Ollama models before claiming local tool support.
+  next_skill: survey-context
+  next_action: Scope P1 provider and auth profiles as an offline-tested vertical slice.
+decisions:
+  codex_auth: Use the official Codex CLI as a process boundary; never reproduce its OAuth flow or read auth.json.
+  grok_auth: Support xAI BYOK and monitor official documentation for third-party OAuth.
+  next_user_capability: Tool approvals follow provider and auth foundations.
+  local_models: Start with Ollama loopback after capability profiles and approvals exist.
+  remote_push: Do not push the handoff commit without a new explicit request.
+preferences:
+  - Ask before making product, auth, security, persistence, or platform-support assumptions.
+  - Prefer verification over inference when intent is ambiguous.
+  - Keep GitHub optional until cross-machine development makes CI valuable.

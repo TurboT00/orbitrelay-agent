@@ -107,17 +107,25 @@ workspace. It exists only as a safe, small checkout example.
 
 OrbitRelay Agent is available under the [MIT License](LICENSE).
 
+## Roadmap
+
+See [docs/project-roadmap.md](docs/project-roadmap.md) for the dependency-aware
+capability roadmap, authentication constraints, and next implementation slice.
+
 ## Development and verification
 
 The automated agent tests use scripted responses and never call a live model
-API:
+API. Run the complete local check from any working directory:
 
 ```bash
-uv lock --check
-uv sync --locked
-uv run python -m unittest discover -s tests -v
-uv run python examples/calculator/tests.py
-uv run python -c "import orbitrelay; import orbitrelay.cli"
-uv run orbitrelay --help
-uv build
+./scripts/check.sh
 ```
+
+The script validates the lockfile, synchronizes dependencies, runs both test
+suites, checks package imports and CLI entry points, builds the distributions,
+and starts the command from an isolated wheel installation. Build artifacts are
+created in a temporary directory and removed automatically.
+
+The current script targets Bash on macOS and Linux, including Arch and Ubuntu.
+A native Windows check can be added when Windows 11 becomes an explicitly
+supported development platform; until then, Git Bash or WSL can run this script.
