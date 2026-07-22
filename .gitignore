@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.DS_Store
+.pi-subagents/
+
+# API keys and credentials
+.env
+
+# Virtual environments
+.venv
+
+# Local tool scratch output
+examples/**/tmp/
