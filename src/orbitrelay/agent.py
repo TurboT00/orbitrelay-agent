@@ -154,7 +154,9 @@ def run_agent(
                 for prepared in prepared_calls
                 if isinstance(prepared, PreparedToolCall)
             )
-            decisions = iter(approval_session.authorize(requests))
+            decisions = iter(
+                approval_session.authorize(requests) if requests else ()
+            )
 
             for (call_id, _function_name, _arguments), prepared in zip(
                 validated_calls, prepared_calls, strict=True

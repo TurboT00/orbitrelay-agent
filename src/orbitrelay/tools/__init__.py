@@ -146,6 +146,10 @@ def prepare_tool(
 
     category = TOOL_CATEGORIES[name]
     if name == "write_file":
+        if not isinstance(arguments["file_path"], str):
+            return f'Error: invalid arguments for "{name}": file_path must be a string'
+        if not isinstance(arguments["content"], str):
+            return f'Error: invalid arguments for "{name}": content must be a string'
         validation_error = validate_write_target(
             arguments["working_directory"], arguments["file_path"]
         )
