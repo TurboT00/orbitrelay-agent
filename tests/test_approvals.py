@@ -97,6 +97,21 @@ class ApprovalSessionTests(unittest.TestCase):
         self.assertFalse(write_decision.approved)
         self.assertEqual(write_decision.reason, "read_only_policy")
 
+    def test_timeout_input_denies_before_authority_is_granted(self):
+        class TimeoutInput:
+            def readline(self):
+                raise TimeoutError("approval expired")
+
+        authorizer = TerminalAuthorizer(TimeoutInput(), StringIO())
+        request = ApprovalRequest.for_write(
+            call_id="call-timeout", target="notes.txt", content_length=1
+        )
+
+        (decision,) = ApprovalSession(authorizer).authorize((request,))
+
+        self.assertFalse(decision.approved)
+        self.assertEqual(decision.reason, "approval_timeout")
+
     def test_disable_decision_denies_later_same_tool_without_authorizer(self):
         authorization_calls = []
 
