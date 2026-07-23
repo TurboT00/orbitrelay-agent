@@ -1,10 +1,17 @@
 import unittest
+import json
+import tempfile
+from pathlib import Path
 
 from orbitrelay.profiles import (
     AuthKind,
     ProviderCapability,
     ProviderProfile,
     ProfileValidationError,
+    ProfileExistsError,
+    ProfileNotFoundError,
+    ProfileRepository,
+    ProfileStorageError,
 )
 
 
@@ -91,6 +98,88 @@ class ProviderProfileTests(unittest.TestCase):
                     "api_key": "must-not-load",
                 }
             )
+
+
+def api_key_profile(name="work"):
+    return ProviderProfile.create(
+        name=name,
+        base_url="https://example.test/v1",
+        model="test-model",
+        auth_kind=AuthKind.API_KEY,
+        capabilities=CAPABILITIES,
+    )
+
+
+class ProfileRepositoryTests(unittest.TestCase):
+    def test_saves_lists_selects_and_deletes_profiles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "orbitrelay" / "profiles.json"
+            repository = ProfileRepository(path)
+            work = api_key_profile("work")
+            personal = api_key_profile("personal")
+
+            repository.save(work)
+            repository.save(personal)
+            repository.select("work")
+
+            self.assertEqual(repository.get("work"), work)
+            self.assertEqual(
+                [profile.name for profile in repository.list_profiles()],
+                ["personal", "work"],
+            )
+            self.assertEqual(repository.selected_name(), "work")
+
+            repository.delete("work")
+
+            self.assertIsNone(repository.selected_name())
+            with self.assertRaises(ProfileNotFoundError):
+                repository.get("work")
+
+    def test_metadata_never_contains_a_secret_field(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "profiles.json"
+            ProfileRepository(path).save(api_key_profile())
+
+            persisted = path.read_text()
+
+            self.assertNotIn("api_key", persisted)
+            self.assertNotIn("secret", persisted)
+
+    def test_rejects_accidental_profile_replacement(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            repository.save(api_key_profile())
+
+            with self.assertRaises(ProfileExistsError):
+                repository.save(api_key_profile())
+
+            replacement = ProviderProfile.create(
+                name="work",
+                base_url="https://replacement.test/v1",
+                model="new-model",
+                auth_kind=AuthKind.API_KEY,
+                capabilities=CAPABILITIES,
+            )
+            repository.save(replacement, replace=True)
+            self.assertEqual(repository.get("work"), replacement)
+
+    def test_rejects_selecting_an_unknown_profile(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+
+            with self.assertRaises(ProfileNotFoundError):
+                repository.select("missing")
+
+    def test_rejects_corrupt_or_unknown_storage_versions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "profiles.json"
+            path.write_text("not json")
+            with self.assertRaisesRegex(ProfileStorageError, "valid JSON"):
+                ProfileRepository(path).list_profiles()
+
+            path.write_text(json.dumps({"version": 99, "selected": None, "profiles": {}}))
+            with self.assertRaisesRegex(ProfileStorageError, "version"):
+                ProfileRepository(path).list_profiles()
 
 
 if __name__ == "__main__":
