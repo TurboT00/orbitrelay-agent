@@ -64,6 +64,23 @@ class ExecuteToolTests(unittest.TestCase):
             )
             self.assertEqual(target.read_text(encoding="utf-8"), "hello")
 
+    def test_rejects_unsafe_write_during_preparation(self):
+        with tempfile.TemporaryDirectory() as root:
+            workspace = Path(root, "workspace")
+            workspace.mkdir()
+            outside_target = Path(root, "escaped.txt")
+
+            prepared = prepare_tool(
+                "call-1",
+                "write_file",
+                '{"file_path":"../escaped.txt","content":"blocked"}',
+                str(workspace),
+            )
+
+            self.assertIsInstance(prepared, str)
+            self.assertIn("outside the permitted working directory", prepared)
+            self.assertFalse(outside_target.exists())
+
     def test_parses_arguments_and_injects_the_fixed_sandbox(self):
         received = {}
 
