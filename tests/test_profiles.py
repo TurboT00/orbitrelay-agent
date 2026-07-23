@@ -282,6 +282,17 @@ class ProfileRepositoryTests(unittest.TestCase):
             with self.assertRaisesRegex(ProfileStorageError, "symbolic link"):
                 ProfileRepository(linked_directory / "profiles.json").list_profiles()
 
+    def test_rejects_group_writable_profile_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            profile_directory = Path(directory) / "unsafe"
+            profile_directory.mkdir()
+            profile_directory.chmod(0o770)
+
+            with self.assertRaisesRegex(ProfileStorageError, "group/world writable"):
+                ProfileRepository(profile_directory / "profiles.json").save(
+                    api_key_profile()
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

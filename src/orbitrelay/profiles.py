@@ -61,10 +61,10 @@ def _reject_unsafe_transport(
     is_loopback = _is_loopback(hostname)
     if auth_kind is AuthKind.LOCAL_NONE and not is_loopback:
         raise ProfileValidationError("local_none base_url must use a loopback host")
-    secret_backed = auth_kind in {AuthKind.API_KEY, AuthKind.LOCAL_SERVICE_BEARER}
-    if secret_backed and scheme != "https" and not is_loopback:
+    authenticated = auth_kind is not AuthKind.LOCAL_NONE
+    if authenticated and scheme != "https" and not is_loopback:
         raise ProfileValidationError(
-            "secret-backed profiles require HTTPS or loopback"
+            "authenticated profiles require HTTPS or loopback"
         )
 
 
@@ -72,11 +72,19 @@ def _validated_endpoint(value: object, auth_kind: AuthKind) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ProfileValidationError("base_url cannot be empty")
     base_url = value.strip()
-    parsed = urlsplit(base_url)
+    if any(character.isspace() or ord(character) < 32 for character in base_url):
+        raise ProfileValidationError("base_url cannot contain whitespace or controls")
+    try:
+        parsed = urlsplit(base_url)
+        parsed.port
+    except ValueError as exc:
+        raise ProfileValidationError("base_url port or authority is invalid") from exc
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
         raise ProfileValidationError("base_url must be an absolute HTTP(S) URL")
     if parsed.username is not None or parsed.password is not None:
         raise ProfileValidationError("base_url cannot contain credentials")
+    if parsed.query or parsed.fragment:
+        raise ProfileValidationError("base_url cannot contain a query or fragment")
     _reject_unsafe_transport(parsed.scheme, parsed.hostname, auth_kind)
     return base_url
 

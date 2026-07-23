@@ -74,6 +74,10 @@ def _read_secret(args: argparse.Namespace, context: ProfileCommandContext) -> st
 
 def _create_profile(args: argparse.Namespace, context: ProfileCommandContext) -> int:
     profile = _profile_from_args(args)
+    if args.secret_stdin and not profile.requires_secret:
+        raise ValueError(
+            f'Auth kind "{profile.auth_kind.value}" does not accept a credential'
+        )
     if profile.requires_secret:
         service = ProfileService(
             context.repository, credential_store_or_default(context.credential_store)

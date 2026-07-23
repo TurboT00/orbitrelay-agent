@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import json
 import os
+import stat
 import tempfile
-from collections.abc import Mapping
+import threading
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
+from hashlib import sha256
 from pathlib import Path
-from typing import cast
+from typing import TextIO, cast
+
+import fcntl
 
 from .profiles import ProfileValidationError, ProviderProfile
 
@@ -23,6 +29,9 @@ class ProfileExistsError(ProfileStorageError):
     pass
 
 
+_PROCESS_TRANSACTION_LOCK = threading.RLock()
+
+
 def default_profile_path(environ: Mapping[str, str] | None = None) -> Path:
     values = os.environ if environ is None else environ
     configured_home = values.get("ORBITRELAY_HOME", "").strip()
@@ -32,6 +41,28 @@ def default_profile_path(environ: Mapping[str, str] | None = None) -> Path:
         else Path.home() / ".orbitrelay"
     )
     return application_home / "profiles.json"
+
+
+def _reject_symlink(path: Path) -> None:
+    if path.is_symlink():
+        raise ProfileStorageError(f'Profile storage cannot use symbolic link "{path}"')
+
+
+def _reject_insecure_permissions(path: Path) -> None:
+    if not path.exists() or not hasattr(os, "getuid"):
+        return
+    metadata = path.stat(follow_symlinks=False)
+    if metadata.st_uid != os.getuid():
+        raise ProfileStorageError(f'Profile storage is not owned by this user: "{path}"')
+    if metadata.st_mode & (stat.S_IWGRP | stat.S_IWOTH):
+        raise ProfileStorageError(f'Profile storage is group/world writable: "{path}"')
+
+
+def _validate_storage_path(path: Path) -> None:
+    _reject_symlink(path.parent)
+    _reject_symlink(path)
+    _reject_insecure_permissions(path.parent)
+    _reject_insecure_permissions(path)
 
 
 @dataclass
@@ -153,6 +184,45 @@ class ProfileRepository:
 
     def __init__(self, path: Path | str):
         self.path = Path(path)
+        self._lock_depth = 0
+        self._lock_stream: TextIO | None = None
+
+    def credential_key(self, profile_name: str) -> str:
+        _validate_storage_path(self.path)
+        namespace = sha256(
+            str(self.path.resolve(strict=False)).encode("utf-8")
+        ).hexdigest()[:16]
+        return f"{namespace}:{profile_name}"
+
+    def _open_lock(self) -> TextIO:
+        self.path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        _validate_storage_path(self.path)
+        lock_path = self.path.with_name(f".{self.path.name}.lock")
+        _reject_symlink(lock_path)
+        flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(lock_path, flags, 0o600)
+        os.fchmod(descriptor, 0o600)
+        return os.fdopen(descriptor, "a+", encoding="utf-8")
+
+    @contextmanager
+    def transaction(self) -> Iterator[None]:
+        if self._lock_depth:
+            self._lock_depth += 1
+            try:
+                yield
+            finally:
+                self._lock_depth -= 1
+            return
+        with _PROCESS_TRANSACTION_LOCK:
+            stream = self._open_lock()
+            try:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+                self._lock_stream, self._lock_depth = stream, 1
+                yield
+            finally:
+                self._lock_depth, self._lock_stream = 0, None
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
+                stream.close()
 
     def list_profiles(self) -> tuple[ProviderProfile, ...]:
         state = self._read()
@@ -165,33 +235,37 @@ class ProfileRepository:
             raise ProfileNotFoundError(f'Profile "{name}" does not exist') from exc
 
     def save(self, profile: ProviderProfile, *, replace: bool = False) -> None:
-        state = self._read()
-        if profile.name in state.profiles and not replace:
-            raise ProfileExistsError(f'Profile "{profile.name}" already exists')
-        state.profiles[profile.name] = profile
-        self._write(state)
+        with self.transaction():
+            state = self._read()
+            if profile.name in state.profiles and not replace:
+                raise ProfileExistsError(f'Profile "{profile.name}" already exists')
+            state.profiles[profile.name] = profile
+            self._write(state)
 
     def select(self, name: str) -> None:
-        state = self._read()
-        if name not in state.profiles:
-            raise ProfileNotFoundError(f'Profile "{name}" does not exist')
-        state.selected = name
-        self._write(state)
+        with self.transaction():
+            state = self._read()
+            if name not in state.profiles:
+                raise ProfileNotFoundError(f'Profile "{name}" does not exist')
+            state.selected = name
+            self._write(state)
 
     def selected_name(self) -> str | None:
         return self._read().selected
 
     def delete(self, name: str) -> ProviderProfile:
-        state = self._read()
-        try:
-            profile = state.profiles.pop(name)
-        except KeyError as exc:
-            raise ProfileNotFoundError(f'Profile "{name}" does not exist') from exc
-        state.selected = None if state.selected == name else state.selected
-        self._write(state)
-        return profile
+        with self.transaction():
+            state = self._read()
+            try:
+                profile = state.profiles.pop(name)
+            except KeyError as exc:
+                raise ProfileNotFoundError(f'Profile "{name}" does not exist') from exc
+            state.selected = None if state.selected == name else state.selected
+            self._write(state)
+            return profile
 
     def _read(self) -> _ProfileState:
+        _validate_storage_path(self.path)
         if not self.path.exists():
             return _ProfileState(None, {})
         return _decode_state(_load_json(self.path), self.VERSION)

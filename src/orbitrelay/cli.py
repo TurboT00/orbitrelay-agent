@@ -1,5 +1,6 @@
 import argparse
 import getpass
+import os
 import sys
 from collections.abc import Callable, Sequence
 from pathlib import Path
@@ -57,7 +58,9 @@ def resolve_api_config(
     repository: ProfileRepository,
     credential_store: CredentialStore | None,
 ) -> ApiConfig | None:
-    selected_name = profile_name or repository.selected_name()
+    selected_name = (
+        profile_name if profile_name is not None else repository.selected_name()
+    )
     if selected_name is None:
         return None
     return _api_config_from_profile(
@@ -122,13 +125,16 @@ def main(
     secret_prompt: Callable[[str], str] = getpass.getpass,
     input_stream: TextIO | None = None,
 ) -> int:
+    repository = profile_repository or ProfileRepository(
+        default_profile_path(dict(os.environ))
+    )
     load_dotenv()
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     if raw_argv and raw_argv[0] == "profile":
         return run_profile_cli(
-            raw_argv[1:], profile_repository, credential_store, secret_prompt, input_stream
+            raw_argv[1:], repository, credential_store, secret_prompt, input_stream
         )
-    return _run_agent_cli(parse_args(raw_argv), profile_repository, credential_store)
+    return _run_agent_cli(parse_args(raw_argv), repository, credential_store)
 
 
 if __name__ == "__main__":

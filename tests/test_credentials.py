@@ -186,6 +186,7 @@ class FailingRepository(ProfileRepository):
 
 class FailingDeleteCredentialStore(FakeCredentialStore):
     def delete_secret(self, profile_name):
+        del profile_name
         raise CredentialStoreError("cleanup failed")
 
 
@@ -199,7 +200,10 @@ class ProfileServiceTests(unittest.TestCase):
 
             service.create(profile(), secret="top-secret")
 
-            self.assertEqual(credentials.values, {"work": "top-secret"})
+            self.assertEqual(
+                credentials.values,
+                {repository.credential_key("work"): "top-secret"},
+            )
             self.assertEqual(repository.get("work"), profile())
             self.assertNotIn("top-secret", path.read_text())
 
@@ -237,7 +241,10 @@ class ProfileServiceTests(unittest.TestCase):
             with self.assertRaises(ProfileExistsError):
                 service.create(profile(), secret="replacement-secret")
 
-            self.assertEqual(credentials.values, {"work": "original-secret"})
+            self.assertEqual(
+                credentials.values,
+                {repository.credential_key("work"): "original-secret"},
+            )
 
     def test_deletion_is_retry_safe_after_metadata_failure(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -310,6 +317,28 @@ class ProfileServiceTests(unittest.TestCase):
             )
             self.assertCountEqual(results, ["created", "exists"])
             self.assertIn(stored, {"first-secret", "second-secret"})
+
+    def test_concurrent_different_names_preserve_both_profiles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "profiles.json"
+            credentials = FakeCredentialStore()
+            start = threading.Barrier(2)
+
+            def create(name):
+                start.wait()
+                repository = ProfileRepository(path)
+                ProfileService(repository, credentials).create(
+                    profile(name), secret=f"{name}-secret"
+                )
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                list(executor.map(create, ("first", "second")))
+
+            repository = ProfileRepository(path)
+            self.assertEqual(
+                [stored.name for stored in repository.list_profiles()],
+                ["first", "second"],
+            )
 
 
 if __name__ == "__main__":

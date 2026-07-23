@@ -74,7 +74,10 @@ class ProfileCliTests(unittest.TestCase):
         output = self.run_cli(self.create_arguments())
 
         self.assertEqual(output, 'Created profile "work".\n')
-        self.assertEqual(self.credentials.values, {"work": "prompt-secret"})
+        self.assertEqual(
+            self.credentials.values,
+            {self.repository.credential_key("work"): "prompt-secret"},
+        )
         self.assertNotIn("prompt-secret", self.path.read_text())
 
     def test_create_can_read_secret_from_standard_input(self):
@@ -87,7 +90,10 @@ class ProfileCliTests(unittest.TestCase):
         )
 
         self.assertEqual(prompt_calls, [])
-        self.assertEqual(self.credentials.values, {"work": "stdin-secret"})
+        self.assertEqual(
+            self.credentials.values,
+            {self.repository.credential_key("work"): "stdin-secret"},
+        )
 
     def test_list_show_select_and_delete_never_output_secret(self):
         self.run_cli(self.create_arguments())

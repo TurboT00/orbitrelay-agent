@@ -149,7 +149,10 @@ class CliTests(unittest.TestCase):
             repository.save(profile("explicit", "https://explicit.test/v1"))
             repository.select("selected")
             credentials = FakeCredentialStore(
-                {"selected": "selected-secret", "explicit": "explicit-secret"}
+                {
+                    repository.credential_key("selected"): "selected-secret",
+                    repository.credential_key("explicit"): "explicit-secret",
+                }
             )
             fake_client = Mock(name="client")
 
@@ -196,7 +199,7 @@ class CliTests(unittest.TestCase):
                     ["inspect"],
                     profile_repository=repository,
                     credential_store=FakeCredentialStore(
-                        {"selected": "selected-secret"}
+                        {repository.credential_key("selected"): "selected-secret"}
                     ),
                 )
 
@@ -249,7 +252,7 @@ class CliTests(unittest.TestCase):
                         ["inspect", "--profile", ""],
                         profile_repository=repository,
                         credential_store=FakeCredentialStore(
-                            {"selected": "selected-secret"}
+                            {repository.credential_key("selected"): "selected-secret"}
                         ),
                     )
 
