@@ -143,6 +143,23 @@ def _dotenv_environment() -> dict[str, str]:
     return values
 
 
+def _dispatch_cli(
+    raw_argv: Sequence[str],
+    repository: ProfileRepository,
+    credential_store: CredentialStore | None,
+    secret_prompt: Callable[[str], str],
+    input_stream: TextIO | None,
+    environment: Mapping[str, str],
+) -> int:
+    if raw_argv and raw_argv[0] == "profile":
+        return run_profile_cli(
+            raw_argv[1:], repository, credential_store, secret_prompt, input_stream
+        )
+    return _run_agent_cli(
+        parse_args(raw_argv), repository, credential_store, environment
+    )
+
+
 def main(
     argv: Sequence[str] | None = None,
     *,
@@ -152,21 +169,10 @@ def main(
     input_stream: TextIO | None = None,
 ) -> int:
     process_environment = dict(os.environ)
-    repository = profile_repository or ProfileRepository(
-        default_profile_path(process_environment)
-    )
-    dotenv_environment = _dotenv_environment()
+    repository = profile_repository or ProfileRepository(default_profile_path(process_environment))
     raw_argv = list(sys.argv[1:] if argv is None else argv)
-    if raw_argv and raw_argv[0] == "profile":
-        return run_profile_cli(
-            raw_argv[1:], repository, credential_store, secret_prompt, input_stream
-        )
-    return _run_agent_cli(
-        parse_args(raw_argv),
-        repository,
-        credential_store,
-        _environment_source(process_environment, dotenv_environment),
-    )
+    environment = _environment_source(process_environment, _dotenv_environment())
+    return _dispatch_cli(raw_argv, repository, credential_store, secret_prompt, input_stream, environment)
 
 
 if __name__ == "__main__":
