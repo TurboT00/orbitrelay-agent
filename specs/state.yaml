@@ -1,15 +1,21 @@
-active_flow: review
+active_flow: release
 active_epic_id: e01
 active_story_id: e01s01
 release:
   current_version: 0.1.0
   next_target: provider-and-auth-profiles
+  pr_number: 1
+  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/1
+  pr_state: open
+  merged: false
+  ci_verified: false
+  ci_status: not_configured
 git:
   branch: feat/provider-auth-profiles
   base_hash: f423629
   handoff_ref: HEAD
   remote: origin/main
-  push_requested: false
+  push_requested: true
 working_tree:
   expected_after_handoff: clean
 verification:
@@ -19,7 +25,7 @@ verification:
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: e01s01 release gates PASS, including coverage and traceability
+  last_step_completed: e01s01 PR 1 opened; branch pushed but not merged
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -32,7 +38,7 @@ handoff:
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
   next_skill: release-branch
-  next_action: Present the reviewed P1 branch for PR, merge, keep, or discard decision; do not push without explicit approval.
+  next_action: Review PR 1 and request explicit approval before merging; GitHub reports no configured checks.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
