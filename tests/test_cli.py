@@ -1,4 +1,5 @@
 # story: e01s01, e02s01, e02s02
+# story: e02s04
 
 import json
 import os

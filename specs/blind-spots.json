@@ -1,13 +1,20 @@
 {
-  "generated_at": "2026-07-23T21:54:54.029245+00:00",
+  "generated_at": "2026-07-23T22:14:15.529242+00:00",
   "version": "1.0",
   "summary": {
-    "total_findings": 6,
+    "total_findings": 7,
     "high": 0,
     "medium": 4,
-    "low": 2
+    "low": 3
   },
   "findings": [
+    {
+      "check": "stale-tag",
+      "story_id": "e02s03",
+      "severity": "LOW",
+      "description": "Story e02s03 is marked done but still has story tags in code",
+      "remediation": "Remove `// story: e02s03` tags from files or confirm the story should remain done"
+    },
     {
       "check": "stale-tag",
       "story_id": "e02s01",
@@ -26,14 +33,14 @@
       "check": "double-tag",
       "file": "tests/test_approvals.py",
       "severity": "MEDIUM",
-      "description": "File 'tests/test_approvals.py' is tagged with multiple stories: e02s01, e02s03",
+      "description": "File 'tests/test_approvals.py' is tagged with multiple stories: e02s01, e02s03, e02s04",
       "remediation": "Review whether this file genuinely implements multiple stories. If it's a shared utility, this is acceptable."
     },
     {
       "check": "double-tag",
       "file": "src/orbitrelay/approvals.py",
       "severity": "MEDIUM",
-      "description": "File 'src/orbitrelay/approvals.py' is tagged with multiple stories: e02s01, e02s03",
+      "description": "File 'src/orbitrelay/approvals.py' is tagged with multiple stories: e02s01, e02s03, e02s04",
       "remediation": "Review whether this file genuinely implements multiple stories. If it's a shared utility, this is acceptable."
     },
     {

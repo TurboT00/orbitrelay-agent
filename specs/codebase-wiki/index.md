@@ -1,6 +1,6 @@
 ---
 type: Index
-generated_at: 2026-07-23T21:54:53.950026+00:00
+generated_at: 2026-07-23T22:14:15.452275+00:00
 total_concepts: 6
 ---
 
@@ -13,6 +13,6 @@ Auto-generated OKF bundle from trace-stories.sh.
 | [e02s01](./e02s01.md) | Approve or deny a workspace file write | high | 7 |
 | [e02s02](./e02s02.md) | Approve or deny local Python execution | high | 6 |
 | [e02s03](./e02s03.md) | Disable a tool for the current run | high | 5 |
-| [e02s04](./e02s04.md) | Run safely in read-only or unattended contexts | medium | 2 |
+| [e02s04](./e02s04.md) | Run safely in read-only or unattended contexts | high | 6 |
 | [e02s05](./e02s05.md) | Run with explicit pre-approved automation | medium | 2 |
 | [e02s06](./e02s06.md) | Audit approval decisions without secret leakage | medium | 2 |
