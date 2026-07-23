@@ -1,4 +1,6 @@
 active_flow: planning
+active_epic_id: e01
+active_story_id: e01s01
 release:
   current_version: 0.1.0
   next_target: provider-and-auth-profiles
@@ -16,7 +18,7 @@ verification:
   project_tests: 37
   example_tests: 9
 handoff:
-  last_step_completed: roadmap and local verification handoff
+  last_step_completed: P1 story slicing and implementation planning
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -25,13 +27,15 @@ handoff:
     - src/orbitrelay/agent.py
     - src/orbitrelay/tools/__init__.py
   open_decisions:
-    - Choose the credential-store contract before implementing profile secrets.
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: survey-context
-  next_action: Scope P1 provider and auth profiles as an offline-tested vertical slice.
+  next_skill: kickoff-branch
+  next_action: Review e01s01, checkpoint planning artifacts, and create the provider-auth-profiles feature worktree.
 decisions:
+  credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
+  profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
+  p1_auth_breadth: Model and validate all four roadmap auth kinds, but connect only api_key profiles to the runtime in P1.
   codex_auth: Use the official Codex CLI as a process boundary; never reproduce its OAuth flow or read auth.json.
   grok_auth: Support xAI BYOK and monitor official documentation for third-party OAuth.
   next_user_capability: Tool approvals follow provider and auth foundations.

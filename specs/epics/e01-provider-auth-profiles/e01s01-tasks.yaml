@@ -1,0 +1,77 @@
+story_id: e01s01
+title: Manage and run secure provider profiles
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Define validated, secret-free provider profile contracts for all four auth kinds.
+    verify: "uv run python -m unittest tests.test_profiles -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories:
+        - unit
+        - Auth
+        - Security Review
+  - id: 2
+    description: Persist per-user profile metadata and selected-profile state atomically without secrets.
+    verify: "uv run python -m unittest tests.test_profiles -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories:
+        - integration
+        - Persistence
+        - Security Review
+  - id: 3
+    description: Add the fail-closed native keyring credential adapter and retry-safe deletion behavior.
+    verify: "uv run python -m unittest tests.test_credentials -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories:
+        - integration
+        - Auth
+        - Security Review
+  - id: 4
+    description: Add profile create, list, inspect, select, and delete CLI flows with prompt and stdin secret entry.
+    verify: "uv run python -m unittest tests.test_profile_cli -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories:
+        - integration
+        - CLI
+        - Security Review
+  - id: 5
+    description: Resolve --profile, saved selection, and OPENAI_* fallback into the existing agent client boundary.
+    verify: "uv run python -m unittest tests.test_cli -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories:
+        - integration
+        - Compatibility
+        - Security Review
+  - id: 6
+    description: Add recursive redaction, user documentation, locked dependency metadata, and full-package verification.
+    verify: "./scripts/check.sh"
+    risk: P1
+    security: medium
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - regression
+        - Packaging
+        - Security Review
