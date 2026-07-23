@@ -112,6 +112,19 @@ class ApprovalSessionTests(unittest.TestCase):
         self.assertFalse(decision.approved)
         self.assertEqual(decision.reason, "approval_timeout")
 
+    def test_malformed_input_exhaustion_denies_after_bounded_retries(self):
+        output = StringIO()
+        authorizer = TerminalAuthorizer(StringIO("maybe\nunknown\n?\n"), output)
+        request = ApprovalRequest.for_write(
+            call_id="call-invalid", target="notes.txt", content_length=1
+        )
+
+        (decision,) = ApprovalSession(authorizer).authorize((request,))
+
+        self.assertFalse(decision.approved)
+        self.assertEqual(decision.reason, "approval_invalid_input")
+        self.assertEqual(output.getvalue().count("Approve write_file"), 3)
+
     def test_disable_decision_denies_later_same_tool_without_authorizer(self):
         authorization_calls = []
 
