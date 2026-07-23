@@ -35,6 +35,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--workspace",
         help="Workspace directory (default: current directory)",
     )
+    _add_approval_options(parser)
+    return parser.parse_args(argv)
+
+
+def _add_approval_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--approval-policy",
         choices=[mode.value for mode in ApprovalMode],
@@ -47,7 +52,6 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         metavar="SECONDS",
         help="Confirmation timeout in seconds (default: 60; maximum: 300)",
     )
-    return parser.parse_args(argv)
 
 
 def resolve_workspace(value: str | None) -> str:

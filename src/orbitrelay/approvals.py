@@ -8,6 +8,8 @@ from enum import StrEnum
 import selectors
 from typing import Any, Protocol, TextIO, cast
 
+from .approval_format import SafeContext, format_approval_request
+
 
 class ToolCategory(StrEnum):
     READ = "read"
@@ -26,9 +28,6 @@ class ApprovalMode(StrEnum):
     PRE_APPROVED = "pre-approved"
 
 
-SafeValue = str | int | tuple[str, ...]
-SafeContext = tuple[tuple[str, SafeValue], ...]
-MAX_SAFE_VALUE_LENGTH = 200
 MAX_APPROVAL_ATTEMPTS = 3
 
 
@@ -210,15 +209,7 @@ class TerminalAuthorizer:
             response = self._read_response()
         except TimeoutError:
             return ApprovalDecision.deny(reason="approval_timeout")
-        if response.strip().lower() in {"y", "yes"}:
-            return ApprovalDecision.approve(reason="user_approved")
-        if response.strip().lower() in {"d", "disable"}:
-            return ApprovalDecision.disable_tool()
-        if response == "":
-            return ApprovalDecision.deny(reason="approval_eof")
-        if response.strip().lower() in {"n", "no"}:
-            return ApprovalDecision.deny(reason="user_denied")
-        return None
+        return _decision_for_response(response)
 
     def _read_response(self) -> str:
         if self._require_tty:
@@ -227,6 +218,19 @@ class TerminalAuthorizer:
                 if not selector.select(self._timeout_seconds):
                     raise TimeoutError
         return self._input_stream.readline()
+
+
+def _decision_for_response(response: str) -> ApprovalDecision | None:
+    normalized = response.strip().lower()
+    if normalized in {"y", "yes"}:
+        return ApprovalDecision.approve(reason="user_approved")
+    if normalized in {"d", "disable"}:
+        return ApprovalDecision.disable_tool()
+    if response == "":
+        return ApprovalDecision.deny(reason="approval_eof")
+    if normalized in {"n", "no"}:
+        return ApprovalDecision.deny(reason="user_denied")
+    return None
 
 
 def _is_tty(stream: ApprovalInput) -> bool:
@@ -280,24 +284,3 @@ class ApprovalRequest:
                 ("argument_count", len(arguments)),
             ),
         )
-
-
-def format_approval_request(request: ApprovalRequest) -> str:
-    context = " ".join(
-        f"{key}={_safe_value(value)}" for key, value in request.safe_context
-    )
-    if not context:
-        return request.tool_name
-    return f"{request.tool_name} ({context})"
-
-
-def _safe_value(value: SafeValue) -> str:
-    if isinstance(value, int):
-        visible = str(value)
-    elif isinstance(value, tuple):
-        visible = f"[{', '.join(ascii(item) for item in value)}]"
-    else:
-        visible = ascii(value)
-    if len(visible) <= MAX_SAFE_VALUE_LENGTH:
-        return visible
-    return f"{visible[:MAX_SAFE_VALUE_LENGTH]}...<truncated>"
