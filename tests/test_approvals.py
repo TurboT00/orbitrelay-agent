@@ -1,6 +1,11 @@
 import unittest
 
-from orbitrelay.approvals import ApprovalRequest, ToolCategory
+from orbitrelay.approvals import (
+    ApprovalDecision,
+    ApprovalDisposition,
+    ApprovalRequest,
+    ToolCategory,
+)
 
 
 class ApprovalRequestTests(unittest.TestCase):
@@ -21,6 +26,15 @@ class ApprovalRequestTests(unittest.TestCase):
             (("target", "notes.txt"), ("content_length", len(secret_content))),
         )
         self.assertNotIn(secret_content, repr(request))
+
+
+class ApprovalDecisionTests(unittest.TestCase):
+    def test_denial_exposes_a_stable_reason(self):
+        decision = ApprovalDecision.deny(reason="user_denied")
+
+        self.assertEqual(decision.disposition, ApprovalDisposition.DENIED)
+        self.assertEqual(decision.reason, "user_denied")
+        self.assertFalse(decision.approved)
 
 
 if __name__ == "__main__":
