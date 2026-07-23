@@ -30,8 +30,8 @@ stories:
     bcps: 5
     epic: e02
     tasks_total: 5
-    tasks_passing: 5
-    tasks_failing: 0
+    tasks_passing: 4
+    tasks_failing: 1
     risk_max: P0
     security_max: high
     started_at: "2026-07-23T19:05:28Z"
