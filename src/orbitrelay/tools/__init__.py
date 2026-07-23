@@ -177,6 +177,13 @@ def _approval_request(
 ) -> ApprovalRequest | str:
     if name == "write_file":
         return _write_approval_request(call_id, name, arguments)
+    if name == "run_python_file":
+        return ApprovalRequest.for_execution(
+            call_id=call_id,
+            workspace=arguments["working_directory"],
+            target=arguments["file_path"],
+            arguments=arguments.get("args") or (),
+        )
     return ApprovalRequest(
         call_id=call_id,
         tool_name=name,
