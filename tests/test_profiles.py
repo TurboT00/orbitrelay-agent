@@ -3,15 +3,17 @@ import json
 import tempfile
 from pathlib import Path
 
+from orbitrelay.profile_store import (
+    ProfileExistsError,
+    ProfileNotFoundError,
+    ProfileRepository,
+    ProfileStorageError,
+)
 from orbitrelay.profiles import (
     AuthKind,
     ProviderCapability,
     ProviderProfile,
     ProfileValidationError,
-    ProfileExistsError,
-    ProfileNotFoundError,
-    ProfileRepository,
-    ProfileStorageError,
 )
 
 

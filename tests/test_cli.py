@@ -11,9 +11,9 @@ from unittest.mock import Mock, patch
 from orbitrelay import cli
 from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.config import DEFAULT_BASE_URL, DEFAULT_MODEL
+from orbitrelay.profile_store import ProfileRepository
 from orbitrelay.profiles import (
     AuthKind,
-    ProfileRepository,
     ProviderCapability,
     ProviderProfile,
 )

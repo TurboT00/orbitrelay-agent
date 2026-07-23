@@ -8,11 +8,13 @@ from orbitrelay.credentials import (
     KeyringCredentialStore,
     ProfileService,
 )
-from orbitrelay.profiles import (
-    AuthKind,
+from orbitrelay.profile_store import (
     ProfileExistsError,
     ProfileRepository,
     ProfileStorageError,
+)
+from orbitrelay.profiles import (
+    AuthKind,
     ProviderCapability,
     ProviderProfile,
 )

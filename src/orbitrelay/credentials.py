@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from .profiles import (
+from .profile_store import (
     ProfileExistsError,
     ProfileNotFoundError,
     ProfileRepository,
-    ProviderProfile,
 )
+from .profiles import ProviderProfile
 
 
 KEYRING_SERVICE = "orbitrelay-agent"
@@ -103,25 +103,28 @@ class ProfileService:
         self.repository = repository
         self.credential_store = credential_store
 
-    def create(self, profile: ProviderProfile, *, secret: str | None = None) -> None:
+    def _ensure_new(self, profile_name: str) -> None:
         try:
-            self.repository.get(profile.name)
+            self.repository.get(profile_name)
         except ProfileNotFoundError:
-            pass
-        else:
-            raise ProfileExistsError(f'Profile "{profile.name}" already exists')
+            return
+        raise ProfileExistsError(f'Profile "{profile_name}" already exists')
 
+    def _create_secret_profile(self, profile: ProviderProfile, secret: str) -> None:
+        self.credential_store.set_secret(profile.name, secret)
+        try:
+            self.repository.save(profile)
+        except Exception:
+            self.credential_store.delete_secret(profile.name)
+            raise
+
+    def create(self, profile: ProviderProfile, *, secret: str | None = None) -> None:
+        self._ensure_new(profile.name)
+        if profile.requires_secret and not secret:
+            raise CredentialStoreError(f'Profile "{profile.name}" requires a credential')
         if profile.requires_secret:
-            if not secret:
-                raise CredentialStoreError(
-                    f'Profile "{profile.name}" requires a credential'
-                )
-            self.credential_store.set_secret(profile.name, secret)
-            try:
-                self.repository.save(profile)
-            except Exception:
-                self.credential_store.delete_secret(profile.name)
-                raise
+            assert secret is not None
+            self._create_secret_profile(profile, secret)
             return
         if secret is not None:
             raise CredentialStoreError(

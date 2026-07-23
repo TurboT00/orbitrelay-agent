@@ -7,7 +7,7 @@ from pathlib import Path
 
 from orbitrelay import cli
 from orbitrelay.credentials import CredentialNotFoundError
-from orbitrelay.profiles import ProfileRepository
+from orbitrelay.profile_store import ProfileRepository
 
 
 CAPABILITY_ARGS = [

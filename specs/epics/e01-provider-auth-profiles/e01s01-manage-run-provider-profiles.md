@@ -6,6 +6,8 @@ STATUS:    Refined
 AUTHOR:    OrbitRelay team           DATE: 2026-07-22
 MATURITY:  5
 SIZE:      XL
+type:      feat
+context:   domain
 
 ### 1. Business narrative [reviewed]
 
@@ -257,14 +259,17 @@ versioned serialization, atomic persistence, selection, and cleanup invariants.
 **Reason for Depth — CredentialStore:** a three-operation boundary isolates native
 keyring failures and keeps tests independent from real credentials.
 
+**Reason for Depth — ProfileCommandContext:** one immutable dependency bundle
+keeps profile action handlers small without hiding their I/O boundaries.
+
 ## Implementation steps
 
-1. Add public profile contracts and kind-specific validation through behavior tests → verify: `uv run python -m unittest tests.test_profiles -v`
-2. Add per-user atomic profile persistence and selected-profile behavior → verify: `uv run python -m unittest tests.test_profiles -v`
-3. Add the keyring-backed credential boundary and retry-safe secret lifecycle → verify: `uv run python -m unittest tests.test_credentials -v`
-4. Add profile management commands with safe prompt/stdin secret entry → verify: `uv run python -m unittest tests.test_profile_cli -v`
-5. Add explicit/saved/environment resolution at the existing client-construction seam → verify: `uv run python -m unittest tests.test_cli -v`
-6. Add recursive redaction, documentation, lockfile changes, and regression coverage → verify: `./scripts/check.sh`
+1. Add public profile contracts and kind-specific validation through behavior tests (ref: scope commit `f423629`) → verify: `uv run python -m unittest tests.test_profiles -v`
+2. Add per-user atomic profile persistence and selected-profile behavior (ref: scope commit `f423629`) → verify: `uv run python -m unittest tests.test_profiles -v`
+3. Add the keyring-backed credential boundary and retry-safe secret lifecycle (ref: scope commit `f423629`) → verify: `uv run python -m unittest tests.test_credentials -v`
+4. Add profile management commands with safe prompt/stdin secret entry (ref: scope commit `f423629`) → verify: `uv run python -m unittest tests.test_profile_cli -v`
+5. Add explicit/saved/environment resolution at the existing client-construction seam (ref: scope commit `f423629`) → verify: `uv run python -m unittest tests.test_cli -v`
+6. Add recursive redaction, documentation, lockfile changes, and regression coverage (ref: scope commit `f423629`) → verify: `./scripts/check.sh`
 
 ## Verification script
 
