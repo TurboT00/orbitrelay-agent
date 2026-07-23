@@ -1,0 +1,123 @@
+initiative: provider-and-auth-profiles
+roadmap_priority: P1
+status: scoped
+
+core_value: >-
+  Let users choose a named, validated provider connection without exposing its
+  credentials, while keeping today's OPENAI_* setup working unchanged.
+
+summary: >-
+  P1 introduces per-user provider profiles as the first end-to-end configuration
+  slice. A user can manage non-secret profile metadata, keep profile credentials
+  in the native operating-system credential store, select a profile, and run the
+  existing agent through an API-key-backed OpenAI-compatible endpoint. Invalid
+  profiles fail before any network client is created.
+
+  The slice defines and validates the roadmap's four authentication contracts so
+  later providers compose against a stable boundary. Only api_key is connected to
+  the runtime in P1. Codex CLI execution and local-provider execution remain in
+  their roadmap milestones. Existing OPENAI_API_KEY, OPENAI_BASE_URL, and
+  OPENAI_MODEL values continue to form a migration-compatible default profile;
+  OrbitRelay does not silently copy environment credentials into persistent
+  storage.
+
+in_scope:
+  - id: P1-S1
+    outcome: >-
+      Define named provider profiles with explicit endpoint, model,
+      provider-declared capabilities, and one of api_key,
+      external_first_party_cli, local_none, or local_service_bearer auth kinds.
+  - id: P1-S2
+    outcome: >-
+      Validate every auth kind and reject incomplete or contradictory profiles
+      before client construction or network access.
+  - id: P1-S3
+    outcome: >-
+      Persist non-secret profile metadata only in the current user's config area
+      and persist profile secrets only through a native OS credential-store
+      contract that fails closed when unavailable.
+  - id: P1-S4
+    outcome: >-
+      Let users create, list, inspect, select, and delete named profiles without
+      displaying or serializing secret values.
+  - id: P1-S5
+    outcome: >-
+      Resolve a selected api_key profile into the existing OpenAI-compatible
+      agent runtime while preserving a deterministic OPENAI_* compatibility path.
+  - id: P1-S6
+    outcome: >-
+      Redact credentials recursively from profile output, diagnostics, and logs,
+      and prove profile behavior with offline tests using fake credential stores
+      and clients.
+
+out_of_scope:
+  - item: Operational external_first_party_cli authentication
+    reason: >-
+      Deferred to P3; P1 supplies only the validated contract and must not read,
+      copy, or emulate a first-party CLI's credentials.
+  - item: Operational local_none and local_service_bearer providers
+    reason: >-
+      Deferred to P5 after capability profiles, tool approvals, and conversation
+      foundations exist; P1 supplies only their validated contracts.
+  - item: Third-party OAuth or provider password collection
+    reason: >-
+      Excluded unless a provider publishes registration, scope, redirect,
+      refresh, revocation, and third-party client contracts.
+  - item: Project-local or repository-shared profile metadata
+    reason: >-
+      Deferred to avoid repository policy, precedence, and accidental disclosure
+      concerns in the first profile slice.
+  - item: Plaintext, encrypted-file, or command-argument secret fallback
+    reason: >-
+      Excluded because a missing native credential store must fail closed rather
+      than weaken the approved security boundary.
+  - item: Automatic provider discovery or capability probing
+    reason: >-
+      Deferred because P1 uses explicit provider-declared capabilities; probing
+      requires provider-specific qualification and failure semantics.
+  - item: Tool approval policy, persistent conversations, and streaming
+    reason: >-
+      Deferred to P2 and P4 according to the dependency-aware roadmap.
+  - item: New platform-support guarantees
+    reason: >-
+      Deferred to P7; P1 must report an unavailable native credential backend
+      clearly but does not certify additional operating systems.
+
+constraints:
+  product:
+    - Existing OPENAI_* users retain a working compatibility path.
+    - Named profile metadata is per-user and never written into a workspace.
+    - Environment credentials are not imported into persistent storage implicitly.
+    - Only api_key profiles are executable in P1; the other auth kinds are contract-only.
+  security:
+    - Secrets never appear in profile files, command arguments, serialized profiles, logs, or user-visible inspection output.
+    - Native credential storage is accessed behind a replaceable contract and has no plaintext fallback.
+    - Deleting a profile removes both its metadata and its credential-store entry, with deterministic partial-failure reporting.
+    - Credential and profile identifiers must not permit path, service-name, or namespace injection.
+  technical:
+    - Preserve the installable orbitrelay and python -m orbitrelay entry points.
+    - Keep provider configuration independent from the agent's tool loop and workspace sandbox.
+    - Preserve Python 3.14 as the currently declared minimum.
+    - Automated tests use fake clients and credential stores and make no live provider or keychain calls.
+    - Provider capabilities are explicit data, not inferred from a /v1 URL.
+  delivery:
+    - This scope defines outcomes only; storage libraries, file formats, CLI syntax, and module boundaries are selected during planning.
+    - No implementation begins until story slicing and the credential-store adapter design are reviewed.
+
+success_criteria:
+  - Existing OPENAI_* configuration still runs the current API-key-backed agent without requiring a saved profile.
+  - A user can create, list, inspect, select, and delete a per-user named profile while no secret value appears in persisted metadata or command output.
+  - A selected api_key profile reaches the existing agent through a fully offline-tested client-construction boundary.
+  - Invalid profile metadata, missing credentials, unsupported runtime auth kinds, and unavailable credential storage fail before network access with actionable errors.
+  - Unit tests cover valid and invalid forms of all four auth kinds without real credentials.
+  - Serialization and recursive-redaction tests prove that representative nested credential values cannot leak.
+  - Profile deletion behavior is tested for metadata failure, credential-store failure, and retry-safe cleanup.
+  - ./scripts/check.sh passes after implementation, including package build and isolated-wheel smoke checks.
+
+references:
+  - docs/project-roadmap.md#p1--provider-and-auth-profiles
+  - README.md#configuration
+  - specs/state.yaml
+  - src/orbitrelay/config.py
+  - src/orbitrelay/cli.py
+  - src/orbitrelay/agent.py

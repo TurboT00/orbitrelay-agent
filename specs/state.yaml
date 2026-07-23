@@ -11,11 +11,11 @@ release:
   ci_verified: false
   ci_status: not_configured
 git:
-  branch: main
-  base_hash: f423629
+  branch: feat/tool-approval-policies
+  base_hash: 8bcefba
   handoff_ref: HEAD
   remote: origin/main
-  push_requested: true
+  push_requested: false
 working_tree:
   expected_after_handoff: clean
 verification:
@@ -25,7 +25,7 @@ verification:
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: P1 provider/auth profiles approved, archived, and merged through PR 1
+  last_step_completed: P1 merged and cleaned up; P2 tool approval policies scoped
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -37,8 +37,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: scope-work
-  next_action: Scope P2 tool approval policies from clean main before implementation.
+  next_skill: slice-tasks
+  next_action: Slice the approved P2 scope into vertical e02 stories before implementation planning.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -53,4 +53,4 @@ preferences:
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
 metrics:
-  story_start: "2026-07-23T00:05:08Z"
+  story_start: "2026-07-23T18:05:40Z"
