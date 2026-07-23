@@ -5,9 +5,9 @@ release:
   current_version: 0.3.0
   target_version: 0.3.0
   next_target: codex-bridge-and-xai-byok
-  pr_number: null
-  pr_url: null
-  pr_state: ready_local
+  pr_number: 2
+  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/2
+  pr_state: open
   merged: false
   ci_verified: false
   ci_status: not_configured
@@ -16,8 +16,8 @@ git:
   branch: feat/tool-approval-policies
   base_hash: 8bcefba
   handoff_ref: HEAD
-  remote: origin/main
-  push_requested: false
+  remote: origin/feat/tool-approval-policies
+  push_requested: true
 working_tree:
   expected_after_handoff: clean
 verification:
@@ -34,7 +34,7 @@ epic_cycle:
   completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message, release-branch]
   audit_result: pass
 handoff:
-  last_step_completed: 0.3.0 release package prepared locally; branch remains unpushed
+  last_step_completed: 0.3.0 branch pushed and PR #2 opened
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -47,7 +47,7 @@ handoff:
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
   next_skill: release-branch
-  next_action: On explicit request, push feat/tool-approval-policies and open the 0.3.0 PR; otherwise keep local.
+  next_action: Review and merge PR #2 when ready; then tag/publish 0.3.0 if desired.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
