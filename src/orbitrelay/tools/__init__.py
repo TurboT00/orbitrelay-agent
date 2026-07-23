@@ -1,6 +1,10 @@
 import json
 from collections.abc import Callable
+from dataclasses import dataclass, field
+from inspect import signature
 from typing import Any
+
+from orbitrelay.approvals import ApprovalRequest, ToolCategory
 
 from .get_file_content import get_file_content
 from .get_files_info import get_files_info
@@ -14,6 +18,21 @@ FUNCTIONS: dict[str, Callable[..., str]] = {
     "run_python_file": run_python_file,
     "write_file": write_file,
 }
+
+TOOL_CATEGORIES: dict[str, ToolCategory] = {
+    "get_files_info": ToolCategory.READ,
+    "get_file_content": ToolCategory.READ,
+    "run_python_file": ToolCategory.EXECUTE,
+    "write_file": ToolCategory.WRITE,
+}
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedToolCall:
+    name: str
+    approval_request: ApprovalRequest
+    _function: Callable[..., str] = field(repr=False)
+    _arguments: tuple[tuple[str, Any], ...] = field(repr=False)
 
 
 TOOL_DEFINITIONS: list[dict[str, Any]] = [
@@ -96,12 +115,12 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
 ]
 
 
-def execute_tool(
+def prepare_tool(
+    call_id: str,
     name: str,
     arguments_json: str,
     working_directory: str,
-    verbose: bool = False,
-) -> str:
+) -> PreparedToolCall | str:
     function = FUNCTIONS.get(name)
     if function is None:
         return f'Error: unknown function "{name}"'
@@ -116,15 +135,61 @@ def execute_tool(
 
     arguments["working_directory"] = working_directory
 
+    try:
+        signature(function).bind(**arguments)
+    except TypeError as exc:
+        return f'Error: invalid arguments for "{name}": {exc}'
+
+    category = TOOL_CATEGORIES[name]
+    if name == "write_file":
+        approval_request = ApprovalRequest.for_write(
+            call_id=call_id,
+            target=arguments["file_path"],
+            content_length=len(arguments["content"]),
+        )
+    else:
+        approval_request = ApprovalRequest(
+            call_id=call_id,
+            tool_name=name,
+            category=category,
+            safe_context=(),
+        )
+
+    return PreparedToolCall(
+        name=name,
+        approval_request=approval_request,
+        _function=function,
+        _arguments=tuple(arguments.items()),
+    )
+
+
+def execute_prepared_tool(
+    prepared: PreparedToolCall,
+    verbose: bool = False,
+) -> str:
+    arguments = dict(prepared._arguments)
+
     if verbose:
         visible_arguments = {
             key: value for key, value in arguments.items() if key != "working_directory"
         }
-        print(f"Calling function: {name}({visible_arguments})")
+        print(f"Calling function: {prepared.name}({visible_arguments})")
     else:
-        print(f" - Calling function: {name}")
+        print(f" - Calling function: {prepared.name}")
 
     try:
-        return function(**arguments)
+        return prepared._function(**arguments)
     except Exception as exc:
-        return f'Error: invalid arguments for "{name}": {exc}'
+        return f'Error: invalid arguments for "{prepared.name}": {exc}'
+
+
+def execute_tool(
+    name: str,
+    arguments_json: str,
+    working_directory: str,
+    verbose: bool = False,
+) -> str:
+    prepared = prepare_tool("direct-call", name, arguments_json, working_directory)
+    if isinstance(prepared, str):
+        return prepared
+    return execute_prepared_tool(prepared, verbose)
