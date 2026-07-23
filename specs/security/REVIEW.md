@@ -1,9 +1,9 @@
-# Security Review — e02s04 Read-Only and Unattended Safety
+# Security Review — e02s05 Explicit Pre-Approved Automation
 
-- Reviewed at: `2026-07-23T22:15:00Z`
-- Story baseline: `86488c5`
+- Reviewed at: `2026-07-23T22:35:00Z`
+- Story baseline: `e2b044f`
 - Merge base: `8bcefba610a4fd1c66c47e665247325b04ecfdb2`
-- Scope: e02s04 production and test changes on `feat/tool-approval-policies`
+- Scope: e02s05 production and test changes on `feat/tool-approval-policies`
 - Threat model: `specs/security/epics/e02/THREAT_MODEL.md`
 
 ## Gate result
@@ -12,46 +12,46 @@
 
 ## Data-flow review
 
-1. CLI accepts approval policy and timeout exclusively from explicit arguments;
-   timeout is parsed and bounded before `OpenAI` construction.
-2. `ApprovalMode.READ_ONLY` replaces the authorizer with a policy that permits
-   only read-category requests and returns `read_only_policy` without prompting.
-3. Confirm mode treats TTY absence, EOF, expired selector readiness, malformed
-   input exhaustion, and a fake `TimeoutError` source as specific denials.
-4. `TerminalAuthorizer` uses selectors only for the real `sys.stdin` path. Test
-   streams are injected trusted sources; no test waits for wall-clock timeout.
-5. The existing agent turns every denial into a correlated tool result before
-   executing a handler. Existing workspace/symlink validation remains active for reads.
+1. CLI is the only allowlist authority. `--approve-tool` is validated before
+   `OpenAI` construction and only when `--approval-policy pre-approved` is set.
+2. Accepted names are restricted to the fixed consequential set
+   `{write_file, run_python_file}`; empty, duplicate, read-tool, and unknown
+   entries raise configuration errors.
+3. `ApprovalSession` stores an immutable `frozenset` of approved tool names and
+   returns `explicit_preapproval` only for exact matches.
+4. Unlisted consequential tools receive `tool_not_preapproved` and never reach
+   handlers. Read tools continue under ordinary confined-read policy.
+5. Preparation still runs before authorization, so path/symlink confinement
+   failures remain side-effect free even when the tool name is listed.
 
 ## Vulnerability assessment
 
 | Category | Result | Evidence |
 |---|---|---|
-| Authorization bypass | PASS | Read-only denies write/execute without calling injected authorizers; confirm paths fail closed before dispatch. |
-| Unattended execution | PASS | Real non-TTY stdin produces `approval_noninteractive`; EOF, timeout, and malformed input cannot approve. |
-| Input validation | PASS | Timeout rejects nonnumeric, non-finite, zero, negative, and values above 300 before provider client construction. |
-| Prompt spoofing | PASS | Retry count is bounded to three and entered text is neither logged nor reflected. |
-| Path traversal | PASS | Policy changes no handler path logic; existing tool and sandbox confinement suite remains green. |
-| Secrets exposure | PASS | Policy state and denial reasons contain no provider credentials, arguments, output, or file content. |
+| Authorization bypass | PASS | Listing `write_file` does not approve `run_python_file`; unlisted execution starts no process. |
+| Allowlist authority | PASS | Model arguments cannot expand the set; only CLI flags construct `approved_tools`. |
+| Ambiguous automation | PASS | Pre-approved mode without tools, tools without pre-approved mode, duplicates, and unknown names fail before client creation. |
+| Path traversal | PASS | Pre-approved agent batches with escaping write/exec symlinks still return confinement errors and leave outside files untouched. |
+| Secrets exposure | PASS | Decision reasons name tools and policy only; write content and process arguments remain out of approval state. |
+| Privilege expansion | PASS | No blanket all-tools flag, environment policy, path patterns, or persistent allowlist was added. |
 
 ## False-positive filtering
 
-- The selector has a platform-specific terminal readiness role only; its timeout
-  is bounded and no shell/process construction is added.
-- `pre-approved` parses safely but remains fail-closed (`pre_approval_unavailable`)
-  until e02s05 supplies an explicit per-tool allowlist.
+- Empty `approved_tools` on a directly constructed session remains fail-closed
+  (`tool_not_preapproved`); the CLI path rejects that configuration as ambiguous.
+- Approval timeout remains validated for all policies for parse simplicity; it is
+  unused by the no-prompt pre-approved authorizer and cannot approve tools.
 
 ## Non-blocking residual risks
 
-- Windows terminal certification, remote approvers, persisted policies, and CI
-  service integration remain outside P2.
-- Pre-approved tool allowlists and sanitized decision audit events remain e02s05/e02s06.
+- Windows terminal certification, remote approvers, and CI service integration
+  remain outside P2.
+- Sanitized verbose decision audit events remain e02s06.
 
 ## Security test evidence
 
-- `tests.test_approvals`: read-only, timeout, EOF, malformed retry, and non-TTY policies.
-- `tests.test_cli`: policy injection and invalid timeout rejection before client creation.
-- `tests.test_agent`: policy denial and timeout denial before write side effects.
-- `tests.test_tools` and `tests.test_sandbox`: workspace and symlink confinement unchanged.
-- Affected security suite: 64 tests passed in 0.366 seconds.
-- Configured Ty and Ruff diagnostics: zero.
+- `tests.test_approvals`: listed write approved; unlisted execution denied.
+- `tests.test_cli`: allowlist injection and ambiguous configuration rejection before client creation.
+- `tests.test_agent`: pre-approved write executes; unlisted execution denied; symlink escapes still confined.
+- `tests.test_tools` and `tests.test_sandbox`: preparation and symlink confinement remain green.
+- Affected security suite: 76 tests passed in 0.406 seconds.

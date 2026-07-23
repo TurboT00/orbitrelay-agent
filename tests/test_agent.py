@@ -1,4 +1,5 @@
 # story: e02s01, e02s02
+# story: e02s05
 
 import copy
 import json
@@ -454,6 +455,58 @@ class AgentLoopTests(unittest.TestCase):
         self.assertEqual(result, "done")
         denial = json.loads(completions.calls[1]["messages"][-1]["content"])
         self.assertEqual(denial["error"]["reason"], "tool_not_preapproved")
+
+    def test_preapproved_policy_still_enforces_path_and_symlink_confinement(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"escape-link.txt","content":"overwritten"}',
+                ),
+                tool_call(
+                    "call-exec",
+                    "run_python_file",
+                    '{"file_path":"escape.py"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as root:
+            workspace = Path(root, "workspace")
+            outside = Path(root, "outside")
+            workspace.mkdir()
+            outside.mkdir()
+            outside_file = outside / "secret.txt"
+            outside_script = outside / "secret.py"
+            outside_file.write_text("original", encoding="utf-8")
+            outside_script.write_text("print('escaped')", encoding="utf-8")
+            try:
+                (workspace / "escape-link.txt").symlink_to(outside_file)
+                (workspace / "escape.py").symlink_to(outside_script)
+            except (NotImplementedError, OSError) as exc:
+                self.skipTest(f"symlinks unavailable: {exc}")
+
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                result = run_agent(
+                    client,
+                    "escape confinement",
+                    "deepseek-v4-flash",
+                    working_directory=str(workspace),
+                    approval_session=ApprovalSession(
+                        mode=ApprovalMode.PRE_APPROVED,
+                        approved_tools=frozenset({"write_file", "run_python_file"}),
+                    ),
+                )
+
+            self.assertEqual(result, "done")
+            self.assertEqual(outside_file.read_text(encoding="utf-8"), "original")
+            run.assert_not_called()
+
+        tool_messages = completions.calls[1]["messages"][-2:]
+        self.assertIn("outside the permitted working directory", tool_messages[0]["content"])
+        self.assertIn("outside the permitted working directory", tool_messages[1]["content"])
 
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
