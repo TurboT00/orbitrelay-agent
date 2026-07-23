@@ -1,3 +1,5 @@
+# story: e02s03
+
 import json
 from collections.abc import Iterator
 from typing import Any

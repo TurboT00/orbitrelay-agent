@@ -1,4 +1,5 @@
 # story: e02s01
+# story: e02s03
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass

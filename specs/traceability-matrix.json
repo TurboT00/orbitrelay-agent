@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-23T21:18:25.397469+00:00",
+  "generated_at": "2026-07-23T21:54:53.949485+00:00",
   "matrix_version": "1.0",
   "stories": [
     {
@@ -20,12 +20,6 @@
         {
           "file": "tests/test_approvals.py",
           "line": 1,
-          "confidence": "high",
-          "method": "explicit_tag"
-        },
-        {
-          "file": "tests/test_cli.py",
-          "line": 2,
           "confidence": "high",
           "method": "explicit_tag"
         },
@@ -60,7 +54,7 @@
           "method": "task_reference"
         }
       ],
-      "link_count": 8
+      "link_count": 7
     },
     {
       "id": "e02s02",
@@ -69,7 +63,7 @@
       "epic_title": "Tool Approval Policies",
       "bcp": 0,
       "wsjf": 4.0,
-      "status": "in_progress",
+      "status": "done",
       "links": [
         {
           "file": "tests/test_tools.py",
@@ -117,8 +111,26 @@
       "epic_title": "Tool Approval Policies",
       "bcp": 0,
       "wsjf": 4.0,
-      "status": "pending",
+      "status": "in_progress",
       "links": [
+        {
+          "file": "tests/test_approvals.py",
+          "line": 2,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/orbitrelay/approvals.py",
+          "line": 2,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/orbitrelay/agent.py",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
         {
           "file": "specs/epics/e02-tool-approval-policies/e02s03-disable-tool-for-run.md",
           "line": 0,
@@ -132,7 +144,7 @@
           "method": "task_reference"
         }
       ],
-      "link_count": 2
+      "link_count": 5
     },
     {
       "id": "e02s04",
@@ -209,7 +221,7 @@
   ],
   "summary": {
     "total_stories": 6,
-    "tagged_stories": 2,
+    "tagged_stories": 3,
     "dark_stories": [],
     "dark_count": 0,
     "orphan_tags": [
@@ -217,11 +229,12 @@
     ],
     "orphan_count": 1,
     "stale_tags": [
-      "e02s01"
+      "e02s01",
+      "e02s02"
     ],
-    "stale_count": 1,
+    "stale_count": 2,
     "oracle_stats": {
-      "high": 7,
+      "high": 9,
       "medium": 9,
       "low": 6
     }
