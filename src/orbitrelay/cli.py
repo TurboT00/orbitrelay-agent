@@ -24,6 +24,7 @@ from .profiles import AuthKind, ProviderProfile
 OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
 DEFAULT_APPROVAL_TIMEOUT = 60.0
 MAX_APPROVAL_TIMEOUT = 300.0
+CONSEQUENTIAL_TOOL_NAMES = frozenset({"write_file", "run_python_file"})
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -51,6 +52,13 @@ def _add_approval_options(parser: argparse.ArgumentParser) -> None:
         default=str(int(DEFAULT_APPROVAL_TIMEOUT)),
         metavar="SECONDS",
         help="Confirmation timeout in seconds (default: 60; maximum: 300)",
+    )
+    parser.add_argument(
+        "--approve-tool",
+        action="append",
+        default=[],
+        metavar="TOOL",
+        help="Pre-approve one exact consequential tool (repeatable)",
     )
 
 
@@ -129,6 +137,7 @@ def _invoke_agent(
 ) -> str:
     workspace = resolve_workspace(args.workspace)
     timeout = _approval_timeout(args.approval_timeout)
+    approved_tools = _approved_tools(args)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
     return run_agent(
         client,
@@ -136,7 +145,9 @@ def _invoke_agent(
         api_config.model,
         working_directory=workspace,
         verbose=args.verbose,
-        approval_session=_approval_session(input_stream, ApprovalMode(args.approval_policy), timeout),
+        approval_session=_approval_session(
+            input_stream, ApprovalMode(args.approval_policy), timeout, approved_tools
+        ),
     )
 
 
@@ -150,10 +161,28 @@ def _approval_timeout(value: str) -> float:
     return timeout
 
 
+def _approved_tools(args: argparse.Namespace) -> frozenset[str]:
+    tools = tuple(args.approve_tool)
+    mode = ApprovalMode(args.approval_policy)
+    if mode is not ApprovalMode.PRE_APPROVED:
+        if tools:
+            raise ValueError("--approve-tool requires --approval-policy pre-approved")
+        return frozenset()
+    if not tools:
+        raise ValueError("pre-approved policy requires at least one --approve-tool")
+    if len(set(tools)) != len(tools):
+        raise ValueError("approve tool names must not be duplicated")
+    invalid = set(tools) - CONSEQUENTIAL_TOOL_NAMES
+    if invalid:
+        raise ValueError(f"approve tool must be consequential and known: {sorted(invalid)!r}")
+    return frozenset(tools)
+
+
 def _approval_session(
     input_stream: TextIO | None,
     mode: ApprovalMode = ApprovalMode.CONFIRM,
     timeout: float = DEFAULT_APPROVAL_TIMEOUT,
+    approved_tools: frozenset[str] = frozenset(),
 ) -> ApprovalSession:
     source = sys.stdin if input_stream is None else input_stream
     return ApprovalSession(
@@ -164,6 +193,7 @@ def _approval_session(
             require_tty=input_stream is None,
         ),
         mode=mode,
+        approved_tools=approved_tools,
     )
 
 
