@@ -206,6 +206,39 @@ class CliTests(unittest.TestCase):
                 self.assertIn("run_python_file", approval_output.getvalue())
                 self.assertNotIn("\x1b", approval_output.getvalue())
 
+    def test_independent_cli_runs_receive_fresh_approval_sessions(self):
+        captured_sessions = []
+
+        def capture_session(*_args, **kwargs):
+            captured_sessions.append(kwargs["approval_session"])
+            return "done"
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=Mock(name="client")),
+                patch("orbitrelay.cli.run_agent", side_effect=capture_session),
+                redirect_stderr(StringIO()),
+                redirect_stdout(StringIO()),
+            ):
+                for response in ("d\n", "y\n"):
+                    cli.main(
+                        ["write", "--workspace", workspace],
+                        profile_repository=ProfileRepository(
+                            Path(workspace) / "profiles.json"
+                        ),
+                        input_stream=StringIO(response),
+                    )
+
+        request = ApprovalRequest.for_write(
+            call_id="call-1", target="notes.txt", content_length=1
+        )
+        (disabled,) = captured_sessions[0].authorize((request,))
+        (approved,) = captured_sessions[1].authorize((request,))
+        self.assertEqual(disabled.reason, "user_disabled_tool")
+        self.assertTrue(approved.approved)
+
     def test_main_rejects_missing_key_before_client_creation(self):
         with tempfile.TemporaryDirectory() as directory:
             with (

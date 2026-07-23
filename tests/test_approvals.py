@@ -1,12 +1,14 @@
 # story: e02s01, e02s02
 
 import unittest
+from io import StringIO
 
 from orbitrelay.approvals import (
     ApprovalDecision,
     ApprovalDisposition,
     ApprovalRequest,
     ApprovalSession,
+    TerminalAuthorizer,
     ToolCategory,
     format_approval_request,
 )
@@ -93,6 +95,42 @@ class ApprovalSessionTests(unittest.TestCase):
         self.assertEqual(later_decision.reason, "tool_disabled_for_run")
         self.assertEqual(len(authorization_calls), 1)
         self.assertEqual(session.disabled_tools, frozenset({"write_file"}))
+
+    def test_deny_once_does_not_disable_later_same_tool(self):
+        output = StringIO()
+        session = ApprovalSession(TerminalAuthorizer(StringIO("n\ny\n"), output))
+        requests = tuple(
+            ApprovalRequest.for_write(
+                call_id=f"call-{number}",
+                target=f"file-{number}.txt",
+                content_length=1,
+            )
+            for number in (1, 2)
+        )
+
+        decisions = session.authorize(requests)
+
+        self.assertEqual(
+            [decision.reason for decision in decisions],
+            ["user_denied", "user_approved"],
+        )
+        self.assertEqual(output.getvalue().count("Approve write_file"), 2)
+        self.assertEqual(session.disabled_tools, frozenset())
+
+    def test_new_session_does_not_inherit_disabled_tools(self):
+        request = ApprovalRequest.for_write(
+            call_id="call-1", target="notes.txt", content_length=1
+        )
+        first = ApprovalSession(lambda _requests: (ApprovalDecision.disable_tool(),))
+        fresh = ApprovalSession(
+            lambda _requests: (ApprovalDecision.approve(reason="user_approved"),)
+        )
+
+        first.authorize((request,))
+        (fresh_decision,) = fresh.authorize((request,))
+
+        self.assertTrue(fresh_decision.approved)
+        self.assertEqual(fresh.disabled_tools, frozenset())
 
 
 if __name__ == "__main__":
