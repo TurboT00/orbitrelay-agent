@@ -92,6 +92,12 @@ class KeyringCredentialStore:
             ) from exc
 
 
+def credential_store_or_default(
+    value: CredentialStore | None,
+) -> CredentialStore:
+    return KeyringCredentialStore() if value is None else value
+
+
 class ProfileService:
     """Coordinates profile metadata and credentials without mixing their stores."""
 

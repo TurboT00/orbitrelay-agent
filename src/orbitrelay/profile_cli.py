@@ -5,7 +5,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, TextIO
 
-from .credentials import CredentialStore, KeyringCredentialStore, ProfileService
+from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderCapability, ProviderProfile
 from .redaction import redact_secrets
@@ -56,10 +56,6 @@ def parse_profile_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def _credential_store(value: CredentialStore | None) -> CredentialStore:
-    return KeyringCredentialStore() if value is None else value
-
-
 def _profile_from_args(args: argparse.Namespace) -> ProviderProfile:
     return ProviderProfile.create(
         name=args.name,
@@ -80,7 +76,7 @@ def _create_profile(args: argparse.Namespace, context: ProfileCommandContext) ->
     profile = _profile_from_args(args)
     if profile.requires_secret:
         service = ProfileService(
-            context.repository, _credential_store(context.credential_store)
+            context.repository, credential_store_or_default(context.credential_store)
         )
         service.create(profile, secret=_read_secret(args, context))
     else:
@@ -124,7 +120,7 @@ def _delete_profile(args: argparse.Namespace, context: ProfileCommandContext) ->
     profile = context.repository.get(args.name)
     if profile.requires_secret:
         service = ProfileService(
-            context.repository, _credential_store(context.credential_store)
+            context.repository, credential_store_or_default(context.credential_store)
         )
         service.delete(profile.name)
     else:

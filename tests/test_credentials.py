@@ -7,6 +7,7 @@ from orbitrelay.credentials import (
     CredentialStoreError,
     KeyringCredentialStore,
     ProfileService,
+    credential_store_or_default,
 )
 from orbitrelay.profile_store import (
     ProfileExistsError,
@@ -100,6 +101,11 @@ class FakeKeyringModule:
 
 
 class KeyringCredentialStoreTests(unittest.TestCase):
+    def test_preserves_an_injected_credential_store(self):
+        store = FakeCredentialStore()
+
+        self.assertIs(credential_store_or_default(store), store)
+
     def test_round_trips_and_deletes_a_profile_secret(self):
         keyring = FakeKeyringModule()
         store = KeyringCredentialStore(keyring_module=keyring)

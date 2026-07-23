@@ -10,7 +10,7 @@ from openai import OpenAI
 
 from .agent import run_agent
 from .config import ApiConfig, load_api_config
-from .credentials import CredentialStore, KeyringCredentialStore, ProfileService
+from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_cli import run_profile_cli
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
@@ -36,10 +36,6 @@ def resolve_workspace(value: str | None) -> str:
     return str(workspace)
 
 
-def _credential_store(value: CredentialStore | None) -> CredentialStore:
-    return KeyringCredentialStore() if value is None else value
-
-
 def _api_config_from_profile(
     profile: ProviderProfile,
     repository: ProfileRepository,
@@ -50,7 +46,7 @@ def _api_config_from_profile(
             f'Auth kind "{profile.auth_kind.value}" is not executable in P1'
         )
     secret = ProfileService(
-        repository, _credential_store(credential_store)
+        repository, credential_store_or_default(credential_store)
     ).get_secret(profile)
     return ApiConfig(profile.base_url, secret, profile.model)
 
