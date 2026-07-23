@@ -12,7 +12,7 @@ from orbitrelay.approvals import (
 
 from .get_file_content import get_file_content
 from .get_files_info import get_files_info
-from .run_python_file import run_python_file
+from .run_python_file import run_python_file, validate_python_target
 from .write_file import validate_write_target, write_file
 
 FUNCTIONS: dict[str, Callable[..., str]] = {
@@ -178,12 +178,7 @@ def _approval_request(
     if name == "write_file":
         return _write_approval_request(call_id, name, arguments)
     if name == "run_python_file":
-        return ApprovalRequest.for_execution(
-            call_id=call_id,
-            workspace=arguments["working_directory"],
-            target=arguments["file_path"],
-            arguments=arguments.get("args") or (),
-        )
+        return _execution_approval_request(call_id, name, arguments)
     return ApprovalRequest(
         call_id=call_id,
         tool_name=name,
@@ -209,6 +204,31 @@ def _write_approval_request(
         call_id=call_id,
         target=file_path,
         content_length=len(content),
+    )
+
+
+def _execution_approval_request(
+    call_id: str,
+    name: str,
+    arguments: dict[str, Any],
+) -> ApprovalRequest | str:
+    file_path, execution_args = arguments["file_path"], arguments.get("args")
+    if not isinstance(file_path, str):
+        return f'Error: invalid arguments for "{name}": file_path must be a string'
+    if execution_args is None:
+        execution_args = []
+    if not isinstance(execution_args, list) or not all(
+        isinstance(arg, str) for arg in execution_args
+    ):
+        return f'Error: invalid arguments for "{name}": args must be a list of strings'
+    error = validate_python_target(arguments["working_directory"], file_path, execution_args)
+    if error is not None:
+        return error
+    return ApprovalRequest.for_execution(
+        call_id=call_id,
+        workspace=arguments["working_directory"],
+        target=file_path,
+        arguments=execution_args,
     )
 
 
