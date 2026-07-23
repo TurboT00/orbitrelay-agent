@@ -1,7 +1,7 @@
 # Security Review — e01s01 Provider/Auth Profiles
 
 - Merge base: `f423629862f78c772338a6acbefd6dacbe7b7fab`
-- Reviewed head: `fce725bf8e955bc8c7ab2f41931c6196f1c9421f`
+- Reviewed head: `6699209caac5a554e4293335cf794cb1f727f001`
 - Scope: feature diff against `main`, with emphasis on CLI input, profile
   deserialization, metadata paths, keyring operations, secret transport,
   deletion, and output redaction.
@@ -15,14 +15,15 @@
 1. Profile names and endpoint metadata enter through argparse or versioned JSON.
 2. `ProviderProfile` constrains names, rejects unknown fields and URL-embedded
    credentials, requires explicit capabilities, limits unauthenticated profiles
-   to loopback, and requires HTTPS or loopback for secret-backed profiles.
+   to loopback, rejects query/fragment-bearing URLs, and requires HTTPS or
+   loopback for authenticated profiles.
 3. `ProfileRepository` writes only `ProviderProfile.to_dict()` data through an
    atomic same-directory replacement with mode `0600`.
 4. API keys enter through a hidden prompt or stdin, flow directly to the
    credential-store adapter, and are retrieved into memory only when resolving
    an executable `api_key` profile.
-5. `KeyringCredentialStore` rejects unavailable and known alternate-file
-   backends and wraps backend exceptions without including secret values.
+5. `KeyringCredentialStore` allows only approved native macOS/Linux backends and
+   wraps backend exceptions without including secret values.
 6. Profile inspection passes output through recursive credential redaction.
 7. The resolved credential reaches only `openai.OpenAI(api_key=...)`; it is not
    passed to the agent messages, local tools, command arguments, or metadata.
@@ -40,12 +41,21 @@
 
 ## Non-blocking hardening notes
 
-- Metadata and native keyring writes cannot form one operating-system
-  transaction. The chosen ordering and tests make ordinary failures retry-safe,
-  but concurrent profile mutations by two OrbitRelay processes are not serialized
-  in P1.
+- Metadata and native keyring writes cannot form one crash-atomic
+  operating-system transaction. Supported macOS/Linux mutations are serialized
+  across threads and processes, and compensation failures retain both causes;
+  power-loss consistency remains explicitly outside the P1 guarantee.
 - Backend security ultimately depends on the active native keyring. OrbitRelay
-  rejects no-backend and `keyrings.alt` modules, while platform certification and
-  backend-specific policy remain P7 work.
+  rejects unavailable, chained, custom, alternate-file, and Windows backends;
+  Windows profile support remains P7 work.
 - macOS may allow the same Python executable to read a keyring item without a new
   prompt; this documented upstream behavior is disclosed in the README.
+
+## Independent-review closure
+
+Five dual-review rounds closed additional findings around URL-carried secrets,
+cross-process consistency, unsafe storage paths, keyring backend selection,
+ambiguous deletion, rollback diagnostics, credential namespaces, coherent
+environment sources, transport-variable isolation, and dotenv interpolation.
+The final AND-gate passed at Reviewer A 97/100 and Reviewer B 98/100 with zero
+must-fix findings. See `specs/verifications/REVIEW-e01s01.md`.

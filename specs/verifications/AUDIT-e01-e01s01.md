@@ -2,10 +2,10 @@
 
 **Verdict: PASS**
 
-- Audited head: `fce725bf8e955bc8c7ab2f41931c6196f1c9421f`
+- Audited head: `6699209caac5a554e4293335cf794cb1f727f001`
 - Merge base: `f423629862f78c772338a6acbefd6dacbe7b7fab`
 - Branch: `feat/provider-auth-profiles`
-- Final gate: `./scripts/check.sh` — 71 project tests and 9 example tests passed; distributions and isolated-wheel smoke passed.
+- Final gate: `./scripts/check.sh` — 92 project tests and 9 example tests passed; distributions and isolated-wheel smoke passed.
 
 ## Churn-first review
 
@@ -75,7 +75,7 @@ profile metadata and profile-command responsibilities into focused modules.
 - ✓ Every discovered defect has a focused regression test.
 - ✓ Tests use public behavior and fake I/O boundaries rather than mocking
   internal implementation details.
-- ✓ Suite is fast (71 project tests in 0.611 seconds), independent through temp
+- ✓ Suite is fast (92 project tests in 0.702 seconds), independent through temp
   directories/fakes, repeatable and offline, self-validating, and test-first.
 
 ## SOLID, style, and agent readability
@@ -83,7 +83,7 @@ profile metadata and profile-command responsibilities into focused modules.
 - ✓ Responsibilities are separated across `profiles.py`, `profile_store.py`,
   `credentials.py`, `profile_cli.py`, and `cli.py`.
 - ✓ Credential I/O is dependency-injected behind a protocol.
-- ✓ Changed production files are 34–200 lines; none exceeds 300 lines.
+- ✓ Changed production files are 34–274 lines; none exceeds 300 lines.
 - ✓ No changed production function exceeds 20 lines.
 - ✓ Names are specific, nesting is shallow, and early returns handle exceptions.
 - ✓ Duplicate credential-store selection logic was centralized.
