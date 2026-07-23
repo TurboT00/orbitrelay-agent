@@ -1,5 +1,7 @@
 import unittest
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -292,6 +294,37 @@ class ProfileRepositoryTests(unittest.TestCase):
                 ProfileRepository(profile_directory / "profiles.json").save(
                     api_key_profile()
                 )
+
+    def test_subprocess_writers_preserve_distinct_profiles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "profiles.json"
+            script = """
+import sys
+from orbitrelay.profile_store import ProfileRepository
+from orbitrelay.profiles import AuthKind, ProviderCapability, ProviderProfile
+profile = ProviderProfile.create(
+    name=sys.argv[2],
+    base_url='https://example.test/v1',
+    model='test-model',
+    auth_kind=AuthKind.API_KEY,
+    capabilities={
+        ProviderCapability.TOOL_CALLING,
+        ProviderCapability.ASSISTANT_MESSAGE_PASSTHROUGH,
+    },
+)
+ProfileRepository(sys.argv[1]).save(profile)
+"""
+            processes = [
+                subprocess.Popen([sys.executable, "-c", script, str(path), name])
+                for name in ("one", "two", "three", "four")
+            ]
+            return_codes = [process.wait(timeout=10) for process in processes]
+
+            self.assertEqual(return_codes, [0, 0, 0, 0])
+            self.assertEqual(
+                [profile.name for profile in ProfileRepository(path).list_profiles()],
+                ["four", "one", "three", "two"],
+            )
 
 
 if __name__ == "__main__":

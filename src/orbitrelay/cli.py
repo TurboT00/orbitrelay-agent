@@ -2,7 +2,7 @@ import argparse
 import getpass
 import os
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import TextIO
 
@@ -15,6 +15,9 @@ from .credentials import CredentialStore, ProfileService, credential_store_or_de
 from .profile_cli import run_profile_cli
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
+
+
+OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -82,6 +85,7 @@ def _resolved_config(
     args: argparse.Namespace,
     repository: ProfileRepository | None,
     credential_store: CredentialStore | None,
+    environment: Mapping[str, str],
 ) -> ApiConfig:
     profile_repository, use_profiles = _repository_for_run(args.profile, repository)
     profile_config = (
@@ -93,7 +97,7 @@ def _resolved_config(
         if use_profiles
         else None
     )
-    return load_api_config() if profile_config is None else profile_config
+    return load_api_config(environment) if profile_config is None else profile_config
 
 
 def _invoke_agent(args: argparse.Namespace, api_config: ApiConfig) -> str:
@@ -112,9 +116,19 @@ def _run_agent_cli(
     args: argparse.Namespace,
     repository: ProfileRepository | None,
     credential_store: CredentialStore | None,
+    environment: Mapping[str, str],
 ) -> int:
-    print(_invoke_agent(args, _resolved_config(args, repository, credential_store)))
+    config = _resolved_config(args, repository, credential_store, environment)
+    print(_invoke_agent(args, config))
     return 0
+
+
+def _environment_source(
+    process_environment: Mapping[str, str],
+) -> Mapping[str, str]:
+    if any(key in process_environment for key in OPENAI_ENV_KEYS):
+        return process_environment
+    return os.environ
 
 
 def main(
@@ -125,8 +139,9 @@ def main(
     secret_prompt: Callable[[str], str] = getpass.getpass,
     input_stream: TextIO | None = None,
 ) -> int:
+    process_environment = dict(os.environ)
     repository = profile_repository or ProfileRepository(
-        default_profile_path(dict(os.environ))
+        default_profile_path(process_environment)
     )
     load_dotenv()
     raw_argv = list(sys.argv[1:] if argv is None else argv)
@@ -134,7 +149,12 @@ def main(
         return run_profile_cli(
             raw_argv[1:], repository, credential_store, secret_prompt, input_stream
         )
-    return _run_agent_cli(parse_args(raw_argv), repository, credential_store)
+    return _run_agent_cli(
+        parse_args(raw_argv),
+        repository,
+        credential_store,
+        _environment_source(process_environment),
+    )
 
 
 if __name__ == "__main__":

@@ -15,7 +15,6 @@ APPROVED_KEYRING_MODULES = (
     "keyring.backends.macOS",
     "keyring.backends.SecretService",
     "keyring.backends.kwallet",
-    "keyring.backends.Windows",
 )
 
 

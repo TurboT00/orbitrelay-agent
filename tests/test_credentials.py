@@ -152,6 +152,17 @@ class KeyringCredentialStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(CredentialStoreError, "approved native"):
             KeyringCredentialStore(keyring_module=keyring)
 
+    def test_rejects_windows_backend_until_cross_process_locking_is_supported(self):
+        keyring = FakeKeyringModule()
+        keyring.backend = type(
+            "WinVaultKeyring",
+            (),
+            {"priority": 5, "__module__": "keyring.backends.Windows"},
+        )()
+
+        with self.assertRaisesRegex(CredentialStoreError, "approved native"):
+            KeyringCredentialStore(keyring_module=keyring)
+
     def test_wraps_backend_failures_without_leaking_the_secret(self):
         keyring = FakeKeyringModule()
         keyring.failure = FakeKeyringError("backend failed")

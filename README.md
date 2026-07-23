@@ -77,7 +77,10 @@ supported.
 Named profiles store endpoint, model, auth-kind, and capability metadata in the
 current user's `~/.orbitrelay/profiles.json`. Set `ORBITRELAY_HOME` to use a
 different application directory, which is useful for isolated development and
-tests. Profile files never contain credentials.
+tests. A custom directory and its ancestors must be controlled by the current
+user; OrbitRelay rejects symlinked, foreign-owned, or group/world-writable profile
+storage at the application-directory boundary. Profile files never contain
+credentials.
 
 Create an API-key profile. OrbitRelay prompts without echoing the credential:
 
@@ -115,6 +118,23 @@ available; it never falls back to a plaintext credential file. Linux systems
 need a configured Secret Service or KWallet backend. On macOS, credentials
 created by a Python executable may be readable by that same executable without a
 new prompt unless access is tightened in Keychain Access.
+
+P1 profile persistence is supported on macOS and Linux. Windows profile locking
+and credential storage remain P7 work. If `keyring` selects a chainer backend,
+configure one supported native backend explicitly; OrbitRelay rejects chained or
+custom backends rather than guessing where a secret will be stored.
+
+Credential identifiers are bound to the canonical profile-file path. Moving
+`ORBITRELAY_HOME` therefore creates a new credential namespace and requires
+re-entering profile credentials. Mutations use a process-safe lock on macOS and
+Linux. Atomic replacement protects metadata from torn writes, but P1 does not
+claim power-loss atomicity across the metadata file and OS keychain.
+
+OrbitRelay does not combine partial provider settings from the process
+environment and a project `.env`: if the process supplies any `OPENAI_*` setting,
+that mapping is validated as one source; otherwise the loaded `.env` mapping is
+used. This prevents a project file from pairing its endpoint with an inherited
+credential.
 
 P1 validates `api_key`, `external_first_party_cli`, `local_none`, and
 `local_service_bearer` contracts. Only `api_key` profiles are executable in this

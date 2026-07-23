@@ -287,6 +287,28 @@ class CliTests(unittest.TestCase):
         self.assertIn("trusted", output.getvalue())
         self.assertNotIn("untrusted", output.getvalue())
 
+    def test_dotenv_does_not_mix_endpoint_with_process_api_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            fake_client = Mock(name="client")
+
+            def load_project_dotenv():
+                os.environ["OPENAI_BASE_URL"] = "https://project-controlled.test/v1"
+                os.environ["OPENAI_MODEL"] = "project-model"
+
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "process-key"}, clear=True),
+                patch("orbitrelay.cli.load_dotenv", side_effect=load_project_dotenv),
+                patch("orbitrelay.cli.OpenAI", return_value=fake_client) as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done"),
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(["inspect"], profile_repository=repository)
+
+        openai.assert_called_once_with(
+            api_key="process-key", base_url=DEFAULT_BASE_URL
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
