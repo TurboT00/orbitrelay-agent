@@ -15,11 +15,11 @@ working_tree:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 70
+  project_tests: 71
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: e01s01 P0 verification with security and NFR evidence
+  last_step_completed: e01s01 audit-code PASS after quality refactoring
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -31,8 +31,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: audit-code
-  next_action: Audit the verified P1 diff, then request independent review before release.
+  next_skill: request-review
+  next_action: Dispatch an independent reviewer against the audited P1 feature diff.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

@@ -1,5 +1,5 @@
 story_id: e01s01
-verified_at: "2026-07-23T00:21:37Z"
+verified_at: "2026-07-23T00:38:37Z"
 verifier: verify-work-cli
 risk: P0
 
@@ -27,14 +27,14 @@ phases:
     note: Ruff reported zero diagnostics.
   tests:
     passed: true
-    project_tests: 70
+    project_tests: 71
     example_tests: 9
     network_calls: 0
     native_keyring_calls: 0
   terminal_verdict:
     command: ./scripts/check.sh
     exit_code: 0
-    captured_at: "2026-07-23T00:21:37Z"
+    captured_at: "2026-07-23T00:38:37Z"
     note: >-
       Single contiguous final run validated the lockfile, synchronized the locked
       environment, ran both suites, checked imports and entry points, built both

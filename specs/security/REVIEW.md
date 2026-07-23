@@ -1,7 +1,7 @@
 # Security Review — e01s01 Provider/Auth Profiles
 
 - Merge base: `f423629862f78c772338a6acbefd6dacbe7b7fab`
-- Reviewed head: `a3181d5b2ce2c9a10d1e3c0089125e73c0b05038`
+- Reviewed head: `fce725bf8e955bc8c7ab2f41931c6196f1c9421f`
 - Scope: feature diff against `main`, with emphasis on CLI input, profile
   deserialization, metadata paths, keyring operations, secret transport,
   deletion, and output redaction.
