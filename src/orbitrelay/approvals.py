@@ -8,7 +8,26 @@ class ToolCategory(StrEnum):
     EXECUTE = "execute"
 
 
+class ApprovalDisposition(StrEnum):
+    APPROVED = "approved"
+    DENIED = "denied"
+
+
 SafeContext = tuple[tuple[str, str | int], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class ApprovalDecision:
+    disposition: ApprovalDisposition
+    reason: str
+
+    @property
+    def approved(self) -> bool:
+        return self.disposition is ApprovalDisposition.APPROVED
+
+    @classmethod
+    def deny(cls, *, reason: str) -> "ApprovalDecision":
+        return cls(disposition=ApprovalDisposition.DENIED, reason=reason)
 
 
 @dataclass(frozen=True, slots=True)
