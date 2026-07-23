@@ -19,6 +19,7 @@ from .profiles import (
     ProviderCapability,
     ProviderProfile,
 )
+from .redaction import redact_secrets
 
 
 def parse_args(argv=None):
@@ -178,7 +179,7 @@ def run_profile_command(
         profile = repository.get(args.name)
         visible = profile.to_dict()
         visible["selected"] = repository.selected_name() == profile.name
-        print(json.dumps(visible, indent=2, sort_keys=True))
+        print(json.dumps(redact_secrets(visible), indent=2, sort_keys=True))
         return 0
 
     if args.profile_action == "select":
