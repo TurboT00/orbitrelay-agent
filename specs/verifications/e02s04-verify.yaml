@@ -1,0 +1,87 @@
+story_id: e02s04
+verified_at: "2026-07-23T22:14:18Z"
+verifier: verify-work
+risk: P0
+branch: feat/tool-approval-policies
+merge_base: 8bcefba610a4fd1c66c47e665247325b04ecfdb2
+phases:
+  branch:
+    passed: true
+    note: Verification ran outside main/master on the dedicated P2 worktree.
+  preflight:
+    passed: true
+    command: ./scripts/check.sh
+  task_verifies:
+    passed: true
+    total: 5
+    results:
+      - {task: 1, exit_code: 0, tests: 11}
+      - {task: 2, exit_code: 0, tests: 21}
+      - {task: 3, exit_code: 0, tests: 32}
+      - {task: 4, exit_code: 0, tests: 23}
+      - {task: 5, exit_code: 0, tests: 64}
+  cli_smoke:
+    passed: true
+    checks:
+      - {command: "uv run orbitrelay --help", exit_code: 0}
+      - {command: "uv run python -c 'import orbitrelay; import orbitrelay.cli'", exit_code: 0}
+      - {command: "uv run orbitrelay prompt --invalid-flag", expected_exit_code: 2, actual_exit_code: 2}
+  build:
+    passed: true
+    command: ./scripts/check.sh
+    artifacts: [sdist, wheel, isolated-wheel CLI smoke]
+  typecheck:
+    passed: true
+    command: lsp_diagnostics using configured Ty route
+    diagnostics: 0
+  lint:
+    passed: true
+    command: lsp_diagnostics using configured Ruff route
+    diagnostics: 0
+  tests:
+    passed: true
+    project_tests: 134
+    example_tests: 9
+  terminal_verdict:
+    command: ./scripts/check.sh
+    exit_code: 0
+    captured_at: "2026-07-23T22:14:18Z"
+    combined_sha256: 7a3a8785ebb90d250a221f3908eca946901f14528d6fa7eb195ddf466d1f889c
+    stdout_summary: >-
+      Ran 134 project tests: OK; ran 9 example tests: OK; built sdist and
+      wheel; isolated-wheel CLI smoke passed; All OrbitRelay checks passed.
+    note: Single contiguous run; evidence is not merged from multiple commands.
+  security:
+    passed: true
+    report: specs/security/REVIEW.md
+    high_confidence_high_findings: 0
+  blind_spots:
+    passed: true
+    report: specs/blind-spots.json
+    high: 0
+    medium: 4
+    low: 3
+    note: Shared-file and specification-reference heuristics are non-blocking; e02s04 has four explicit high-confidence links.
+  completeness_critic:
+    passed: true
+    mode: manual project-root equivalent
+    note: Active e02s04 has explicit code/test links and zero HIGH blind spots; future pending e02 stories remain planned.
+  nfr:
+    passed: true
+    report: specs/verifications/NFR-e02s04.json
+  manual:
+    passed: true
+    confirmed_by: user
+    steps:
+      - step: Run the read-only policy against a requested write and a confined read
+        expected: The write is denied without a prompt while the read remains available.
+        actual: User saw no prompt; write_file was denied and get_files_info listed existing.txt.
+        passed: true
+      - step: Inspect the filesystem sentinel
+        expected: blocked.txt is absent after the denied request.
+        actual: Filesystem inspection found only existing.txt.
+        passed: true
+  gaps:
+    closed: true
+    items: []
+verdict: PASS

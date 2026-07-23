@@ -5,7 +5,7 @@ development_status:
   e02s01: done
   e02s02: done
   e02s03: done
-  e02s04: in_progress
+  e02s04: verified
   e02s05: pending
   e02s06: pending
 
@@ -61,7 +61,7 @@ stories:
     started_at: "2026-07-23T21:45:09Z"
     completed_at: "2026-07-23T22:02:02Z"
   e02s04:
-    status: developed
+    status: verified
     title: Run safely in read-only or unattended contexts
     bcps: 5
     epic: e02
