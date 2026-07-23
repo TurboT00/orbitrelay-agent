@@ -1,6 +1,8 @@
 import os
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -82,6 +84,29 @@ class ExecuteToolTests(unittest.TestCase):
                 self.fail(f"expected preparation error, got {prepared!r}")
             self.assertIn("outside the permitted working directory", prepared)
             self.assertFalse(outside_target.exists())
+
+    def test_verbose_prepared_write_excludes_raw_content(self):
+        secret_content = "provider-secret-value\x1b[31m"
+        output = StringIO()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            prepared = prepare_tool(
+                "call-1",
+                "write_file",
+                '{"file_path":"notes.txt","content":"provider-secret-value\\u001b[31m"}',
+                workspace,
+            )
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
+
+            with redirect_stdout(output):
+                execute_prepared_tool(prepared, verbose=True)
+
+        visible_output = output.getvalue()
+        self.assertNotIn(secret_content, visible_output)
+        self.assertNotIn("provider-secret-value", visible_output)
+        self.assertIn("notes.txt", visible_output)
+        self.assertIn(str(len(secret_content)), visible_output)
 
     def test_parses_arguments_and_injects_the_fixed_sandbox(self):
         received = {}
