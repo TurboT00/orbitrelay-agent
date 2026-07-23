@@ -16,6 +16,7 @@ class ApprovalDisposition(StrEnum):
 
 
 SafeContext = tuple[tuple[str, str | int], ...]
+MAX_SAFE_VALUE_LENGTH = 200
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,8 +70,6 @@ class ApprovalSession:
 
 
 class TerminalAuthorizer:
-    _MAX_VALUE_LENGTH = 200
-
     def __init__(self, input_stream: TextIO, output_stream: TextIO) -> None:
         self._input_stream = input_stream
         self._output_stream = output_stream
@@ -85,12 +84,8 @@ class TerminalAuthorizer:
         if request.category is ToolCategory.READ:
             return ApprovalDecision.approve(reason="read_allowed")
 
-        context = " ".join(
-            f"{key}={self._safe_value(value)}"
-            for key, value in request.safe_context
-        )
         print(
-            f"Approve {request.tool_name} ({context})? [y/N]: ",
+            f"Approve {format_approval_request(request)}? [y/N]: ",
             end="",
             file=self._output_stream,
             flush=True,
@@ -101,13 +96,6 @@ class TerminalAuthorizer:
         if response == "":
             return ApprovalDecision.deny(reason="approval_eof")
         return ApprovalDecision.deny(reason="user_denied")
-
-    @classmethod
-    def _safe_value(cls, value: str | int) -> str:
-        visible = str(value) if isinstance(value, int) else ascii(value)
-        if len(visible) <= cls._MAX_VALUE_LENGTH:
-            return visible
-        return f"{visible[: cls._MAX_VALUE_LENGTH]}...<truncated>"
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,3 +122,19 @@ class ApprovalRequest:
                 ("content_length", content_length),
             ),
         )
+
+
+def format_approval_request(request: ApprovalRequest) -> str:
+    context = " ".join(
+        f"{key}={_safe_value(value)}" for key, value in request.safe_context
+    )
+    if not context:
+        return request.tool_name
+    return f"{request.tool_name} ({context})"
+
+
+def _safe_value(value: str | int) -> str:
+    visible = str(value) if isinstance(value, int) else ascii(value)
+    if len(visible) <= MAX_SAFE_VALUE_LENGTH:
+        return visible
+    return f"{visible[:MAX_SAFE_VALUE_LENGTH]}...<truncated>"

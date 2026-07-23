@@ -4,7 +4,11 @@ from dataclasses import dataclass, field
 from inspect import signature
 from typing import Any
 
-from orbitrelay.approvals import ApprovalRequest, ToolCategory
+from orbitrelay.approvals import (
+    ApprovalRequest,
+    ToolCategory,
+    format_approval_request,
+)
 
 from .get_file_content import get_file_content
 from .get_files_info import get_files_info
@@ -172,16 +176,15 @@ def execute_prepared_tool(
     prepared: PreparedToolCall,
     verbose: bool = False,
 ) -> str:
-    arguments = dict(prepared._arguments)
-
     if verbose:
-        visible_arguments = {
-            key: value for key, value in arguments.items() if key != "working_directory"
-        }
-        print(f"Calling function: {prepared.name}({visible_arguments})")
+        print(
+            f"Calling function: "
+            f"{format_approval_request(prepared.approval_request)}"
+        )
     else:
         print(f" - Calling function: {prepared.name}")
 
+    arguments = dict(prepared._arguments)
     try:
         return prepared._function(**arguments)
     except Exception as exc:
