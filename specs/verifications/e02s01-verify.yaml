@@ -1,0 +1,118 @@
+story_id: e02s01
+verified_at: "2026-07-23T19:50:56Z"
+verifier: verify-work
+risk: P0
+branch: feat/tool-approval-policies
+merge_base: 8bcefba610a4fd1c66c47e665247325b04ecfdb2
+phases:
+  branch:
+    passed: true
+    note: Verification ran outside main/master on the dedicated P2 worktree.
+  preflight:
+    passed: true
+    command: ./scripts/check.sh
+  task_verifies:
+    passed: true
+    total: 5
+    results:
+      - task: 1
+        exit_code: 0
+        tests: 3
+      - task: 2
+        exit_code: 0
+        tests: 14
+      - task: 3
+        exit_code: 0
+        tests: 11
+      - task: 4
+        exit_code: 0
+        tests: 20
+      - task: 5
+        exit_code: 0
+        tests: 35
+  cli_smoke:
+    passed: true
+    checks:
+      - command: uv run orbitrelay --help
+        exit_code: 0
+      - command: uv run python -c "import orbitrelay; import orbitrelay.cli"
+        exit_code: 0
+      - command: uv run orbitrelay prompt --invalid-flag
+        expected_exit_code: 2
+        actual_exit_code: 2
+    version_check: "not applicable: current P1 CLI contract has no --version flag"
+  build:
+    passed: true
+    command: ./scripts/check.sh
+    artifacts: [sdist, wheel, isolated-wheel CLI smoke]
+  typecheck:
+    passed: true
+    command: uvx ty check src tests
+    result: All checks passed
+  lint:
+    passed: true
+    command: lsp_diagnostics using configured ruff route on nine affected files
+    diagnostics: 0
+    note: Standalone repository-wide Ruff defaults are not project-configured and report pre-existing rules outside the accepted LSP route.
+  tests:
+    passed: true
+    project_tests: 115
+    example_tests: 9
+  terminal_verdict:
+    command: ./scripts/check.sh
+    exit_code: 0
+    captured_at: "2026-07-23T19:50:56Z"
+    stdout_sha256: fe0583fc2e6a38e8a2dab1453f5f62030498a5b9a49b72d6bb0a85823f535952
+    stdout_summary: >-
+      Ran 115 project tests: OK; ran 9 example tests: OK; built sdist and
+      wheel; isolated-wheel CLI smoke passed; All OrbitRelay checks passed.
+    stderr: ""
+    note: Single contiguous run; evidence is not merged from multiple commands.
+  security:
+    passed: true
+    report: specs/security/REVIEW.md
+    high_confidence_high_findings: 0
+  blind_spots:
+    passed: true
+    report: specs/blind-spots.json
+    high: 0
+    medium: 2
+    note: Two medium double-tag heuristics are specification-reference false positives; neither concerns executable e02s01 coverage.
+  completeness_critic:
+    passed: true
+    mode: manual project-root equivalent
+    note: >-
+      The globally installed wrapper resolves its package root rather than this
+      repository. Project-root trace and blind-spot engines were run directly;
+      e02s01 has explicit code/test tags, verification evidence, and zero HIGH
+      blind spots. Pending e02 stories remain planned and are not e02s01 gaps.
+  nfr:
+    passed: true
+    report: specs/verifications/NFR-e02s01.json
+  manual:
+    passed: true
+    confirmed_by: user
+    steps:
+      - step: Approve a valid workspace write
+        expected: File changes only after approval.
+        actual: User confirmed behavior; automated sentinel passed.
+        passed: true
+      - step: Deny a valid workspace write
+        expected: Existing or absent target remains unchanged.
+        actual: User confirmed behavior; correlated denial sentinel passed.
+        passed: true
+      - step: Submit an unsafe or invalid write
+        expected: No prompt or side effect; correlated tool error returned.
+        actual: Escape, symlink, and invalid-content regressions passed.
+        passed: true
+      - step: Inspect prompt and verbose output
+        expected: Target and content length visible; content and controls absent.
+        actual: User confirmed behavior; adversarial disclosure test passed.
+        passed: true
+  gaps:
+    closed: true
+    items:
+      - gap: Non-string write content crashed preparation.
+        resolution: Reopened task 5 and added RED-GREEN rejection before approval.
+        commits: [70fec36, 7fa1f62]
+verdict: PASS

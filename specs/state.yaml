@@ -24,15 +24,15 @@ verification:
   result: passed
   project_tests: 115
   example_tests: 9
-  evidence: specs/verifications/e01s01-verify.yaml
+  evidence: specs/verifications/e02s01-verify.yaml
 epic_cycle:
-  current_step: verify-work
-  next_skill: verify-work
+  current_step: audit-code
+  next_skill: audit-code
   story_bcps: 5
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work-gap]
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work-gap, verify-work]
   audit_result: null
 handoff:
-  last_step_completed: e02s01 invalid write-argument verification gap closed by RED-GREEN and full regression
+  last_step_completed: e02s01 P0 verify-work passed with user-confirmed UAT and persisted evidence
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -44,8 +44,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: verify-work
-  next_action: Complete P0 verification evidence, security review, NFR gate, and mechanical checks for e02s01.
+  next_skill: audit-code
+  next_action: Run the non-optional e02s01 code-quality gate and F.I.R.S.T test audit.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

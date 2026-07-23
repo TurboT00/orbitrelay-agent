@@ -1,49 +1,197 @@
 {
-  "generated_at": "2026-07-23T01:20:00Z",
-  "generation_mode": "manual deterministic equivalent; repository trace scripts unavailable",
+  "generated_at": "2026-07-23T19:48:32.235467+00:00",
+  "matrix_version": "1.0",
   "stories": [
     {
-      "id": "e01s01",
-      "title": "Manage and run secure provider profiles",
-      "status": "done",
-      "priority": "P0",
-      "implementation_files": [
-        "src/orbitrelay/cli.py",
-        "src/orbitrelay/credentials.py",
-        "src/orbitrelay/profile_cli.py",
-        "src/orbitrelay/profile_store.py",
-        "src/orbitrelay/profiles.py",
-        "src/orbitrelay/redaction.py"
+      "id": "e02s01",
+      "title": "Approve or deny a workspace file write",
+      "epic_id": "e02",
+      "epic_title": "Tool Approval Policies",
+      "bcp": 0,
+      "wsjf": 4.0,
+      "status": "in_progress",
+      "links": [
+        {
+          "file": "tests/test_approvals.py",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "src/orbitrelay/approvals.py",
+          "line": 1,
+          "confidence": "high",
+          "method": "explicit_tag"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s01-approve-deny-workspace-write.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s02-approve-deny-python-execution.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "src/orbitrelay/tools/write_file.py",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s01-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
       ],
-      "test_files": [
-        "tests/test_cli.py",
-        "tests/test_credentials.py",
-        "tests/test_profile_cli.py",
-        "tests/test_profiles.py",
-        "tests/test_redaction.py"
+      "link_count": 6
+    },
+    {
+      "id": "e02s02",
+      "title": "Approve or deny local Python execution",
+      "epic_id": "e02",
+      "epic_title": "Tool Approval Policies",
+      "bcp": 0,
+      "wsjf": 4.0,
+      "status": "pending",
+      "links": [
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s01-approve-deny-workspace-write.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s02-approve-deny-python-execution.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s02-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
       ],
-      "verify_evidence": [
-        "specs/verifications/e01s01-verify.yaml",
-        "specs/verifications/NFR-e01s01.json",
-        "specs/verifications/AUDIT-e01-e01s01.md",
-        "specs/verifications/REVIEW-e01s01.md",
-        "specs/security/REVIEW.md"
+      "link_count": 3
+    },
+    {
+      "id": "e02s03",
+      "title": "Disable a tool for the current run",
+      "epic_id": "e02",
+      "epic_title": "Tool Approval Policies",
+      "bcp": 0,
+      "wsjf": 4.0,
+      "status": "pending",
+      "links": [
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s03-disable-tool-for-run.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s03-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
       ],
-      "explicit_links": 11,
-      "heuristic_links": 0,
-      "coverage_percent": 100.0,
-      "critical_gaps": []
+      "link_count": 2
+    },
+    {
+      "id": "e02s04",
+      "title": "Run safely in read-only or unattended contexts",
+      "epic_id": "e02",
+      "epic_title": "Tool Approval Policies",
+      "bcp": 0,
+      "wsjf": 4.0,
+      "status": "pending",
+      "links": [
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s04-read-only-unattended.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s04-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e02s05",
+      "title": "Run with explicit pre-approved automation",
+      "epic_id": "e02",
+      "epic_title": "Tool Approval Policies",
+      "bcp": 0,
+      "wsjf": 4.0,
+      "status": "pending",
+      "links": [
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s05-preapproved-automation.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s05-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
+    },
+    {
+      "id": "e02s06",
+      "title": "Audit approval decisions without secret leakage",
+      "epic_id": "e02",
+      "epic_title": "Tool Approval Policies",
+      "bcp": 0,
+      "wsjf": 4.0,
+      "status": "pending",
+      "links": [
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s06-audit-approval-decisions.md",
+          "line": 0,
+          "confidence": "medium",
+          "method": "file_heuristic"
+        },
+        {
+          "file": "specs/epics/e02-tool-approval-policies/e02s06-tasks.yaml",
+          "line": 0,
+          "confidence": "low",
+          "method": "task_reference"
+        }
+      ],
+      "link_count": 2
     }
   ],
-  "coverage": {
-    "covered_stories": 1,
-    "dark_stories": 0,
-    "total_stories": 1,
-    "percent": 100.0
-  },
-  "oracle_stats": {
-    "explicit_links": 11,
-    "heuristic_links": 0,
-    "heuristic_ratio": 0.0
+  "summary": {
+    "total_stories": 6,
+    "tagged_stories": 1,
+    "dark_stories": [],
+    "dark_count": 0,
+    "orphan_tags": [
+      "e01s01"
+    ],
+    "orphan_count": 1,
+    "stale_tags": [],
+    "stale_count": 0,
+    "oracle_stats": {
+      "high": 2,
+      "medium": 9,
+      "low": 6
+    }
   }
 }

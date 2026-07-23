@@ -1,63 +1,26 @@
 {
-  "generated_at": "2026-07-23T01:20:00Z",
-  "generation_mode": "manual adversarial equivalent; repository blind-spot script unavailable",
-  "story": "e01s01",
-  "acceptance_criteria": [
+  "generated_at": "2026-07-23T19:48:32.312364+00:00",
+  "version": "1.0",
+  "summary": {
+    "total_findings": 2,
+    "high": 0,
+    "medium": 2,
+    "low": 0
+  },
+  "findings": [
     {
-      "criterion": "Create, select, and run an API-key profile",
-      "tests": ["tests/test_profile_cli.py", "tests/test_cli.py"],
-      "status": "covered"
+      "check": "double-tag",
+      "file": "specs/epics/e02-tool-approval-policies/e02s01-approve-deny-workspace-write.md",
+      "severity": "MEDIUM",
+      "description": "File 'specs/epics/e02-tool-approval-policies/e02s01-approve-deny-workspace-write.md' is tagged with multiple stories: e02s01, e02s02",
+      "remediation": "Review whether this file genuinely implements multiple stories. If it's a shared utility, this is acceptable."
     },
     {
-      "criterion": "Preserve the environment compatibility path",
-      "tests": ["tests/test_cli.py::CliTests::test_main_wires_environment_cli_and_agent_without_network"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Honor deterministic precedence",
-      "tests": ["tests/test_cli.py::CliTests::test_explicit_profile_overrides_selection_and_environment"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Reject invalid configuration before network access",
-      "tests": ["tests/test_profiles.py", "tests/test_cli.py::CliTests::test_rejects_missing_profile_credential_before_client_creation"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Validate all roadmap auth kinds",
-      "tests": ["tests/test_profiles.py::ProviderProfileTests::test_accepts_each_declared_auth_kind_without_a_secret_value"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Reject unsupported runtime auth kinds",
-      "tests": ["tests/test_cli.py::CliTests::test_rejects_deferred_auth_kind_before_client_creation"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Fail closed when credential storage is unavailable",
-      "tests": ["tests/test_credentials.py::KeyringCredentialStoreTests::test_rejects_an_unavailable_backend"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Delete a selected profile safely",
-      "tests": ["tests/test_profile_cli.py::ProfileCliTests::test_list_show_select_and_delete_never_output_secret"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Retry deletion after a partial failure",
-      "tests": ["tests/test_credentials.py::ProfileServiceTests::test_deletion_is_retry_safe_after_metadata_failure"],
-      "status": "covered"
-    },
-    {
-      "criterion": "Redact nested credentials",
-      "tests": ["tests/test_redaction.py::RedactionTests::test_recursively_redacts_credential_like_fields"],
-      "status": "covered"
+      "check": "double-tag",
+      "file": "specs/epics/e02-tool-approval-policies/e02s02-approve-deny-python-execution.md",
+      "severity": "MEDIUM",
+      "description": "File 'specs/epics/e02-tool-approval-policies/e02s02-approve-deny-python-execution.md' is tagged with multiple stories: e02s01, e02s02",
+      "remediation": "Review whether this file genuinely implements multiple stories. If it's a shared utility, this is acceptable."
     }
-  ],
-  "blockers": [],
-  "warnings": [],
-  "completeness_critic": {
-    "classification": "FILLED",
-    "refutation_attempt": "Explicit story links were initially absent from source and tests; this was a real release-blocking trace gap and was filled before reevaluation. All ten acceptance criteria then mapped to executable tests and verification evidence."
-  }
+  ]
 }

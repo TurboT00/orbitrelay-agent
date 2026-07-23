@@ -2,7 +2,7 @@ development_status:
   e01: done
   e01s01: done
   e02: in_progress
-  e02s01: in_progress
+  e02s01: verified
   e02s02: pending
   e02s03: pending
   e02s04: pending
@@ -25,7 +25,7 @@ stories:
     title: Configure providers and secure named auth profiles
     epic: e01
   e02s01:
-    status: in_progress
+    status: verified
     title: Approve or deny a workspace file write
     bcps: 5
     epic: e02

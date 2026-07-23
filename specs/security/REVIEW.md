@@ -1,10 +1,9 @@
-# Security Review — e01s01 Provider/Auth Profiles
+# Security Review — e02s01 Workspace Write Approval
 
-- Merge base: `f423629862f78c772338a6acbefd6dacbe7b7fab`
-- Reviewed head: `f591c66ff3dbb4d43f85b0696704e84b6821cfb6`
-- Scope: feature diff against `main`, with emphasis on CLI input, profile
-  deserialization, metadata paths, keyring operations, secret transport,
-  deletion, and output redaction.
+- Reviewed at: `2026-07-23T19:49:07Z`
+- Merge base: `8bcefba610a4fd1c66c47e665247325b04ecfdb2`
+- Scope: production and test changes for e02s01 against `origin/main`
+- Threat model: `specs/security/epics/e02/THREAT_MODEL.md`
 
 ## Gate result
 
@@ -12,54 +11,60 @@
 
 ## Data-flow review
 
-1. Profile names and endpoint metadata enter through argparse or versioned JSON.
-2. `ProviderProfile` constrains names, rejects unknown fields and URL-embedded
-   credentials, requires explicit capabilities, limits unauthenticated profiles
-   to loopback, rejects query/fragment-bearing URLs, and requires HTTPS or
-   loopback for authenticated profiles.
-3. `ProfileRepository` writes only `ProviderProfile.to_dict()` data through an
-   atomic same-directory replacement with mode `0600`.
-4. API keys enter through a hidden prompt or stdin, flow directly to the
-   credential-store adapter, and are retrieved into memory only when resolving
-   an executable `api_key` profile.
-5. `KeyringCredentialStore` allows only approved native macOS/Linux backends and
-   wraps backend exceptions without including secret values.
-6. Profile inspection passes output through recursive credential redaction.
-7. The resolved credential reaches only `openai.OpenAI(api_key=...)`; it is not
-   passed to the agent messages, local tools, command arguments, or metadata.
+1. Model tool-call IDs, names, and JSON arguments enter through
+   `agent._validate_tool_calls`; the complete response batch is structurally
+   validated before preparation.
+2. `prepare_tool` resolves only fixed built-in handlers, overwrites any
+   model-supplied workspace, binds handler arguments, validates write argument
+   types, and rejects unsafe targets without invoking a handler.
+3. `PreparedToolCall` excludes its handler arguments from `repr`; its approval
+   request contains only call ID, fixed tool name, category, target, and content
+   length. File content remains available only to the eventual approved handler.
+4. `ApprovalSession.authorize` receives the complete tuple of valid requests and
+   validates that one decision exists per request before execution begins.
+5. Denied writes produce correlated JSON errors with fixed fields and never call
+   `execute_prepared_tool`.
+6. Approved writes execute in original order. `write_file` repeats path and
+   symlink confinement at the side-effect boundary.
+7. Terminal and verbose previews share bounded `ascii`-escaped formatting and do
+   not include write content.
 
-## Resolved during review
+## Vulnerability assessment
 
-- **Credential loss on duplicate creation:** the initial coordinator could
-  overwrite an existing keyring entry before metadata rejected the duplicate,
-  then delete the replacement and leave the original profile without a secret.
-  Fixed by rejecting existing metadata before keyring mutation and covered by
-  `test_duplicate_creation_preserves_the_existing_credential`.
-- **Plaintext remote credential transport:** named secret-backed profiles
-  initially accepted remote `http://` endpoints. Fixed by requiring HTTPS or a
-  loopback host and covered for both secret-backed auth kinds.
+| Category | Result | Evidence |
+|---|---|---|
+| Authorization bypass | PASS | Consequential calls default deny without an injected trusted authorizer; CLI injects the terminal session. |
+| Path traversal | PASS | Preparation and execution both use `resolve_path_within`; escape and symlink regressions pass. |
+| Secrets exposure | PASS | Approval requests and verbose output exclude raw content; adversarial secret fixture passes. |
+| Unsafe deserialization | PASS | Untrusted arguments use `json.loads`; only object values with bound fixed handlers proceed. |
+| Command injection | PASS | e02s01 adds no shell construction; Python execution remains a fixed argument-list handler and is not approved by this story. |
+| Prompt spoofing | PASS | Fixed labels plus bounded `ascii` formatting prevent raw terminal controls from reaching trusted framing. |
 
-## Non-blocking hardening notes
+## Gap closed during verification
 
-- Metadata and native keyring writes cannot form one crash-atomic
-  operating-system transaction. Supported macOS/Linux mutations are serialized
-  across threads and processes, and compensation failures retain both causes;
-  power-loss consistency remains explicitly outside the P1 guarantee.
-- Backend security ultimately depends on the active native keyring. OrbitRelay
-  rejects unavailable, chained, custom, alternate-file, and Windows backends;
-  Windows profile support remains P7 work.
-- macOS may allow the same Python executable to read a keyring item without a new
-  prompt; this documented upstream behavior is disclosed in the README.
+Non-string write content originally reached `len()` during preparation and could
+crash the run before a correlated tool result. Verification reopened e02s01 task
+5, added a failing agent-level regression, and now rejects the argument before
+approval or side effects.
 
-## Independent-review closure
+## Non-blocking residual risks
 
-Five dual-review rounds closed additional findings around URL-carried secrets,
-cross-process consistency, unsafe storage paths, keyring backend selection,
-ambiguous deletion, rollback diagnostics, credential namespaces, coherent
-environment sources, transport-variable isolation, and dotenv interpolation.
-The final AND-gate passed at Reviewer A 97/100 and Reviewer B 98/100 with zero
-must-fix findings. See `specs/verifications/REVIEW-e01s01.md`.
+- Interactive timeout, TTY detection, malformed-input retry limits, and explicit
+  unattended policy selection belong to e02s04 and remain fail-closed defaults
+  or planned hardening rather than e02s01 release claims.
+- Rich Python execution previews belong to e02s02. The current safe default
+  denies execution unless an explicit authorizer decides otherwise.
+- Filesystem namespace changes between validation and open are mitigated by
+  revalidation at execution; power-loss and hostile local-user filesystem races
+  are outside the documented trusted-user boundary.
 
-The only production-file changes after the independently reviewed executable
-implementation at `6699209` are non-executable `# story: e01s01` trace comments.
-The release coverage commit adds tests only.
+## Security test evidence
+
+- `tests.test_agent`: complete-batch authorization, denial correlation, invalid
+  write rejection, and zero side effects.
+- `tests.test_tools`: preparation/execution split, unsafe target rejection, and
+  secret-free verbose previews.
+- `tests.test_sandbox`: symlink and workspace confinement.
+- `tests.test_approvals`: immutable safe request and explicit decisions.
+- Affected security suite: 35 tests passed.
+- Full project suite: 115 project tests and 9 example tests passed.

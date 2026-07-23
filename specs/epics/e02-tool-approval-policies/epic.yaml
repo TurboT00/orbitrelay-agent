@@ -8,7 +8,7 @@ stories:
   - id: e02s01
     title: Approve or deny a workspace file write
     bcps: 5
-    status: in_progress
+    status: verified
     delta: MODIFIED
     spec: e02s01-approve-deny-workspace-write.md
     tasks: e02s01-tasks.yaml
