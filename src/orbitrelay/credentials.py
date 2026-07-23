@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from .profiles import ProfileRepository, ProviderProfile
+from .profiles import (
+    ProfileExistsError,
+    ProfileNotFoundError,
+    ProfileRepository,
+    ProviderProfile,
+)
 
 
 KEYRING_SERVICE = "orbitrelay-agent"
@@ -99,6 +104,13 @@ class ProfileService:
         self.credential_store = credential_store
 
     def create(self, profile: ProviderProfile, *, secret: str | None = None) -> None:
+        try:
+            self.repository.get(profile.name)
+        except ProfileNotFoundError:
+            pass
+        else:
+            raise ProfileExistsError(f'Profile "{profile.name}" already exists')
+
         if profile.requires_secret:
             if not secret:
                 raise CredentialStoreError(
