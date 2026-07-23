@@ -1,0 +1,49 @@
+{
+  "generated_at": "2026-07-23T01:20:00Z",
+  "generation_mode": "manual deterministic equivalent; repository trace scripts unavailable",
+  "stories": [
+    {
+      "id": "e01s01",
+      "title": "Manage and run secure provider profiles",
+      "status": "done",
+      "priority": "P0",
+      "implementation_files": [
+        "src/orbitrelay/cli.py",
+        "src/orbitrelay/credentials.py",
+        "src/orbitrelay/profile_cli.py",
+        "src/orbitrelay/profile_store.py",
+        "src/orbitrelay/profiles.py",
+        "src/orbitrelay/redaction.py"
+      ],
+      "test_files": [
+        "tests/test_cli.py",
+        "tests/test_credentials.py",
+        "tests/test_profile_cli.py",
+        "tests/test_profiles.py",
+        "tests/test_redaction.py"
+      ],
+      "verify_evidence": [
+        "specs/verifications/e01s01-verify.yaml",
+        "specs/verifications/NFR-e01s01.json",
+        "specs/verifications/AUDIT-e01-e01s01.md",
+        "specs/verifications/REVIEW-e01s01.md",
+        "specs/security/REVIEW.md"
+      ],
+      "explicit_links": 11,
+      "heuristic_links": 0,
+      "coverage_percent": 100.0,
+      "critical_gaps": []
+    }
+  ],
+  "coverage": {
+    "covered_stories": 1,
+    "dark_stories": 0,
+    "total_stories": 1,
+    "percent": 100.0
+  },
+  "oracle_stats": {
+    "explicit_links": 11,
+    "heuristic_links": 0,
+    "heuristic_ratio": 0.0
+  }
+}

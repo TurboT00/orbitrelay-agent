@@ -72,6 +72,78 @@ The same protocol boundary is intended to accommodate local servers such as
 Ollama or vLLM in a later release, but no local endpoint is currently tested or
 supported.
 
+## Provider profiles
+
+Named profiles store endpoint, model, auth-kind, and capability metadata in the
+current user's `~/.orbitrelay/profiles.json`. Set `ORBITRELAY_HOME` to use a
+different application directory, which is useful for isolated development and
+tests. A custom directory and its ancestors must be controlled by the current
+user; OrbitRelay rejects symlinked, foreign-owned, or group/world-writable profile
+storage at the application-directory boundary. Profile files never contain
+credentials.
+
+Create an API-key profile. OrbitRelay prompts without echoing the credential:
+
+```bash
+orbitrelay profile create deepseek-work \
+  --base-url https://api.deepseek.com \
+  --model deepseek-v4-flash \
+  --auth-kind api_key \
+  --capability tool_calling \
+  --capability assistant_message_passthrough
+```
+
+For automation, add `--secret-stdin` and pipe the credential through standard
+input. Secret-valued command-line options are intentionally unsupported.
+
+Manage and select profiles with:
+
+```bash
+orbitrelay profile list
+orbitrelay profile show deepseek-work
+orbitrelay profile select deepseek-work
+orbitrelay profile delete deepseek-work
+```
+
+At runtime, `--profile NAME` takes precedence over the saved selection, which
+takes precedence over the existing `OPENAI_*` environment configuration:
+
+```bash
+orbitrelay "inspect this project" --profile deepseek-work
+```
+
+Profile credentials use the operating system's native credential service through
+Python `keyring`. OrbitRelay fails closed when no approved native backend is
+available; it never falls back to a plaintext credential file. Linux systems
+need a configured Secret Service or KWallet backend. On macOS, credentials
+created by a Python executable may be readable by that same executable without a
+new prompt unless access is tightened in Keychain Access.
+
+P1 profile persistence is supported on macOS and Linux. Windows profile locking
+and credential storage remain P7 work. If `keyring` selects a chainer backend,
+configure one supported native backend explicitly; OrbitRelay rejects chained or
+custom backends rather than guessing where a secret will be stored.
+
+Credential identifiers are bound to the canonical profile-file path. Moving
+`ORBITRELAY_HOME` therefore creates a new credential namespace and requires
+re-entering profile credentials. Mutations use a process-safe lock on macOS and
+Linux. Atomic replacement protects metadata from torn writes, but P1 does not
+claim power-loss atomicity across the metadata file and OS keychain.
+
+OrbitRelay does not combine partial provider settings from the process
+environment and a project `.env`: if the process supplies any `OPENAI_*` setting,
+that mapping is validated as one source; otherwise the loaded `.env` mapping is
+used. This prevents a project file from pairing its endpoint with an inherited
+credential. OrbitRelay parses only `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and
+`OPENAI_MODEL` from `.env`; it never copies project-defined proxy, CA, or other
+transport variables into the process environment. Dotenv interpolation is
+disabled, and unresolved `${...}` placeholders in provider settings are rejected
+rather than expanded from inherited process secrets.
+
+P1 validates `api_key`, `external_first_party_cli`, `local_none`, and
+`local_service_bearer` contracts. Only `api_key` profiles are executable in this
+release. The other runtime adapters remain roadmap work.
+
 ## Tools and safety boundary
 
 The model can call four local tools:
@@ -107,17 +179,25 @@ workspace. It exists only as a safe, small checkout example.
 
 OrbitRelay Agent is available under the [MIT License](LICENSE).
 
+## Roadmap
+
+See [docs/project-roadmap.md](docs/project-roadmap.md) for the dependency-aware
+capability roadmap, authentication constraints, and next implementation slice.
+
 ## Development and verification
 
 The automated agent tests use scripted responses and never call a live model
-API:
+API. Run the complete local check from any working directory:
 
 ```bash
-uv lock --check
-uv sync --locked
-uv run python -m unittest discover -s tests -v
-uv run python examples/calculator/tests.py
-uv run python -c "import orbitrelay; import orbitrelay.cli"
-uv run orbitrelay --help
-uv build
+./scripts/check.sh
 ```
+
+The script validates the lockfile, synchronizes dependencies, runs both test
+suites, checks package imports and CLI entry points, builds the distributions,
+and starts the command from an isolated wheel installation. Build artifacts are
+created in a temporary directory and removed automatically.
+
+The current script targets Bash on macOS and Linux, including Arch and Ubuntu.
+A native Windows check can be added when Windows 11 becomes an explicitly
+supported development platform; until then, Git Bash or WSL can run this script.
