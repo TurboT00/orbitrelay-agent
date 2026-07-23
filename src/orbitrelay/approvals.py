@@ -27,6 +27,7 @@ class ApprovalMode(StrEnum):
 SafeValue = str | int | tuple[str, ...]
 SafeContext = tuple[tuple[str, SafeValue], ...]
 MAX_SAFE_VALUE_LENGTH = 200
+MAX_APPROVAL_ATTEMPTS = 3
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,7 +167,13 @@ class TerminalAuthorizer:
     def _authorize(self, request: "ApprovalRequest") -> ApprovalDecision:
         if request.category is ToolCategory.READ:
             return ApprovalDecision.approve(reason="read_allowed")
+        for _attempt in range(MAX_APPROVAL_ATTEMPTS):
+            decision = self._prompt_once(request)
+            if decision is not None:
+                return decision
+        return ApprovalDecision.deny(reason="approval_invalid_input")
 
+    def _prompt_once(self, request: "ApprovalRequest") -> ApprovalDecision | None:
         print(
             f"Approve {format_approval_request(request)}? [y/N/d=disable]: ",
             end="",
@@ -183,7 +190,9 @@ class TerminalAuthorizer:
             return ApprovalDecision.disable_tool()
         if response == "":
             return ApprovalDecision.deny(reason="approval_eof")
-        return ApprovalDecision.deny(reason="user_denied")
+        if response.strip().lower() in {"n", "no"}:
+            return ApprovalDecision.deny(reason="user_denied")
+        return None
 
 
 @dataclass(frozen=True, slots=True)
