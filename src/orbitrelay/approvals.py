@@ -68,6 +68,7 @@ class ApprovalSession:
         authorizer: BatchAuthorizer | None = None,
         *,
         mode: ApprovalMode = ApprovalMode.CONFIRM,
+        approved_tools: frozenset[str] = frozenset(),
     ) -> None:
         self._authorizer = (
             self._authorize_read_only
@@ -77,6 +78,7 @@ class ApprovalSession:
             else authorizer or self._authorize_safe_defaults
         )
         self._disabled_tools: set[str] = set()
+        self._approved_tools = approved_tools
 
     @property
     def disabled_tools(self) -> frozenset[str]:
@@ -145,14 +147,16 @@ class ApprovalSession:
             for request in requests
         )
 
-    @staticmethod
     def _authorize_pre_approved(
+        self,
         requests: tuple["ApprovalRequest", ...],
     ) -> tuple[ApprovalDecision, ...]:
         return tuple(
             ApprovalDecision.approve(reason="read_allowed")
             if request.category is ToolCategory.READ
-            else ApprovalDecision.deny(reason="pre_approval_unavailable")
+            else ApprovalDecision.approve(reason="explicit_preapproval")
+            if request.tool_name in self._approved_tools
+            else ApprovalDecision.deny(reason="tool_not_preapproved")
             for request in requests
         )
 
