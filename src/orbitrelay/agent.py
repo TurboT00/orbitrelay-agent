@@ -1,9 +1,12 @@
 # story: e02s03
+# story: e02s06
 
 import json
+import sys
 from collections.abc import Iterator
-from typing import Any
+from typing import Any, TextIO
 
+from .approval_format import format_approval_record
 from .approvals import ApprovalDecision, ApprovalSession
 from .prompts import system_prompt
 from .tools import (
@@ -112,6 +115,7 @@ def run_agent(
     working_directory: str,
     verbose: bool = False,
     approval_session: ApprovalSession | None = None,
+    audit_stream: TextIO | None = None,
 ) -> str:
     return _run_response_loop(
         client,
@@ -120,6 +124,7 @@ def run_agent(
         working_directory,
         verbose,
         approval_session or ApprovalSession(),
+        sys.stderr if audit_stream is None else audit_stream,
     )
 
 
@@ -131,16 +136,26 @@ def _initial_messages(user_prompt: str) -> list[Any]:
 
 
 def _run_response_loop(
-    client: Any, model: str, messages: list[Any], working_directory: str,
-    verbose: bool, approval_session: ApprovalSession,
+    client: Any,
+    model: str,
+    messages: list[Any],
+    working_directory: str,
+    verbose: bool,
+    approval_session: ApprovalSession,
+    audit_stream: TextIO,
 ) -> str:
     for response_number in range(1, MAX_MODEL_RESPONSES + 1):
         response = client.chat.completions.create(
             model=model, messages=messages, tools=TOOL_DEFINITIONS
         )
         final_text = _process_response(
-            response, response_number, messages, working_directory,
-            verbose, approval_session,
+            response,
+            response_number,
+            messages,
+            working_directory,
+            verbose,
+            approval_session,
+            audit_stream,
         )
         if final_text is not None:
             return final_text
@@ -148,8 +163,13 @@ def _run_response_loop(
 
 
 def _process_response(
-    response: Any, response_number: int, messages: list[Any],
-    working_directory: str, verbose: bool, approval_session: ApprovalSession,
+    response: Any,
+    response_number: int,
+    messages: list[Any],
+    working_directory: str,
+    verbose: bool,
+    approval_session: ApprovalSession,
+    audit_stream: TextIO,
 ) -> str | None:
     if verbose:
         _print_usage(response_number, response)
@@ -159,8 +179,13 @@ def _process_response(
         return _final_text(message)
     messages.extend(
         _tool_round_messages(
-            message, tool_calls, response_number, working_directory,
-            verbose, approval_session,
+            message,
+            tool_calls,
+            response_number,
+            working_directory,
+            verbose,
+            approval_session,
+            audit_stream,
         )
     )
     return None
@@ -184,8 +209,13 @@ def _final_text(message: Any) -> str:
 
 
 def _tool_round_messages(
-    message: Any, tool_calls: Any, response_number: int, working_directory: str,
-    verbose: bool, approval_session: ApprovalSession,
+    message: Any,
+    tool_calls: Any,
+    response_number: int,
+    working_directory: str,
+    verbose: bool,
+    approval_session: ApprovalSession,
+    audit_stream: TextIO,
 ) -> list[dict[str, Any]]:
     if response_number == MAX_MODEL_RESPONSES:
         raise TurnLimitError(
@@ -194,10 +224,23 @@ def _tool_round_messages(
         )
     validated_calls = _validate_tool_calls(tool_calls)
     prepared_calls = _prepare_calls(validated_calls, working_directory)
+    emitted_before = len(approval_session.records)
     decisions = _authorize_calls(prepared_calls, approval_session)
-    return [_serialize_assistant_message(message), *_tool_result_messages(
-        validated_calls, prepared_calls, decisions, verbose
-    )]
+    if verbose:
+        _emit_approval_records(
+            approval_session.records[emitted_before:], audit_stream
+        )
+    return [
+        _serialize_assistant_message(message),
+        *_tool_result_messages(validated_calls, prepared_calls, decisions, verbose),
+    ]
+
+
+def _emit_approval_records(
+    records: tuple[Any, ...], audit_stream: TextIO
+) -> None:
+    for record in records:
+        print(format_approval_record(record), file=audit_stream, flush=True)
 
 
 def _prepare_calls(
