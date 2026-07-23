@@ -1,6 +1,6 @@
 # story: e02s01
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import TextIO
@@ -39,6 +39,10 @@ class ApprovalDecision:
     def deny(cls, *, reason: str) -> "ApprovalDecision":
         return cls(disposition=ApprovalDisposition.DENIED, reason=reason)
 
+    @classmethod
+    def disable_tool(cls) -> "ApprovalDecision":
+        return cls.deny(reason="user_disabled_tool")
+
 
 BatchAuthorizer = Callable[
     [tuple["ApprovalRequest", ...]], Sequence[ApprovalDecision]
@@ -48,17 +52,45 @@ BatchAuthorizer = Callable[
 class ApprovalSession:
     def __init__(self, authorizer: BatchAuthorizer | None = None) -> None:
         self._authorizer = authorizer or self._authorize_safe_defaults
+        self._disabled_tools: set[str] = set()
+
+    @property
+    def disabled_tools(self) -> frozenset[str]:
+        return frozenset(self._disabled_tools)
 
     def authorize(
         self,
         requests: tuple["ApprovalRequest", ...],
     ) -> tuple[ApprovalDecision, ...]:
-        decisions = tuple(self._authorizer(requests))
+        pending = tuple(
+            request for request in requests if request.tool_name not in self._disabled_tools
+        )
+        decisions = tuple(self._authorizer(pending)) if pending else ()
+        self._validate_decisions(pending, decisions)
+        candidates = iter(decisions)
+        return tuple(self._apply_policy(request, candidates) for request in requests)
+
+    @staticmethod
+    def _validate_decisions(
+        requests: tuple["ApprovalRequest", ...],
+        decisions: tuple[ApprovalDecision, ...],
+    ) -> None:
         if len(decisions) != len(requests):
             raise RuntimeError("Approval session returned the wrong decision count")
         if not all(isinstance(decision, ApprovalDecision) for decision in decisions):
             raise RuntimeError("Approval session returned an invalid decision")
-        return decisions
+
+    def _apply_policy(
+        self,
+        request: "ApprovalRequest",
+        candidates: "Iterator[ApprovalDecision]",
+    ) -> ApprovalDecision:
+        if request.tool_name in self._disabled_tools:
+            return ApprovalDecision.deny(reason="tool_disabled_for_run")
+        decision = next(candidates)
+        if decision.reason == "user_disabled_tool":
+            self._disabled_tools.add(request.tool_name)
+        return decision
 
     @staticmethod
     def _authorize_safe_defaults(
