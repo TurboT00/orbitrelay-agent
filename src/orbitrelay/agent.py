@@ -247,7 +247,7 @@ def _execute_authorized_call(
     return json.dumps(
         {
             "error": {
-                "code": "approval_denied",
+                "code": _denial_code(decision),
                 "reason": decision.reason,
                 "tool": request.tool_name,
                 "tool_call_id": request.call_id,
@@ -255,3 +255,9 @@ def _execute_authorized_call(
         },
         sort_keys=True,
     )
+
+
+def _denial_code(decision: ApprovalDecision) -> str:
+    if decision.reason in {"user_disabled_tool", "tool_disabled_for_run"}:
+        return "tool_disabled"
+    return "approval_denied"
