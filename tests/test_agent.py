@@ -1,11 +1,15 @@
 import copy
+import json
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from openai.types.chat.chat_completion import ChatCompletion
 
 from orbitrelay.agent import MAX_MODEL_RESPONSES, TurnLimitError, run_agent
+from orbitrelay.approvals import ApprovalDecision, ApprovalSession
 
 
 WORKING_DIRECTORY = "/workspace"
@@ -114,6 +118,60 @@ class AgentLoopTests(unittest.TestCase):
         self.assertEqual(second_messages[-2]["content"], "files")
         self.assertEqual(second_messages[-1]["tool_call_id"], "call-2")
         self.assertEqual(second_messages[-1]["content"], "contents")
+
+    def test_authorizes_complete_write_batch_before_any_execution(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-1",
+                    "write_file",
+                    '{"file_path":"approved.txt","content":"approved"}',
+                ),
+                tool_call(
+                    "call-2",
+                    "write_file",
+                    '{"file_path":"denied.txt","content":"denied"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            approved_target = Path(workspace, "approved.txt")
+            denied_target = Path(workspace, "denied.txt")
+
+            def authorize(requests):
+                self.assertEqual(
+                    [request.call_id for request in requests],
+                    ["call-1", "call-2"],
+                )
+                self.assertFalse(approved_target.exists())
+                self.assertFalse(denied_target.exists())
+                return (
+                    ApprovalDecision.approve(reason="user_approved"),
+                    ApprovalDecision.deny(reason="user_denied"),
+                )
+
+            result = run_agent(
+                client,
+                "write files",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=ApprovalSession(authorize),
+            )
+
+            self.assertEqual(result, "done")
+            self.assertEqual(approved_target.read_text(encoding="utf-8"), "approved")
+            self.assertFalse(denied_target.exists())
+
+        tool_messages = completions.calls[1]["messages"][-2:]
+        self.assertEqual(
+            [message["tool_call_id"] for message in tool_messages],
+            ["call-1", "call-2"],
+        )
+        denial = json.loads(tool_messages[1]["content"])
+        self.assertEqual(denial["error"]["code"], "approval_denied")
+        self.assertEqual(denial["error"]["tool_call_id"], "call-2")
 
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
