@@ -1,25 +1,32 @@
 release:
+  version: "0.4.0"
+  codename: Supported Hosted Access
+  status: planned
+  semantic_release: true
+  bump_hint: minor
+  baseline_version: "0.3.0"
+  baseline_tag: v0.3.0
+  handoff: specs/HANDOFF_LATEST.md
+
+previous_release:
   version: "0.3.0"
   codename: Tool Approval Policies
   status: completed
-  semantic_release: true
-  bump_hint: minor
-  branch: main
   tag: v0.3.0
   pr_number: 2
   merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
   release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.3.0
+  notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 
 epics:
-  - id: e02
-    title: Tool Approval Policies
-    capsule_dir: epics/e02-tool-approval-policies
-    wsjf: 4.0
-    bcps: 24
+  - id: e03
+    title: Supported Hosted Access
+    capsule_dir: epics/e03-supported-hosted-access
+    status: pending_discovery
     note: >-
-      Highest-priority unblocked roadmap capability. It establishes user consent
-      before consequential tools and unlocks hosted access, conversations, local
-      models, and plugin policy work.
+      Next priority after P2. Deliver Codex CLI bridge and xAI BYOK without
+      invented OAuth. Epic capsule directory and stories do not exist yet;
+      create them during plan-release / slice-tasks after scope-work.
 
 bugs:
   total: 0

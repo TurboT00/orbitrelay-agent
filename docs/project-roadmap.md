@@ -199,26 +199,44 @@ verification valuable; GitHub Actions is not a prerequisite for earlier work.
 
 ## Deferred decisions
 
-The implementing agent must ask before deciding:
+Already decided and locked:
 
-1. OS keychain versus another credential-store contract.
-2. Codex CLI bridge packaging, minimum version, and subscription-use terms.
-3. Session storage format, encryption, and retention defaults.
-4. Certified Ollama model list and minimum Ollama version.
-5. Whether vLLM support is loopback/private-network only or includes remote
-   deployments.
-6. Plugin discovery and trust model.
-7. Supported Python versions beyond the current Python 3.14 requirement.
+- Native OS credential store only; never plaintext secret files.
+- Codex auth is an official CLI process boundary only; never read `auth.json`.
+- xAI/Grok is BYOK until real third-party OAuth exists.
+- Tool approvals are batch-first, fail-closed, and run-local (shipped in 0.3.0).
+
+The implementing agent must still ask before deciding:
+
+1. Codex CLI minimum version, packaging expectations, and subscription-use terms.
+2. Whether Codex bridge and xAI BYOK ship in one release or sequenced stories.
+3. How Codex execution composes with the current Chat Completions tool loop.
+4. xAI default base URL/model and env var naming.
+5. Session storage format, encryption, and retention defaults (P4).
+6. Certified Ollama model list and minimum Ollama version (P5).
+7. Whether vLLM support is loopback/private-network only or includes remote
+   deployments (P5).
+8. Plugin discovery and trust model (P6).
+9. Supported Python versions beyond the current Python 3.14 requirement.
 
 ## Next implementation step
 
-Scope P1 as a vertical slice before writing code:
+P1 and P2 are complete (`v0.3.0`). Start **P3 Supported Hosted Access** from a
+fresh agent session using the durable handoff:
 
-1. define one hosted API-key profile and one `local_none` profile;
-2. preserve the current environment-based path;
-3. design credential references without choosing storage implicitly;
-4. define a provider capability manifest; and
-5. verify with offline contract tests.
+1. read `specs/HANDOFF_LATEST.md` and `specs/state.yaml`;
+2. run `./scripts/check.sh` to confirm the 0.3.0 baseline;
+3. run `survey-context`, then `scope-work` for P3 (replace the handoff draft in
+   `specs/product/SCOPE_LATEST.yaml` with a real scoped PRD);
+4. research official Codex and xAI docs before designing interfaces;
+5. only then slice stories and implement behind a feature branch.
+
+P3 direction reminder:
+
+1. Codex CLI detection/login/logout/`codex exec` without reading auth files;
+2. xAI BYOK profile support through the existing credential store;
+3. preserve P1 secrets boundaries and P2 tool-approval behavior; and
+4. verify with offline contract tests (fake Codex subprocess; no real auth files).
 
 **Verify this roadmap:**
 

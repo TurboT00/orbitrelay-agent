@@ -1,122 +1,48 @@
-initiative: tool-approval-policies
-roadmap_priority: P2
-status: scoped
+initiative: supported-hosted-access
+roadmap_priority: P3
+status: handoff-ready
+predecessor: tool-approval-policies (P2, released as 0.3.0)
 
 core_value: >-
-  Keep users in control of consequential agent actions by requiring explicit,
-  fail-closed approval for file writes and process execution.
+  Let users reach supported hosted providers through documented auth boundaries—
+  official Codex CLI process integration and xAI API-key profiles—without
+  inventing OAuth or weakening existing credential and tool-approval guarantees.
 
 summary: >-
-  P2 introduces a user-consent boundary around OrbitRelay's existing tools.
-  Workspace-confined reads remain available by default, while file writes and
-  process execution require approval unless the user explicitly selects a
-  stricter or pre-approved run policy. Approval requests show the consequential
-  target and enough context for an informed decision before any side effect
-  begins.
+  P3 has not been scoped into vertical stories yet. The next agent must run
+  discover/scope work before implementation. Target capabilities are:
+  (1) detect and use a separately installed official Codex CLI for documented
+  login/logout/noninteractive execution without reading auth.json; and
+  (2) support xAI/Grok bring-your-own-key profiles while keeping generic
+  OpenAI-compatible configuration available.
 
-  Denials and unavailable approval input become structured tool failures that
-  the model can handle without bypassing policy. Decisions remain auditable for
-  the current run without recording tool-result secrets. P2 covers the existing
-  built-in tool set and terminal workflow only; persistent policy storage,
-  plugins, conversations, and new execution environments remain deferred.
+  P1 already models AuthKind.EXTERNAL_FIRST_PARTY_CLI but only AuthKind.API_KEY
+  is executable. P2 approval policies must remain enforced for local tools no
+  matter which provider path is selected.
 
-in_scope:
-  - id: e02s01
-    outcome: >-
-      Define user-visible approval behavior for the current read, write, and
-      execution tool categories, with workspace-confined reads allowed and
-      consequential actions requiring consent by default.
-  - id: e02s02
-    outcome: >-
-      Let an interactive user approve or deny each proposed file write or process
-      execution after seeing its target path or command, arguments, and workspace.
-  - id: e02s03
-    outcome: >-
-      Let a user disable a tool for the remainder of one run so repeated model
-      requests cannot reprompt or execute that tool during the same run.
-  - id: e02s04
-    outcome: >-
-      Provide explicit per-run read-only, confirm, and pre-approved policy choices,
-      while making missing approval input in noninteractive use fail closed.
-  - id: e02s05
-    outcome: >-
-      Return denied or unavailable approvals to the model as structured tool
-      failures and expose secret-free approval decision records for the run.
-  - id: e02s06
-    outcome: >-
-      Prove approval behavior offline across approval, denial, run-scoped disable,
-      end-of-input, timeout, noninteractive, and existing sandbox-validation cases.
+in_scope_direction:
+  - Codex CLI detection, version reporting, and documented command boundaries
+  - Codex login/logout delegation to the official CLI
+  - Noninteractive Codex exec integration appropriate to OrbitRelay's agent UX
+  - xAI API-key profile preset and credential entry via existing keyring path
+  - Tests that fake subprocess/CLI and avoid real network or real auth files
+  - Documentation of supported setup and explicit non-support for invented OAuth
 
-out_of_scope:
-  - item: Approval rules persisted across runs or shared between users
-    reason: >-
-      Deferred until policy lifecycle, ownership, revocation, and storage security
-      are designed; P2 decisions are intentionally run-scoped.
-  - item: Graphical, web, or remote approval interfaces
-    reason: >-
-      Deferred because P2 secures the existing terminal workflow first and no
-      authenticated remote control plane exists.
-  - item: Approval of provider authentication or credential access
-    reason: >-
-      Excluded because P1 credential boundaries are independent from tool consent
-      and must not be weakened or exposed through approval prompts.
-  - item: New tools, plugin registration, or third-party tool policy
-    reason: >-
-      Deferred to P6 after the built-in approval contract and conversation model
-      are stable.
-  - item: Persistent conversations, streaming, or resumable approval history
-    reason: >-
-      Deferred to P4; P2 emits run-local decisions without defining session
-      retention or replay semantics.
-  - item: Additional operating-system sandboxing or remote execution
-    reason: >-
-      Deferred because P2 governs consent for the existing workspace sandbox and
-      local Python execution rather than introducing a new isolation platform.
-  - item: Content-diff review, command allowlist languages, or path-pattern rules
-    reason: >-
-      Deferred as policy refinements; P2 establishes the minimum trustworthy
-      consent boundary before adding richer rule systems.
+out_of_scope_direction:
+  - Reading or copying CODEX_HOME/auth.json or browser session state
+  - Homegrown OAuth/device-code flows for Codex or xAI
+  - Conversation persistence, streaming, or session retention (P4)
+  - Ollama/vLLM local-model certification (P5)
+  - Plugin systems (P6)
+  - Windows certification and CI introduction unless user expands scope (P7)
 
-constraints:
-  product:
-    - Reads within the selected workspace remain usable without repetitive prompts.
-    - Writes show the target path before approval is requested.
-    - Execution shows the command, arguments, and selected workspace before approval is requested.
-    - A model request can never approve itself or silently change the user's selected run policy.
-    - Run-scoped denial remains effective for every later request for that tool in the same run.
-  security:
-    - No file mutation or process starts before all required approval is granted.
-    - EOF, timeout, unavailable input, malformed decisions, and noninteractive confirmation requirements deny by default.
-    - Read-only and denial policies do not weaken existing workspace path, symlink, or argument validation.
-    - Approval displays and decision records omit provider credentials, tool-result contents, and credential-like values.
-    - Explicit pre-approval is a user-selected run policy and cannot be inferred from model output or environment ambiguity.
-  technical:
-    - Preserve the existing bounded agent loop, tool-call correlation, and structured tool-result contract.
-    - Preserve the installable orbitrelay and python -m orbitrelay entry points.
-    - Keep tests offline with fake approval input, fake tool effects, and no real provider or keyring access.
-    - Preserve Python 3.14 as the currently declared minimum and macOS/Linux as the currently verified developer platforms.
-  delivery:
-    - This scope defines outcomes only; policy interfaces, prompt syntax, timeout values, and module boundaries are selected during planning.
-    - No implementation begins until e02 stories are sliced and the approval threat model and test plan are reviewed.
+open_questions:
+  - Codex minimum version and subscription-use wording
+  - Whether Codex bridge and xAI BYOK ship as one release or sequenced stories
+  - How Codex execution composes with the current Chat Completions tool loop
+  - Default xAI base URL/model and env var naming
 
-success_criteria:
-  - Workspace-confined read tools execute under the default policy without an approval prompt.
-  - Every file write and process execution under confirm policy displays the required context and starts only after explicit approval.
-  - A denied call is returned to the model as a correlated structured tool failure and produces no side effect.
-  - Disabling a tool for the run prevents all later calls to that tool without repeated prompts or side effects.
-  - Read-only mode denies writes and execution, while explicitly selected pre-approved mode permits them without weakening sandbox validation.
-  - Noninteractive runs that require confirmation fail closed before a write or process begins.
-  - Approval decision records identify the tool, disposition, and run context without storing provider secrets or tool-result contents.
-  - Automated tests cover approve, deny, disable-for-run, EOF, timeout, malformed input, and noninteractive behavior.
-  - Existing path-confinement, tool-correlation, provider-profile, package-build, and isolated-wheel checks continue to pass.
-  - ./scripts/check.sh passes after implementation.
-
-references:
-  - docs/project-roadmap.md#p2--tool-approval-policies
-  - specs/product/archive/SCOPE-P1-provider-auth-profiles.yaml
-  - specs/state.yaml
-  - specs/release-plan.yaml
-  - src/orbitrelay/agent.py
-  - src/orbitrelay/tools/__init__.py
-  - src/orbitrelay/tools/write_file.py
-  - src/orbitrelay/tools/run_python_file.py
+entry_skill: survey-context
+next_skill_after_survey: scope-work
+handoff_doc: specs/HANDOFF_LATEST.md
+baseline_release: v0.3.0

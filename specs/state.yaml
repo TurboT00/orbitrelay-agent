@@ -1,23 +1,24 @@
-active_flow: build_epic
-active_epic_id: e02
-active_story_id: e02s06
+active_flow: run_planning
+active_epic_id: e03
+active_story_id: null
 release:
   current_version: 0.3.0
-  target_version: 0.3.0
-  next_target: codex-bridge-and-xai-byok
-  pr_number: 2
-  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/2
-  pr_state: merged
-  merged: true
-  merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
-  tag: v0.3.0
-  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.3.0
+  target_version: 0.4.0
+  next_target: supported-hosted-access
+  last_completed_release: 0.3.0
+  last_completed_tag: v0.3.0
+  last_completed_pr: 2
+  last_completed_merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
+  last_completed_notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+  pr_number: null
+  pr_url: null
+  pr_state: null
+  merged: false
   ci_verified: false
   ci_status: not_configured
-  notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 git:
   branch: main
-  base_hash: 3d1cc4f
+  base_hash: 1456e4e
   handoff_ref: HEAD
   remote: origin/main
   push_requested: false
@@ -29,44 +30,65 @@ verification:
   project_tests: 145
   example_tests: 9
   evidence: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+planning:
+  phase: discover
+  status: ready
+  entry_skill: survey-context
+  next_skill: scope-work
+  scope_status: handoff-ready-draft
+  notes: >-
+    P3 scope draft exists only as direction in specs/product/SCOPE_LATEST.yaml.
+    The next agent must re-scope through scope-work with the user before coding.
 epic_cycle:
-  current_step: complete
+  current_step: survey-context
   next_skill: survey-context
-  story_bcps: 24
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message, release-branch]
-  audit_result: pass
+  story_bcps: null
+  completed_steps: []
+  audit_result: null
 handoff:
-  last_step_completed: 0.3.0 merged to main, tagged, and released on GitHub
+  last_step_completed: >-
+    P2 0.3.0 released; durable P3 handoff package written for a fresh agent
+  document: specs/HANDOFF_LATEST.md
   required_reading:
-    - README.md
-    - docs/project-roadmap.md
-    - specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+    - specs/HANDOFF_LATEST.md
     - specs/state.yaml
-    - src/orbitrelay/approvals.py
+    - docs/project-roadmap.md
+    - specs/product/SCOPE_LATEST.yaml
+    - specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+    - README.md
+    - src/orbitrelay/profiles.py
     - src/orbitrelay/cli.py
+    - src/orbitrelay/credentials.py
+    - src/orbitrelay/approvals.py
   open_decisions:
     - Confirm Codex CLI minimum version and subscription-use expectations.
-    - Approve session storage and retention before conversation persistence.
-    - Approve certified Ollama models before claiming local tool support.
+    - Decide whether Codex bridge and xAI BYOK ship together or as sequenced stories.
+    - Confirm how Codex composes with the current Chat Completions tool loop.
+    - Confirm xAI default base URL/model and env var naming.
+    - Approve session storage and retention before conversation persistence (P4).
+    - Approve certified Ollama models before claiming local tool support (P5).
   next_skill: survey-context
-  next_action: Start the next roadmap slice (P3 Codex bridge / xAI BYOK) when ready.
+  next_action: >-
+    Fresh agent: read specs/HANDOFF_LATEST.md, run ./scripts/check.sh, then
+    survey-context → scope-work for P3 Supported Hosted Access. Do not code first.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
   p1_auth_breadth: Model and validate all four roadmap auth kinds, but connect only api_key profiles to the runtime in P1.
   codex_auth: Use the official Codex CLI as a process boundary; never reproduce its OAuth flow or read auth.json.
   grok_auth: Support xAI BYOK and monitor official documentation for third-party OAuth.
-  next_user_capability: Tool approvals follow provider and auth foundations.
-  local_models: Start with Ollama loopback after capability profiles and approvals exist.
-  remote_push: Do not push the handoff commit without a new explicit request.
+  next_user_capability: After approvals, add supported hosted access (Codex CLI bridge + xAI BYOK).
+  local_models: Start with Ollama loopback after capability profiles, approvals, and hosted-access foundations exist.
+  remote_push: Do not push without an explicit user request.
   approval_batching: Validate and authorize the full model tool-call batch before executing approved calls in original order.
   approval_timeout: Default interactive decisions to 60 seconds, allow an explicit CLI override, and deny on timeout.
   approval_preapproved: Require a per-tool allowlist for pre-approved automation; never infer blanket approval.
   approval_audit: Keep decision records run-local and emit sanitized events to stderr only in verbose mode.
-  p2_plan_order: Build write approval, execution approval, run-scoped disable, unattended safety, per-tool pre-approval, then audit hardening.
+  p2_status: Completed and released as 0.3.0.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
+  - Start P3 from discover/scope, not from implementation commits.
 metrics:
-  story_start: "2026-07-23T22:36:00Z"
+  handoff_written_at: "2026-07-23T23:32:31Z"

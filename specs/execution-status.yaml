@@ -8,6 +8,7 @@ development_status:
   e02s04: done
   e02s05: done
   e02s06: done
+  e03: pending
 
 epics:
   e01:
@@ -18,6 +19,12 @@ epics:
     title: Tool Approval Policies
     wsjf: 4.0
     total_bcps: 24
+  e03:
+    status: pending
+    title: Supported Hosted Access
+    note: >-
+      Next roadmap epic (P3). Not sliced yet. Fresh agent must discover/scope
+      before implementation. See specs/HANDOFF_LATEST.md.
 
 stories:
   e01s01:
