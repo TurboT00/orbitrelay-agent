@@ -12,7 +12,12 @@ from unittest.mock import patch
 from openai.types.chat.chat_completion import ChatCompletion
 
 from orbitrelay.agent import MAX_MODEL_RESPONSES, TurnLimitError, run_agent
-from orbitrelay.approvals import ApprovalDecision, ApprovalSession, TerminalAuthorizer
+from orbitrelay.approvals import (
+    ApprovalDecision,
+    ApprovalMode,
+    ApprovalSession,
+    TerminalAuthorizer,
+)
 
 WORKING_DIRECTORY = "/workspace"
 
@@ -342,6 +347,43 @@ class AgentLoopTests(unittest.TestCase):
         tool_messages = completions.calls[1]["messages"][-2:]
         reasons = [json.loads(message["content"])["error"]["reason"] for message in tool_messages]
         self.assertEqual(reasons, ["user_disabled_tool", "tool_disabled_for_run"])
+
+    def test_read_only_batch_denies_writes_without_prompt_and_executes_reads(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"blocked.txt","content":"blocked"}',
+                ),
+                tool_call("call-read"),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        def unexpected_authorizer(_requests):
+            self.fail("read-only policy must not prompt")
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with patch(
+                "orbitrelay.agent.execute_prepared_tool", return_value="files"
+            ) as execute:
+                result = run_agent(
+                    client,
+                    "inspect safely",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(
+                        unexpected_authorizer, mode=ApprovalMode.READ_ONLY
+                    ),
+                )
+            self.assertFalse(Path(workspace, "blocked.txt").exists())
+
+        self.assertEqual(result, "done")
+        execute.assert_called_once()
+        denial = json.loads(completions.calls[1]["messages"][-2]["content"])
+        self.assertEqual(denial["error"]["code"], "approval_denied")
+        self.assertEqual(denial["error"]["reason"], "read_only_policy")
 
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
