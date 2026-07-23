@@ -1,10 +1,12 @@
 # story: e02s01, e02s02
 # story: e02s05
+# story: e02s06
 
 import copy
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
@@ -636,6 +638,83 @@ class AgentLoopTests(unittest.TestCase):
                 "deepseek-v4-flash",
                 working_directory=WORKING_DIRECTORY,
             )
+
+    def test_verbose_mode_emits_ordered_decision_events_to_stderr(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call("call-read"),
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"notes.txt","content":"secret-body"}',
+                ),
+            ]
+        )
+        client, _completions = scripted_client(first, make_completion(content="done"))
+        stderr = StringIO()
+        stdout = StringIO()
+
+        def authorize(requests):
+            return (
+                ApprovalDecision.approve(reason="read_allowed"),
+                ApprovalDecision.deny(reason="user_denied"),
+            )
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                result = run_agent(
+                    client,
+                    "inspect then deny write",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    verbose=True,
+                    approval_session=ApprovalSession(authorize),
+                    audit_stream=stderr,
+                )
+
+        self.assertEqual(result, "done")
+        events = [
+            line
+            for line in stderr.getvalue().splitlines()
+            if line.startswith("approval ")
+        ]
+        self.assertEqual(len(events), 2)
+        self.assertIn("call_id=call-read", events[0])
+        self.assertIn("reason=read_allowed", events[0])
+        self.assertIn("call_id=call-write", events[1])
+        self.assertIn("reason=user_denied", events[1])
+        self.assertIn("disposition=denied", events[1])
+        self.assertNotIn("secret-body", stdout.getvalue() + stderr.getvalue())
+
+    def test_nonverbose_mode_emits_no_decision_events(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"notes.txt","content":"secret-body"}',
+                )
+            ]
+        )
+        client, _completions = scripted_client(first, make_completion(content="done"))
+        stderr = StringIO()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with redirect_stderr(stderr):
+                result = run_agent(
+                    client,
+                    "deny write quietly",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    verbose=False,
+                    approval_session=ApprovalSession(
+                        lambda requests: (ApprovalDecision.deny(reason="user_denied"),)
+                    ),
+                    audit_stream=stderr,
+                )
+
+        self.assertEqual(result, "done")
+        self.assertEqual(stderr.getvalue(), "")
 
     def test_verbose_mode_allows_missing_usage(self):
         client, _completions = scripted_client(make_completion(content="done"))
