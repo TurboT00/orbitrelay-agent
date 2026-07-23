@@ -1,3 +1,5 @@
+# story: e02s02
+
 import os
 import subprocess
 import sys
