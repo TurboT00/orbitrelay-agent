@@ -1,9 +1,9 @@
-# Security Review — e02s05 Explicit Pre-Approved Automation
+# Security Review — e02s06 Decision Auditing Without Secret Leakage
 
-- Reviewed at: `2026-07-23T22:35:00Z`
-- Story baseline: `e2b044f`
+- Reviewed at: `2026-07-23T22:45:00Z`
+- Story baseline: `3946426`
 - Merge base: `8bcefba610a4fd1c66c47e665247325b04ecfdb2`
-- Scope: e02s05 production and test changes on `feat/tool-approval-policies`
+- Scope: e02s06 production and test changes on `feat/tool-approval-policies`
 - Threat model: `specs/security/epics/e02/THREAT_MODEL.md`
 
 ## Gate result
@@ -12,46 +12,44 @@
 
 ## Data-flow review
 
-1. CLI is the only allowlist authority. `--approve-tool` is validated before
-   `OpenAI` construction and only when `--approval-policy pre-approved` is set.
-2. Accepted names are restricted to the fixed consequential set
-   `{write_file, run_python_file}`; empty, duplicate, read-tool, and unknown
-   entries raise configuration errors.
-3. `ApprovalSession` stores an immutable `frozenset` of approved tool names and
-   returns `explicit_preapproval` only for exact matches.
-4. Unlisted consequential tools receive `tool_not_preapproved` and never reach
-   handlers. Read tools continue under ordinary confined-read policy.
-5. Preparation still runs before authorization, so path/symlink confinement
-   failures remain side-effect free even when the tool name is listed.
+1. `ApprovalSession.authorize` appends one immutable `ApprovalRecord` per evaluated
+   call using allowlisted fields only: sequence, call ID, tool, category,
+   disposition, reason, safe target, and argument count.
+2. Records never receive write content, raw process arguments, provider secrets,
+   environment mappings, or handler output.
+3. Verbose mode emits `format_approval_record` lines to the audit stream (stderr
+   by default) after authorization and before execution side effects.
+4. Nonverbose runs emit no audit lines. Tool-result JSON and final stdout channels
+   are unchanged.
+5. Verbose prepared-call diagnostics use `format_prepared_call`, which excludes the
+   `arguments` tuple while retaining bounded targets and argument counts.
 
 ## Vulnerability assessment
 
 | Category | Result | Evidence |
 |---|---|---|
-| Authorization bypass | PASS | Listing `write_file` does not approve `run_python_file`; unlisted execution starts no process. |
-| Allowlist authority | PASS | Model arguments cannot expand the set; only CLI flags construct `approved_tools`. |
-| Ambiguous automation | PASS | Pre-approved mode without tools, tools without pre-approved mode, duplicates, and unknown names fail before client creation. |
-| Path traversal | PASS | Pre-approved agent batches with escaping write/exec symlinks still return confinement errors and leave outside files untouched. |
-| Secrets exposure | PASS | Decision reasons name tools and policy only; write content and process arguments remain out of approval state. |
-| Privilege expansion | PASS | No blanket all-tools flag, environment policy, path patterns, or persistent allowlist was added. |
+| Secret leakage | PASS | Records and stderr events omit write bodies, process args, and credential fixtures. |
+| Log injection | PASS | Control characters and oversized values are escaped/bounded before emission. |
+| Authorization change via audit | PASS | Formatting and emission cannot alter dispositions; failures would surface as print errors only after decisions exist. |
+| Correlation integrity | PASS | Sequence numbers and call IDs preserve batch order across multi-outcome runs. |
+| Scope creep | PASS | No persistent audit file, telemetry package, or network sink was added. |
 
 ## False-positive filtering
 
-- Empty `approved_tools` on a directly constructed session remains fail-closed
-  (`tool_not_preapproved`); the CLI path rejects that configuration as ambiguous.
-- Approval timeout remains validated for all policies for parse simplicity; it is
-  unused by the no-prompt pre-approved authorizer and cannot approve tools.
+- Approval prompts may still show control-escaped execution argument previews for
+  interactive consent (e02s02). Audit records and verbose decision events do not.
+- Existing recursive `redact_secrets` remains available for diagnostic mappings and
+  is not used as a post-hoc scrubber for forbidden fields already excluded.
 
 ## Non-blocking residual risks
 
-- Windows terminal certification, remote approvers, and CI service integration
-  remain outside P2.
-- Sanitized verbose decision audit events remain e02s06.
+- Windows terminal certification and remote/persistent audit sinks remain outside P2.
+- Shared approval modules continue to carry multi-story tags by design.
 
 ## Security test evidence
 
-- `tests.test_approvals`: listed write approved; unlisted execution denied.
-- `tests.test_cli`: allowlist injection and ambiguous configuration rejection before client creation.
-- `tests.test_agent`: pre-approved write executes; unlisted execution denied; symlink escapes still confined.
-- `tests.test_tools` and `tests.test_sandbox`: preparation and symlink confinement remain green.
-- Affected security suite: 76 tests passed in 0.406 seconds.
+- `tests.test_approvals`: multi-outcome secret-free records; policy/preapproval reasons.
+- `tests.test_redaction`: bounded control-safe record formatting.
+- `tests.test_tools`: verbose write/exec diagnostics exclude content and raw args.
+- `tests.test_agent`: ordered verbose stderr events; silent nonverbose mode.
+- Full gate: 145 project tests and 9 example tests passed; package build green.

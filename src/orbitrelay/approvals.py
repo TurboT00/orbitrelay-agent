@@ -7,23 +7,11 @@
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-import selectors
-from typing import Any, Protocol, TextIO, cast
 
-from .approval_format import SafeContext, SafeValue, format_approval_request
+from .approval_format import SafeContext, SafeValue
 
-__all__ = [
-    "ApprovalDecision",
-    "ApprovalDisposition",
-    "ApprovalMode",
-    "ApprovalRecord",
-    "ApprovalRequest",
-    "ApprovalSession",
-    "RecordDisposition",
-    "TerminalAuthorizer",
-    "ToolCategory",
-    "format_approval_request",
-]
+MAX_APPROVAL_ATTEMPTS = 3
+DISABLED_REASONS = frozenset({"user_disabled_tool", "tool_disabled_for_run"})
 
 
 class ToolCategory(StrEnum):
@@ -47,10 +35,6 @@ class ApprovalMode(StrEnum):
     CONFIRM = "confirm"
     READ_ONLY = "read-only"
     PRE_APPROVED = "pre-approved"
-
-
-MAX_APPROVAL_ATTEMPTS = 3
-DISABLED_REASONS = frozenset({"user_disabled_tool", "tool_disabled_for_run"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -92,10 +76,6 @@ BatchAuthorizer = Callable[
 ]
 
 
-class ApprovalInput(Protocol):
-    def readline(self) -> str: ...
-
-
 class ApprovalSession:
     def __init__(
         self,
@@ -104,16 +84,16 @@ class ApprovalSession:
         mode: ApprovalMode = ApprovalMode.CONFIRM,
         approved_tools: frozenset[str] = frozenset(),
     ) -> None:
-        self._authorizer = (
-            self._authorize_read_only
-            if mode is ApprovalMode.READ_ONLY
-            else self._authorize_pre_approved
-            if mode is ApprovalMode.PRE_APPROVED
-            else authorizer or self._authorize_safe_defaults
-        )
         self._disabled_tools: set[str] = set()
         self._approved_tools = approved_tools
         self._records: list[ApprovalRecord] = []
+        self._authorizer = (
+            _authorize_read_only
+            if mode is ApprovalMode.READ_ONLY
+            else self._authorize_pre_approved
+            if mode is ApprovalMode.PRE_APPROVED
+            else authorizer or _authorize_safe_defaults
+        )
 
     @property
     def disabled_tools(self) -> frozenset[str]:
@@ -127,6 +107,14 @@ class ApprovalSession:
         self,
         requests: tuple["ApprovalRequest", ...],
     ) -> tuple[ApprovalDecision, ...]:
+        outcomes = self._decisions_for(requests)
+        for request, decision in zip(requests, outcomes, strict=True):
+            self._records.append(_record_for(len(self._records) + 1, request, decision))
+        return outcomes
+
+    def _decisions_for(
+        self, requests: tuple["ApprovalRequest", ...]
+    ) -> tuple[ApprovalDecision, ...]:
         pending_indexes = tuple(
             index
             for index, request in enumerate(requests)
@@ -136,13 +124,10 @@ class ApprovalSession:
         decisions = tuple(self._authorizer(pending)) if pending else ()
         self._validate_decisions(pending, decisions)
         candidates = dict(zip(pending_indexes, decisions, strict=True))
-        outcomes = tuple(
+        return tuple(
             self._apply_policy(request, candidates.get(index))
             for index, request in enumerate(requests)
         )
-        for request, decision in zip(requests, outcomes, strict=True):
-            self._records.append(_record_for(len(self._records) + 1, request, decision))
-        return outcomes
 
     @staticmethod
     def _validate_decisions(
@@ -167,28 +152,6 @@ class ApprovalSession:
             self._disabled_tools.add(request.tool_name)
         return candidate
 
-    @staticmethod
-    def _authorize_safe_defaults(
-        requests: tuple["ApprovalRequest", ...],
-    ) -> tuple[ApprovalDecision, ...]:
-        return tuple(
-            ApprovalDecision.approve(reason="read_allowed")
-            if request.category is ToolCategory.READ
-            else ApprovalDecision.deny(reason="approval_unavailable")
-            for request in requests
-        )
-
-    @staticmethod
-    def _authorize_read_only(
-        requests: tuple["ApprovalRequest", ...],
-    ) -> tuple[ApprovalDecision, ...]:
-        return tuple(
-            ApprovalDecision.approve(reason="read_allowed")
-            if request.category is ToolCategory.READ
-            else ApprovalDecision.deny(reason="read_only_policy")
-            for request in requests
-        )
-
     def _authorize_pre_approved(
         self,
         requests: tuple["ApprovalRequest", ...],
@@ -201,87 +164,6 @@ class ApprovalSession:
             else ApprovalDecision.deny(reason="tool_not_preapproved")
             for request in requests
         )
-
-
-class TerminalAuthorizer:
-    def __init__(
-        self,
-        input_stream: ApprovalInput,
-        output_stream: TextIO,
-        *,
-        timeout_seconds: float = 60.0,
-        require_tty: bool = False,
-    ) -> None:
-        self._input_stream = input_stream
-        self._output_stream = output_stream
-        self._timeout_seconds = timeout_seconds
-        self._require_tty = require_tty
-
-    def __call__(
-        self,
-        requests: tuple["ApprovalRequest", ...],
-    ) -> tuple[ApprovalDecision, ...]:
-        disabled_tools: set[str] = set()
-        decisions = []
-        for request in requests:
-            if request.tool_name in disabled_tools:
-                decision = ApprovalDecision.deny(reason="tool_disabled_for_run")
-            else:
-                decision = self._authorize(request)
-            if decision.reason == "user_disabled_tool":
-                disabled_tools.add(request.tool_name)
-            decisions.append(decision)
-        return tuple(decisions)
-
-    def _authorize(self, request: "ApprovalRequest") -> ApprovalDecision:
-        if request.category is ToolCategory.READ:
-            return ApprovalDecision.approve(reason="read_allowed")
-        for _attempt in range(MAX_APPROVAL_ATTEMPTS):
-            decision = self._prompt_once(request)
-            if decision is not None:
-                return decision
-        return ApprovalDecision.deny(reason="approval_invalid_input")
-
-    def _prompt_once(self, request: "ApprovalRequest") -> ApprovalDecision | None:
-        if self._require_tty and not _is_tty(self._input_stream):
-            return ApprovalDecision.deny(reason="approval_noninteractive")
-        print(
-            f"Approve {format_approval_request(request)}? [y/N/d=disable]: ",
-            end="",
-            file=self._output_stream,
-            flush=True,
-        )
-        try:
-            response = self._read_response()
-        except TimeoutError:
-            return ApprovalDecision.deny(reason="approval_timeout")
-        return _decision_for_response(response)
-
-    def _read_response(self) -> str:
-        if self._require_tty:
-            with selectors.DefaultSelector() as selector:
-                selector.register(cast(Any, self._input_stream), selectors.EVENT_READ)
-                if not selector.select(self._timeout_seconds):
-                    raise TimeoutError
-        return self._input_stream.readline()
-
-
-def _decision_for_response(response: str) -> ApprovalDecision | None:
-    normalized = response.strip().lower()
-    if normalized in {"y", "yes"}:
-        return ApprovalDecision.approve(reason="user_approved")
-    if normalized in {"d", "disable"}:
-        return ApprovalDecision.disable_tool()
-    if response == "":
-        return ApprovalDecision.deny(reason="approval_eof")
-    if normalized in {"n", "no"}:
-        return ApprovalDecision.deny(reason="user_denied")
-    return None
-
-
-def _is_tty(stream: ApprovalInput) -> bool:
-    isatty = getattr(stream, "isatty", None)
-    return bool(isatty and isatty())
 
 
 @dataclass(frozen=True, slots=True)
@@ -332,6 +214,28 @@ class ApprovalRequest:
         )
 
 
+def _authorize_safe_defaults(
+    requests: tuple[ApprovalRequest, ...],
+) -> tuple[ApprovalDecision, ...]:
+    return tuple(
+        ApprovalDecision.approve(reason="read_allowed")
+        if request.category is ToolCategory.READ
+        else ApprovalDecision.deny(reason="approval_unavailable")
+        for request in requests
+    )
+
+
+def _authorize_read_only(
+    requests: tuple[ApprovalRequest, ...],
+) -> tuple[ApprovalDecision, ...]:
+    return tuple(
+        ApprovalDecision.approve(reason="read_allowed")
+        if request.category is ToolCategory.READ
+        else ApprovalDecision.deny(reason="read_only_policy")
+        for request in requests
+    )
+
+
 def _record_for(
     sequence: int,
     request: ApprovalRequest,
@@ -373,3 +277,15 @@ def _context_str(context: SafeContext, *keys: str) -> str | None:
 def _context_int(context: SafeContext, *keys: str) -> int | None:
     value = _context_value(context, *keys)
     return value if isinstance(value, int) else None
+
+
+def __getattr__(name: str) -> object:
+    if name == "TerminalAuthorizer":
+        from .terminal_authorizer import TerminalAuthorizer
+
+        return TerminalAuthorizer
+    if name == "format_approval_request":
+        from .approval_format import format_approval_request
+
+        return format_approval_request
+    raise AttributeError(name)

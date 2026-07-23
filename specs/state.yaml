@@ -21,18 +21,18 @@ working_tree:
   expected_after_handoff: clean
 verification:
   command: ./scripts/check.sh
-  result: pending
-  project_tests: 139
+  result: passed
+  project_tests: 145
   example_tests: 9
-  evidence: null
+  evidence: specs/verifications/e02s06-verify.yaml
 epic_cycle:
-  current_step: develop-tdd
-  next_skill: develop-tdd
+  current_step: release-branch
+  next_skill: release-branch
   story_bcps: 3
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch]
-  audit_result: null
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message]
+  audit_result: pass
 handoff:
-  last_step_completed: e02s05 kept on the unpushed P2 branch; e02s06 initialized
+  last_step_completed: e02s06 verified and audited; P2 stories complete on unpushed branch
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -45,8 +45,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: develop-tdd
-  next_action: Implement e02s06 sanitized decision auditing from task 1 using RED/GREEN commits.
+  next_skill: release-branch
+  next_action: Keep the unpushed P2 branch and prepare the coherent 0.3.0 release when requested.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

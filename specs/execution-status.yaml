@@ -7,7 +7,7 @@ development_status:
   e02s03: done
   e02s04: done
   e02s05: done
-  e02s06: in_progress
+  e02s06: done
 
 epics:
   e01:
@@ -86,14 +86,15 @@ stories:
     verified_at: "2026-07-23T22:34:39Z"
     completed_at: "2026-07-23T22:36:00Z"
   e02s06:
-    status: in_progress
+    status: done
     started_at: "2026-07-23T22:36:00Z"
+    completed_at: "2026-07-23T22:50:00Z"
     title: Audit approval decisions without secret leakage
     bcps: 3
     epic: e02
     tasks_total: 5
-    tasks_passing: 0
-    tasks_failing: 5
+    tasks_passing: 5
+    tasks_failing: 0
     risk_max: P1
     security_max: high
 

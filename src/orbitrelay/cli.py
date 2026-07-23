@@ -15,7 +15,8 @@ from dotenv import dotenv_values
 from openai import OpenAI
 
 from .agent import run_agent
-from .approvals import ApprovalMode, ApprovalSession, TerminalAuthorizer
+from .approvals import ApprovalMode, ApprovalSession
+from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_cli import run_profile_cli

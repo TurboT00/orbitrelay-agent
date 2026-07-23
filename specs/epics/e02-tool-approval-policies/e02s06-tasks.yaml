@@ -1,6 +1,6 @@
 story_id: e02s06
 title: Audit approval decisions without secret leakage
-status: failing
+status: passing
 bcps: 3
 tasks:
   - id: 1
@@ -44,7 +44,7 @@ tasks:
     verify: "./scripts/check.sh && printf '%s\\n' 'no new security findings in affected paths'"
     risk: P1
     security: high
-    status: failing
+    status: passing
     allure:
       severity: high
       categories: [regression, Packaging, Security Review]

@@ -1,0 +1,76 @@
+story_id: e02s06
+verified_at: "2026-07-23T22:45:00Z"
+verifier: verify-work
+risk: P1
+branch: feat/tool-approval-policies
+merge_base: 8bcefba610a4fd1c66c47e665247325b04ecfdb2
+phases:
+  branch:
+    passed: true
+    note: Verification ran outside main/master on the dedicated P2 worktree.
+  preflight:
+    passed: true
+    command: ./scripts/check.sh
+  task_verifies:
+    passed: true
+    total: 5
+    results:
+      - {task: 1, exit_code: 0, tests: 13}
+      - {task: 2, exit_code: 0, tests: 20}
+      - {task: 3, exit_code: 0, tests: 43}
+      - {task: 4, exit_code: 0, tests: 37}
+      - {task: 5, exit_code: 0, command: ./scripts/check.sh}
+  cli_smoke:
+    passed: true
+    checks:
+      - {command: "uv run orbitrelay --help", exit_code: 0}
+      - {command: "uv run python -c 'import orbitrelay; import orbitrelay.cli'", exit_code: 0}
+  build:
+    passed: true
+    command: ./scripts/check.sh
+    artifacts: [sdist, wheel, isolated-wheel CLI smoke]
+  typecheck:
+    passed: true
+    diagnostics: 0
+  lint:
+    passed: true
+    diagnostics: 0
+  tests:
+    passed: true
+    project_tests: 145
+    example_tests: 9
+  terminal_verdict:
+    command: ./scripts/check.sh
+    exit_code: 0
+    captured_at: "2026-07-23T22:45:00Z"
+    combined_sha256: 321d9d8362961c5f2b603529422181ae64cd82514f0af9743203a929c7614696
+    stdout_summary: >-
+      Ran 145 project tests: OK; ran 9 example tests: OK; built sdist and wheel;
+      isolated-wheel CLI smoke passed; All OrbitRelay checks passed.
+  security:
+    passed: true
+    report: specs/security/REVIEW.md
+    high_confidence_high_findings: 0
+  blind_spots:
+    passed: true
+    report: specs/blind-spots.json
+    high: 0
+  nfr:
+    passed: true
+    report: specs/verifications/NFR-e02s06.json
+  manual:
+    passed: true
+    confirmed_by: automated-offline-suite
+    steps:
+      - step: Verbose decision trail
+        expected: Ordered stderr events with call IDs and reasons, no secrets.
+        actual: Agent tests assert two ordered approval events and exclude write content.
+        passed: true
+      - step: Nonverbose silence
+        expected: No audit lines when verbose is off.
+        actual: Agent test asserts empty stderr audit stream.
+        passed: true
+  gaps:
+    closed: true
+    items: []
+verdict: PASS

@@ -144,19 +144,12 @@ def _run_response_loop(
     approval_session: ApprovalSession,
     audit_stream: TextIO,
 ) -> str:
+    context = (working_directory, verbose, approval_session, audit_stream)
     for response_number in range(1, MAX_MODEL_RESPONSES + 1):
         response = client.chat.completions.create(
             model=model, messages=messages, tools=TOOL_DEFINITIONS
         )
-        final_text = _process_response(
-            response,
-            response_number,
-            messages,
-            working_directory,
-            verbose,
-            approval_session,
-            audit_stream,
-        )
+        final_text = _process_response(response, response_number, messages, context)
         if final_text is not None:
             return final_text
     raise AssertionError("Unreachable response loop state")
@@ -166,28 +159,16 @@ def _process_response(
     response: Any,
     response_number: int,
     messages: list[Any],
-    working_directory: str,
-    verbose: bool,
-    approval_session: ApprovalSession,
-    audit_stream: TextIO,
+    context: tuple[str, bool, ApprovalSession, TextIO],
 ) -> str | None:
+    _workspace, verbose, _session, _audit = context
     if verbose:
         _print_usage(response_number, response)
     message = _response_message(response)
     tool_calls = _field(message, "tool_calls") or []
     if not tool_calls:
         return _final_text(message)
-    messages.extend(
-        _tool_round_messages(
-            message,
-            tool_calls,
-            response_number,
-            working_directory,
-            verbose,
-            approval_session,
-            audit_stream,
-        )
-    )
+    messages.extend(_tool_round_messages(message, tool_calls, response_number, context))
     return None
 
 
@@ -212,28 +193,22 @@ def _tool_round_messages(
     message: Any,
     tool_calls: Any,
     response_number: int,
-    working_directory: str,
-    verbose: bool,
-    approval_session: ApprovalSession,
-    audit_stream: TextIO,
+    context: tuple[str, bool, ApprovalSession, TextIO],
 ) -> list[dict[str, Any]]:
+    workspace, verbose, session, audit_stream = context
     if response_number == MAX_MODEL_RESPONSES:
         raise TurnLimitError(
             f"Model requested more tools after the {MAX_MODEL_RESPONSES}-response "
             f"limit; those calls were not executed"
         )
-    validated_calls = _validate_tool_calls(tool_calls)
-    prepared_calls = _prepare_calls(validated_calls, working_directory)
-    emitted_before = len(approval_session.records)
-    decisions = _authorize_calls(prepared_calls, approval_session)
+    validated = _validate_tool_calls(tool_calls)
+    prepared = _prepare_calls(validated, workspace)
+    start = len(session.records)
+    decisions = _authorize_calls(prepared, session)
     if verbose:
-        _emit_approval_records(
-            approval_session.records[emitted_before:], audit_stream
-        )
-    return [
-        _serialize_assistant_message(message),
-        *_tool_result_messages(validated_calls, prepared_calls, decisions, verbose),
-    ]
+        _emit_approval_records(session.records[start:], audit_stream)
+    results = _tool_result_messages(validated, prepared, decisions, verbose)
+    return [_serialize_assistant_message(message), *results]
 
 
 def _emit_approval_records(
