@@ -167,6 +167,38 @@ class AgentLoopTests(unittest.TestCase):
         self.assertEqual(denial["error"]["code"], "approval_denied")
         self.assertEqual(denial["error"]["tool_call_id"], "call-2")
 
+    def test_invalid_write_content_is_rejected_without_approval(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-1",
+                    "write_file",
+                    '{"file_path":"invalid.txt","content":123}',
+                )
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        def unexpected_approval(_requests):
+            self.fail("invalid write must not request approval")
+
+        with tempfile.TemporaryDirectory() as workspace:
+            result = run_agent(
+                client,
+                "write invalid content",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=ApprovalSession(unexpected_approval),
+            )
+
+            self.assertEqual(result, "done")
+            self.assertFalse(Path(workspace, "invalid.txt").exists())
+
+        tool_message = completions.calls[1]["messages"][-1]
+        self.assertEqual(tool_message["tool_call_id"], "call-1")
+        self.assertIn("invalid arguments", tool_message["content"])
+        self.assertIn("content", tool_message["content"])
+
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
             make_completion(
