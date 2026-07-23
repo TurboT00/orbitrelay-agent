@@ -1,3 +1,5 @@
+# story: e02s01, e02s02
+
 import copy
 import json
 import tempfile
@@ -165,6 +167,57 @@ class AgentLoopTests(unittest.TestCase):
         denial = json.loads(tool_messages[1]["content"])
         self.assertEqual(denial["error"]["code"], "approval_denied")
         self.assertEqual(denial["error"]["tool_call_id"], "call-2")
+
+    def test_authorizes_complete_execution_batch_and_correlates_denial(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-exec-1",
+                    "run_python_file",
+                    '{"file_path":"task.py","args":["approved"]}',
+                ),
+                tool_call(
+                    "call-exec-2",
+                    "run_python_file",
+                    '{"file_path":"task.py","args":["denied"]}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                run.return_value = SimpleNamespace(returncode=0, stdout="ran\n", stderr="")
+
+                def authorize(requests):
+                    self.assertEqual(
+                        [request.call_id for request in requests],
+                        ["call-exec-1", "call-exec-2"],
+                    )
+                    run.assert_not_called()
+                    return (
+                        ApprovalDecision.approve(reason="user_approved"),
+                        ApprovalDecision.deny(reason="user_denied"),
+                    )
+
+                result = run_agent(
+                    client,
+                    "run Python",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(authorize),
+                )
+
+            self.assertEqual(result, "done")
+            run.assert_called_once()
+
+        tool_messages = completions.calls[1]["messages"][-2:]
+        self.assertEqual(tool_messages[0]["tool_call_id"], "call-exec-1")
+        self.assertEqual(tool_messages[0]["content"], "STDOUT:\nran\n")
+        denial = json.loads(tool_messages[1]["content"])
+        self.assertEqual(denial["error"]["code"], "approval_denied")
+        self.assertEqual(denial["error"]["tool_call_id"], "call-exec-2")
 
     def test_invalid_write_content_is_rejected_without_approval(self):
         first = make_completion(
