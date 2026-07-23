@@ -80,6 +80,9 @@ class ProfileCliTests(unittest.TestCase):
         )
         self.assertNotIn("prompt-secret", self.path.read_text())
 
+    def test_list_reports_when_no_profiles_are_configured(self):
+        self.assertEqual(self.run_cli(["profile", "list"]), "No profiles configured.\n")
+
     def test_create_can_read_secret_from_standard_input(self):
         prompt_calls = []
 
@@ -135,6 +138,27 @@ class ProfileCliTests(unittest.TestCase):
         self.assertEqual(output, 'Created profile "ollama".\n')
         self.assertEqual(prompt_calls, [])
         self.assertEqual(self.credentials.values, {})
+
+    def test_deletes_non_secret_profile_without_using_credential_store(self):
+        self.run_cli(
+            [
+                "profile",
+                "create",
+                "ollama",
+                "--base-url",
+                "http://127.0.0.1:11434/v1",
+                "--model",
+                "qwen",
+                "--auth-kind",
+                "local_none",
+                *CAPABILITY_ARGS,
+            ]
+        )
+
+        output = self.run_cli(["profile", "delete", "ollama"])
+
+        self.assertEqual(output, 'Deleted profile "ollama".\n')
+        self.assertEqual(self.repository.list_profiles(), ())
 
     def test_non_secret_profile_rejects_secret_stdin_option(self):
         with self.assertRaisesRegex(ValueError, "does not accept a credential"):

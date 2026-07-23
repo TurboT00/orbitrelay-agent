@@ -3,7 +3,9 @@ import json
 import subprocess
 import sys
 import tempfile
+from collections.abc import Iterable
 from pathlib import Path
+from typing import cast
 
 from orbitrelay.profile_store import (
     ProfileExistsError,
@@ -28,6 +30,75 @@ CAPABILITIES = frozenset(
 
 
 class ProviderProfileTests(unittest.TestCase):
+    def test_rejects_unknown_auth_and_capability_values(self):
+        with self.assertRaisesRegex(ProfileValidationError, "auth_kind"):
+            ProviderProfile.create(
+                name="work",
+                base_url="https://example.test/v1",
+                model="test-model",
+                auth_kind="unknown",
+                capabilities=CAPABILITIES,
+            )
+        with self.assertRaisesRegex(ProfileValidationError, "capability"):
+            ProviderProfile.create(
+                name="work",
+                base_url="https://example.test/v1",
+                model="test-model",
+                auth_kind=AuthKind.API_KEY,
+                capabilities=[*CAPABILITIES, "unknown"],
+            )
+
+    def test_rejects_malformed_or_credential_bearing_base_urls(self):
+        invalid_urls = {
+            "": "empty",
+            "https://example.test/v1\nunsafe": "whitespace",
+            "/relative/v1": "absolute",
+            "https://user:password@example.test/v1": "credentials",
+        }
+        for base_url, message in invalid_urls.items():
+            with self.subTest(base_url=base_url):
+                with self.assertRaisesRegex(ProfileValidationError, message):
+                    ProviderProfile.create(
+                        name="work",
+                        base_url=base_url,
+                        model="test-model",
+                        auth_kind=AuthKind.API_KEY,
+                        capabilities=CAPABILITIES,
+                    )
+
+    def test_accepts_localhost_as_a_loopback_host(self):
+        profile = ProviderProfile.create(
+            name="local",
+            base_url="http://localhost:11434/v1",
+            model="test-model",
+            auth_kind=AuthKind.LOCAL_NONE,
+            capabilities=CAPABILITIES,
+        )
+
+        self.assertEqual(profile.base_url, "http://localhost:11434/v1")
+
+    def test_rejects_non_iterable_capabilities(self):
+        with self.assertRaisesRegex(ProfileValidationError, "capabilities must be a list"):
+            ProviderProfile.create(
+                name="work",
+                base_url="https://example.test/v1",
+                model="test-model",
+                auth_kind=AuthKind.API_KEY,
+                capabilities=cast(Iterable[ProviderCapability | str], None),
+            )
+
+    def test_rejects_malformed_serialized_profile_shapes(self):
+        valid = api_key_profile().to_dict()
+        malformed = [
+            (None, "metadata must be an object"),
+            ({key: value for key, value in valid.items() if key != "model"}, "missing"),
+            ({**valid, "capabilities": "tool_calling"}, "capabilities must be a list"),
+        ]
+        for metadata, message in malformed:
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(ProfileValidationError, message):
+                    ProviderProfile.from_dict(metadata)
+
     def test_accepts_each_declared_auth_kind_without_a_secret_value(self):
         for auth_kind in AuthKind:
             with self.subTest(auth_kind=auth_kind):
@@ -189,6 +260,45 @@ def api_key_profile(name="work"):
 
 
 class ProfileRepositoryTests(unittest.TestCase):
+    def test_rejects_malformed_structured_metadata(self):
+        valid_profile = api_key_profile().to_dict()
+        malformed = [
+            ([], "root must be an object"),
+            (
+                {"version": 1, "selected": None, "profiles": {}, "extra": True},
+                "invalid fields",
+            ),
+            ({"version": 1, "selected": None, "profiles": []}, "must be an object"),
+            (
+                {
+                    "version": 1,
+                    "selected": None,
+                    "profiles": {"wrong-name": valid_profile},
+                },
+                "does not match",
+            ),
+            (
+                {
+                    "version": 1,
+                    "selected": None,
+                    "profiles": {"work": {"name": "work"}},
+                },
+                "Stored profile is invalid",
+            ),
+            ({"version": 1, "selected": 7, "profiles": {}}, "string or null"),
+            (
+                {"version": 1, "selected": "missing", "profiles": {}},
+                "does not exist in metadata",
+            ),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "profiles.json"
+            for metadata, message in malformed:
+                with self.subTest(message=message):
+                    path.write_text(json.dumps(metadata))
+                    with self.assertRaisesRegex(ProfileStorageError, message):
+                        ProfileRepository(path).list_profiles()
+
     def test_saves_lists_selects_and_deletes_profiles(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "orbitrelay" / "profiles.json"

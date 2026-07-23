@@ -84,9 +84,13 @@ class FakeKeyringModule:
             {"priority": 1, "__module__": "keyring.backends.macOS"},
         )()
         self.failure = None
+        self.backend_failure = None
+        self.read_failure = None
         self.delete_failure = None
 
     def get_keyring(self):
+        if self.backend_failure:
+            raise self.backend_failure
         return self.backend
 
     def set_password(self, service, username, password):
@@ -95,6 +99,8 @@ class FakeKeyringModule:
         self.values[(service, username)] = password
 
     def get_password(self, service, username):
+        if self.read_failure:
+            raise self.read_failure
         if self.failure:
             raise self.failure
         return self.values.get((service, username))
@@ -139,6 +145,40 @@ class KeyringCredentialStoreTests(unittest.TestCase):
         store = KeyringCredentialStore(keyring_module=keyring)
 
         with self.assertRaisesRegex(CredentialStoreError, "delete"):
+            store.delete_secret("work")
+
+    def test_rejects_empty_credentials(self):
+        store = KeyringCredentialStore(keyring_module=FakeKeyringModule())
+
+        with self.assertRaisesRegex(CredentialStoreError, "cannot be empty"):
+            store.set_secret("work", "")
+
+    def test_wraps_backend_initialization_failure(self):
+        keyring = FakeKeyringModule()
+        keyring.backend_failure = RuntimeError("backend discovery failed")
+
+        with self.assertRaisesRegex(CredentialStoreError, "initialization failed"):
+            KeyringCredentialStore(keyring_module=keyring)
+
+    def test_wraps_read_and_delete_backend_failures(self):
+        keyring = FakeKeyringModule()
+        store = KeyringCredentialStore(keyring_module=keyring)
+        keyring.read_failure = FakeKeyringError("read failed")
+        with self.assertRaisesRegex(CredentialStoreError, "read credential"):
+            store.get_secret("work")
+
+        keyring.read_failure = None
+        keyring.failure = FakeKeyringError("delete failed")
+        with self.assertRaisesRegex(CredentialStoreError, "delete credential"):
+            store.delete_secret("work")
+
+    def test_reports_failure_to_verify_ambiguous_deletion(self):
+        keyring = FakeKeyringModule()
+        keyring.delete_failure = FakePasswordDeleteError("delete failed")
+        keyring.read_failure = FakeKeyringError("read failed")
+        store = KeyringCredentialStore(keyring_module=keyring)
+
+        with self.assertRaisesRegex(CredentialStoreError, "verify credential deletion"):
             store.delete_secret("work")
 
     def test_rejects_chained_backend(self):
@@ -202,6 +242,31 @@ class FailingDeleteCredentialStore(FakeCredentialStore):
 
 
 class ProfileServiceTests(unittest.TestCase):
+    def test_requires_a_credential_for_secret_backed_profile(self):
+        with tempfile.TemporaryDirectory() as directory:
+            service = ProfileService(
+                ProfileRepository(Path(directory) / "profiles.json"),
+                FakeCredentialStore(),
+            )
+
+            with self.assertRaisesRegex(CredentialStoreError, "requires a credential"):
+                service.create(profile())
+
+    def test_creates_and_deletes_non_secret_profile_without_credentials(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            credentials = FakeCredentialStore()
+            service = ProfileService(repository, credentials)
+            local_profile = profile("local", auth_kind=AuthKind.LOCAL_NONE)
+
+            service.create(local_profile)
+            with self.assertRaisesRegex(CredentialStoreError, "does not use"):
+                service.get_secret(local_profile)
+            service.delete("local")
+
+            self.assertEqual(repository.list_profiles(), ())
+            self.assertEqual(credentials.values, {})
+
     def test_creates_secret_backed_profile_without_persisting_secret(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "profiles.json"
