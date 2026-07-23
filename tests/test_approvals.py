@@ -7,6 +7,7 @@ from io import StringIO
 from orbitrelay.approvals import (
     ApprovalDecision,
     ApprovalDisposition,
+    ApprovalMode,
     ApprovalRequest,
     ApprovalSession,
     TerminalAuthorizer,
@@ -74,6 +75,28 @@ class ApprovalDecisionTests(unittest.TestCase):
 
 
 class ApprovalSessionTests(unittest.TestCase):
+    def test_read_only_policy_allows_reads_and_denies_consequential_tools(self):
+        def unexpected_authorizer(_requests):
+            self.fail("read-only policy must not request interactive approval")
+
+        session = ApprovalSession(unexpected_authorizer, mode=ApprovalMode.READ_ONLY)
+        read = ApprovalRequest(
+            call_id="call-read",
+            tool_name="get_files_info",
+            category=ToolCategory.READ,
+            safe_context=(),
+        )
+        write = ApprovalRequest.for_write(
+            call_id="call-write", target="notes.txt", content_length=1
+        )
+
+        read_decision, write_decision = session.authorize((read, write))
+
+        self.assertTrue(read_decision.approved)
+        self.assertEqual(read_decision.reason, "read_allowed")
+        self.assertFalse(write_decision.approved)
+        self.assertEqual(write_decision.reason, "read_only_policy")
+
     def test_disable_decision_denies_later_same_tool_without_authorizer(self):
         authorization_calls = []
 
