@@ -4,7 +4,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from orbitrelay.tools import FUNCTIONS, TOOL_DEFINITIONS, execute_tool
+from orbitrelay.tools import (
+    FUNCTIONS,
+    TOOL_DEFINITIONS,
+    PreparedToolCall,
+    execute_prepared_tool,
+    execute_tool,
+    prepare_tool,
+)
 
 
 WORKING_DIRECTORY = "/workspace"
@@ -35,6 +42,28 @@ class ToolDefinitionsTests(unittest.TestCase):
 
 
 class ExecuteToolTests(unittest.TestCase):
+    def test_prepares_write_without_side_effect_until_execution(self):
+        with tempfile.TemporaryDirectory() as workspace:
+            target = Path(workspace, "notes.txt")
+
+            prepared = prepare_tool(
+                "call-1",
+                "write_file",
+                '{"file_path":"notes.txt","content":"hello"}',
+                workspace,
+            )
+
+            self.assertIsInstance(prepared, PreparedToolCall)
+            self.assertFalse(target.exists())
+
+            result = execute_prepared_tool(prepared)
+
+            self.assertEqual(
+                result,
+                'Successfully wrote to "notes.txt" (5 characters written)',
+            )
+            self.assertEqual(target.read_text(encoding="utf-8"), "hello")
+
     def test_parses_arguments_and_injects_the_fixed_sandbox(self):
         received = {}
 
