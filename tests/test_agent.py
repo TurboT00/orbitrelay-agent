@@ -385,6 +385,37 @@ class AgentLoopTests(unittest.TestCase):
         self.assertEqual(denial["error"]["code"], "approval_denied")
         self.assertEqual(denial["error"]["reason"], "read_only_policy")
 
+    def test_expired_confirmation_denies_write_without_side_effect(self):
+        class TimeoutInput:
+            def readline(self):
+                raise TimeoutError
+
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"blocked.txt","content":"blocked"}',
+                )
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            session = ApprovalSession(TerminalAuthorizer(TimeoutInput(), StringIO()))
+            result = run_agent(
+                client,
+                "write safely",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=session,
+            )
+            self.assertFalse(Path(workspace, "blocked.txt").exists())
+
+        self.assertEqual(result, "done")
+        denial = json.loads(completions.calls[1]["messages"][-1]["content"])
+        self.assertEqual(denial["error"]["reason"], "approval_timeout")
+
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
             make_completion(
