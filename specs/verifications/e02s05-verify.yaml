@@ -1,0 +1,92 @@
+story_id: e02s05
+verified_at: "2026-07-23T22:34:39Z"
+verifier: verify-work
+risk: P0
+branch: feat/tool-approval-policies
+merge_base: 8bcefba610a4fd1c66c47e665247325b04ecfdb2
+phases:
+  branch:
+    passed: true
+    note: Verification ran outside main/master on the dedicated P2 worktree.
+  preflight:
+    passed: true
+    command: ./scripts/check.sh
+  task_verifies:
+    passed: true
+    total: 5
+    results:
+      - {task: 1, exit_code: 0, tests: 12}
+      - {task: 2, exit_code: 0, tests: 23}
+      - {task: 3, exit_code: 0, tests: 33}
+      - {task: 4, exit_code: 0, tests: 24}
+      - {task: 5, exit_code: 0, tests: 76}
+  cli_smoke:
+    passed: true
+    checks:
+      - {command: "uv run orbitrelay --help", exit_code: 0}
+      - {command: "uv run python -c 'import orbitrelay; import orbitrelay.cli'", exit_code: 0}
+      - {command: "uv run orbitrelay prompt --invalid-flag", expected_exit_code: 2, actual_exit_code: 2}
+      - {command: "pre-approved without --approve-tool", expected_exit_code: 1, actual_exit_code: 1}
+      - {command: "pre-approved with tools missing key fails after allowlist validation", expected_exit_code: 1, actual_exit_code: 1}
+  build:
+    passed: true
+    command: ./scripts/check.sh
+    artifacts: [sdist, wheel, isolated-wheel CLI smoke]
+  typecheck:
+    passed: true
+    command: lsp_diagnostics using configured Ty route
+    diagnostics: 0
+  lint:
+    passed: true
+    command: lsp_diagnostics using configured Ruff route
+    diagnostics: 0
+  tests:
+    passed: true
+    project_tests: 139
+    example_tests: 9
+  terminal_verdict:
+    command: ./scripts/check.sh
+    exit_code: 0
+    captured_at: "2026-07-23T22:34:39Z"
+    combined_sha256: 91ef972d5e292e3ab45b23bbf2e08872e0607e767c707fabcd4f7079890163fc
+    stdout_summary: >-
+      Ran 139 project tests: OK; ran 9 example tests: OK; built sdist and
+      wheel; isolated-wheel CLI smoke passed; All OrbitRelay checks passed.
+    note: Single contiguous run; evidence is not merged from multiple commands.
+  security:
+    passed: true
+    report: specs/security/REVIEW.md
+    high_confidence_high_findings: 0
+  blind_spots:
+    passed: true
+    report: specs/blind-spots.json
+    high: 0
+    medium: 4
+    low: 3
+    note: Shared-file multi-story tags are expected for the accumulating approval core.
+  completeness_critic:
+    passed: true
+    mode: manual project-root equivalent
+    note: Active e02s05 has explicit code/test links and zero HIGH blind spots.
+  nfr:
+    passed: true
+    report: specs/verifications/NFR-e02s05.json
+  manual:
+    passed: true
+    confirmed_by: agent-uat-with-live-provider
+    steps:
+      - step: Pre-approve only write_file and request a write plus Python execution
+        expected: Write executes with no prompt; unlisted execution leaves no process side effect.
+        actual: >-
+          approved.txt contained approved-marker, no Approve prompt appeared,
+          task.py remained unexecuted (exec-marker.txt absent). Offline agent
+          suite also asserts tool_not_preapproved when run_python_file is requested.
+        passed: true
+      - step: Confirm ambiguous pre-approval configuration fails closed
+        expected: Missing allowlist is rejected before provider client construction.
+        actual: CLI raised ValueError requiring at least one --approve-tool with a secret present.
+        passed: true
+  gaps:
+    closed: true
+    items: []
+verdict: PASS

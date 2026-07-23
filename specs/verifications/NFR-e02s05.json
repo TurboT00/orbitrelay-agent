@@ -1,0 +1,37 @@
+{
+  "story_id": "e02s05",
+  "verified_at": "2026-07-23T22:34:39Z",
+  "attributes": [
+    {
+      "id": "deterministic-policy",
+      "requirement": "Pre-approved evaluation is deterministic and does not inspect terminal state.",
+      "result": "pass",
+      "evidence": "ApprovalSession._authorize_pre_approved uses only category and immutable approved_tools; TerminalAuthorizer is unused for this mode."
+    },
+    {
+      "id": "offline-tests",
+      "requirement": "Tests remain offline with fake handlers and temporary workspaces.",
+      "result": "pass",
+      "evidence": "76 affected unit/integration tests pass without network; live UAT was supplemental only."
+    },
+    {
+      "id": "least-privilege-allowlist",
+      "requirement": "Only exact CLI-listed consequential tools execute without prompts.",
+      "result": "pass",
+      "evidence": "Listing write_file does not approve run_python_file; CLI rejects unknown/read/duplicate/empty allowlists."
+    },
+    {
+      "id": "confinement-preserved",
+      "requirement": "Pre-approval cannot bypass path or symlink validation.",
+      "result": "pass",
+      "evidence": "Agent regression with listed write/exec symlink escapes returns confinement errors and leaves outside files untouched."
+    },
+    {
+      "id": "no-model-authority",
+      "requirement": "Models cannot expand the allowlist through arguments or output.",
+      "result": "pass",
+      "evidence": "approved_tools is constructed only from CLI flags before OpenAI client creation."
+    }
+  ],
+  "verdict": "PASS"
+}
