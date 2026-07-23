@@ -125,6 +125,19 @@ class ApprovalSessionTests(unittest.TestCase):
         self.assertEqual(decision.reason, "approval_invalid_input")
         self.assertEqual(output.getvalue().count("Approve write_file"), 3)
 
+    def test_noninteractive_confirmation_denies_without_a_prompt(self):
+        output = StringIO()
+        authorizer = TerminalAuthorizer(StringIO("y\n"), output, require_tty=True)
+        request = ApprovalRequest.for_write(
+            call_id="call-pipe", target="notes.txt", content_length=1
+        )
+
+        (decision,) = ApprovalSession(authorizer).authorize((request,))
+
+        self.assertFalse(decision.approved)
+        self.assertEqual(decision.reason, "approval_noninteractive")
+        self.assertEqual(output.getvalue(), "")
+
     def test_disable_decision_denies_later_same_tool_without_authorizer(self):
         authorization_calls = []
 
