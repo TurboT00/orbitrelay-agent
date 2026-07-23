@@ -32,7 +32,7 @@ epic_cycle:
   completed_steps: [security-review, survey-context, plan-work, kickoff-branch]
   audit_result: null
 handoff:
-  last_step_completed: e02s01 task 3 complete-batch authorization and correlated denial passed its RED-GREEN cycle
+  last_step_completed: e02s01 task 4 default CLI write confirmation passed its RED-GREEN cycle
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -45,7 +45,7 @@ handoff:
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
   next_skill: develop-tdd
-  next_action: Start e02s01 task 4 with a test-only RED commit for default CLI confirmation using fake terminal input.
+  next_action: Complete e02s01 task 5 security regressions for write denial, unsafe paths, and secret-free previews.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
