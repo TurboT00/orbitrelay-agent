@@ -1,6 +1,6 @@
 story_id: e02s03
 title: Disable a tool for the current run
-status: failing
+status: passing
 bcps: 3
 tasks:
   - id: 1
@@ -35,7 +35,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_agent tests.test_tools tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
     risk: P1
     security: high
-    status: failing
+    status: passing
     allure:
       severity: high
       categories: [regression, Policy State, Security Review]

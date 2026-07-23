@@ -1,9 +1,9 @@
-# Security Review — e02s02 Python Execution Approval
+# Security Review — e02s03 Run-Scoped Tool Disable
 
-- Reviewed at: `2026-07-23T21:20:00Z`
-- Story baseline: `a84c622`
+- Reviewed at: `2026-07-23T21:55:00Z`
+- Story baseline: `d17d85f`
 - Merge base: `8bcefba610a4fd1c66c47e665247325b04ecfdb2`
-- Scope: e02s02 production and test changes on `feat/tool-approval-policies`
+- Scope: e02s03 production and test changes on `feat/tool-approval-policies`
 - Threat model: `specs/security/epics/e02/THREAT_MODEL.md`
 
 ## Gate result
@@ -12,58 +12,48 @@
 
 ## Data-flow review
 
-1. Model-controlled JSON enters `prepare_tool`, which resolves a fixed built-in
-   handler, overwrites any supplied workspace, binds the handler signature, and
-   requires a string Python path plus a list containing only string arguments.
-2. `validate_python_target` resolves the path inside the trusted workspace and
-   rejects escapes, missing/non-regular targets, symlinks outside the workspace,
-   and non-`.py` files before an approval request is created.
-3. `ApprovalRequest.for_execution` labels the fixed current interpreter and
-   carries immutable workspace, path, argument tuple, and argument count context.
-   Shared formatting bounds each value and escapes terminal control characters.
-4. `ApprovalSession` obtains the complete batch of decisions before any prepared
-   handler executes. A denial produces one correlated `approval_denied` result.
-5. Approved execution reaches `run_python_file`, which repeats path confinement,
-   uses `sys.executable`, constructs an argument list without a shell, sets the
-   trusted workspace as `cwd`, and retains the existing 30-second process timeout.
+1. Only the trusted terminal authorizer can turn explicit `d`/`disable` input
+   into a `user_disabled_tool` decision; model arguments never enter this path.
+2. `ApprovalSession` owns a private set of canonical prepared tool names. Its
+   public view is an immutable `frozenset` and there is no model-facing reset API.
+3. Already-disabled requests are removed before the authorizer is called. New
+   disable decisions are applied in original request order so repeated same-tool
+   calls in the prepared batch become `tool_disabled_for_run` without another prompt.
+4. Agent execution receives the complete normalized decision tuple before any
+   handler runs and returns correlated `tool_disabled` results for both the
+   initiating and automatic denials.
+5. CLI construction creates a new `ApprovalSession` for every invocation, so
+   disabled state is never persisted or shared with a later run or profile.
 
 ## Vulnerability assessment
 
 | Category | Result | Evidence |
 |---|---|---|
-| Authorization bypass | PASS | Execute requests are consequential, default-denied, and start no process until the complete decision tuple returns. |
-| Command injection | PASS | `subprocess.run` receives a list beginning with trusted `sys.executable`; no shell, interpolation, `eval`, or arbitrary command is introduced. |
-| Path traversal | PASS | Preparation and execution both call `resolve_path_within`; outside, missing, non-Python, and symlink regressions pass. |
-| Prompt spoofing | PASS | Workspace, path, and arguments use fixed labels with bounded `ascii`-escaped rendering; raw ESC/newline controls do not reach stderr. |
-| Unsafe deserialization | PASS | Input uses `json.loads`, object checking, signature binding, and explicit path/argument runtime types. |
-| Secrets exposure | PASS | Approval output is bounded; process stdout/stderr and environment values are not included in approval previews or decision fields. |
+| Authorization bypass | PASS | Disabled requests are denied before handler dispatch; models cannot create, clear, or mutate session state. |
+| State leakage | PASS | State is instance-local, in-memory, bounded by built-in tool names, and fresh for every CLI run. |
+| Decision confusion | PASS | Initiating and automatic reasons are distinct; agent maps both to one correlated `tool_disabled` error code. |
+| Batch ordering | PASS | Candidate decisions are indexed to original requests; same-tool normalization cannot shift a later tool's decision. |
+| Secrets exposure | PASS | Disabled state stores only canonical tool names and no arguments, results, credentials, paths, or content. |
+| Prompt spoofing | PASS | Disable is a fixed trusted choice in the existing bounded approval prompt. |
 
 ## False-positive filtering
 
-- Replacing a workspace file between preparation and execution requires local
-  filesystem authority inside the documented trusted-user boundary. Confinement
-  is rechecked at execution, and theoretical local races are excluded.
-- Executing model-selected Python is the explicit user-approved capability, not
-  command injection: the executable is fixed, the target is confined, arguments
-  are passed without a shell, and denial remains side-effect free.
-- Provider receipt of an approved tool result is pre-existing agent behavior and
-  is not a new logging or credential-exposure path in this story.
+- A trusted injected test authorizer can return `user_disabled_tool`; dependency
+  injection is an intentional trusted boundary and is not model-reachable.
+- Repeated disabled calls could consume model turns, but resource-exhaustion and
+  model persistence concerns are excluded and no side effect or repeated prompt occurs.
 
 ## Non-blocking residual risks
 
-- Interactive approval timeout and unattended/TTY policy remain planned for
-  e02s04; the current default continues to fail closed when approval is absent.
-- Run-scoped disable, pre-approved automation, and sanitized verbose decision
-  events remain scoped to e02s03, e02s05, and e02s06 respectively.
-- Arbitrary shell commands, background processes, and remote execution remain
-  out of scope.
+- Persistent policy, category/path patterns, re-enable, and cross-process state
+  remain explicitly out of scope.
+- Unattended policy, pre-approved automation, and sanitized verbose audit events
+  remain planned for e02s04 through e02s06.
 
 ## Security test evidence
 
-- `tests.test_approvals`: bounded, control-escaped execution context.
-- `tests.test_tools`: side-effect-free preparation and invalid target/argument rejection.
-- `tests.test_agent`: complete-batch decisions, one approved process, correlated denial.
-- `tests.test_cli`: real agent-loop approve/deny flows with fake input and subprocess.
-- `tests.test_sandbox`: interpreter selection and symlink confinement.
-- Affected security suite: 39 tests passed with zero external process execution.
+- `tests.test_approvals`: disable transition, automatic denial, deny-once, and fresh-session reset.
+- `tests.test_agent`: cross-round suppression, same-batch suppression, other-tool continuity, and correlated results.
+- `tests.test_cli`: independent invocations receive independent approval sessions.
+- Affected security suite: 37 tests passed in 0.010 seconds.
 - Configured Ty and Ruff diagnostics: zero.

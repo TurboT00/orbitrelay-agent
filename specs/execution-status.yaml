@@ -49,13 +49,13 @@ stories:
     started_at: "2026-07-23T21:02:30Z"
     completed_at: "2026-07-23T21:45:09Z"
   e02s03:
-    status: in_progress
+    status: developed
     title: Disable a tool for the current run
     bcps: 3
     epic: e02
     tasks_total: 4
-    tasks_passing: 0
-    tasks_failing: 4
+    tasks_passing: 4
+    tasks_failing: 0
     risk_max: P1
     security_max: high
     started_at: "2026-07-23T21:45:09Z"
