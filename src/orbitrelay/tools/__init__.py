@@ -15,7 +15,6 @@ from .get_files_info import get_files_info
 from .run_python_file import run_python_file
 from .write_file import validate_write_target, write_file
 
-
 FUNCTIONS: dict[str, Callable[..., str]] = {
     "get_files_info": get_files_info,
     "get_file_content": get_file_content,

@@ -19,7 +19,6 @@ from .profile_cli import run_profile_cli
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
 
-
 OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
 
 

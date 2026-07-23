@@ -11,7 +11,6 @@ from openai.types.chat.chat_completion import ChatCompletion
 from orbitrelay.agent import MAX_MODEL_RESPONSES, TurnLimitError, run_agent
 from orbitrelay.approvals import ApprovalDecision, ApprovalSession
 
-
 WORKING_DIRECTORY = "/workspace"
 
 

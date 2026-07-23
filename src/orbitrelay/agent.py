@@ -10,7 +10,6 @@ from .tools import (
     prepare_tool,
 )
 
-
 MAX_MODEL_RESPONSES = 8
 
 

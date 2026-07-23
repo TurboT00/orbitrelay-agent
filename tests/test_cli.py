@@ -12,15 +12,14 @@ from unittest.mock import ANY, Mock, patch
 
 from orbitrelay import cli
 from orbitrelay.approvals import ApprovalRequest
-from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.config import DEFAULT_BASE_URL, DEFAULT_MODEL
+from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.profile_store import ProfileNotFoundError, ProfileRepository
 from orbitrelay.profiles import (
     AuthKind,
     ProviderCapability,
     ProviderProfile,
 )
-
 
 CAPABILITIES = {
     ProviderCapability.TOOL_CALLING,
