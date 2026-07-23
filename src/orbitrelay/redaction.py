@@ -1,3 +1,5 @@
+# story: e01s01
+
 from collections.abc import Mapping
 from typing import Any
 

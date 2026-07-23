@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-07-23T01:20:00Z",
+  "generation_mode": "manual adversarial equivalent; repository blind-spot script unavailable",
+  "story": "e01s01",
+  "acceptance_criteria": [
+    {
+      "criterion": "Create, select, and run an API-key profile",
+      "tests": ["tests/test_profile_cli.py", "tests/test_cli.py"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Preserve the environment compatibility path",
+      "tests": ["tests/test_cli.py::CliTests::test_main_wires_environment_cli_and_agent_without_network"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Honor deterministic precedence",
+      "tests": ["tests/test_cli.py::CliTests::test_explicit_profile_overrides_selection_and_environment"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Reject invalid configuration before network access",
+      "tests": ["tests/test_profiles.py", "tests/test_cli.py::CliTests::test_rejects_missing_profile_credential_before_client_creation"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Validate all roadmap auth kinds",
+      "tests": ["tests/test_profiles.py::ProviderProfileTests::test_accepts_each_declared_auth_kind_without_a_secret_value"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Reject unsupported runtime auth kinds",
+      "tests": ["tests/test_cli.py::CliTests::test_rejects_deferred_auth_kind_before_client_creation"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Fail closed when credential storage is unavailable",
+      "tests": ["tests/test_credentials.py::KeyringCredentialStoreTests::test_rejects_an_unavailable_backend"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Delete a selected profile safely",
+      "tests": ["tests/test_profile_cli.py::ProfileCliTests::test_list_show_select_and_delete_never_output_secret"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Retry deletion after a partial failure",
+      "tests": ["tests/test_credentials.py::ProfileServiceTests::test_deletion_is_retry_safe_after_metadata_failure"],
+      "status": "covered"
+    },
+    {
+      "criterion": "Redact nested credentials",
+      "tests": ["tests/test_redaction.py::RedactionTests::test_recursively_redacts_credential_like_fields"],
+      "status": "covered"
+    }
+  ],
+  "blockers": [],
+  "warnings": [],
+  "completeness_critic": {
+    "classification": "FILLED",
+    "refutation_attempt": "Explicit story links were initially absent from source and tests; this was a real release-blocking trace gap and was filled before reevaluation. All ten acceptance criteria then mapped to executable tests and verification evidence."
+  }
+}
