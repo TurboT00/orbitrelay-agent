@@ -26,6 +26,10 @@ class ApprovalDecision:
         return self.disposition is ApprovalDisposition.APPROVED
 
     @classmethod
+    def approve(cls, *, reason: str) -> "ApprovalDecision":
+        return cls(disposition=ApprovalDisposition.APPROVED, reason=reason)
+
+    @classmethod
     def deny(cls, *, reason: str) -> "ApprovalDecision":
         return cls(disposition=ApprovalDisposition.DENIED, reason=reason)
 
