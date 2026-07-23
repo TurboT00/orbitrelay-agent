@@ -1,5 +1,103 @@
-e01: done
-e01s01: done
+development_status:
+  e01: done
+  e01s01: done
+  e02: done
+  e02s01: done
+  e02s02: done
+  e02s03: done
+  e02s04: done
+  e02s05: done
+  e02s06: done
+
+epics:
+  e01:
+    status: done
+    title: Provider and Auth Profiles
+  e02:
+    status: done
+    title: Tool Approval Policies
+    wsjf: 4.0
+    total_bcps: 24
+
+stories:
+  e01s01:
+    status: done
+    title: Configure providers and secure named auth profiles
+    epic: e01
+  e02s01:
+    status: done
+    title: Approve or deny a workspace file write
+    bcps: 5
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 5
+    tasks_failing: 0
+    risk_max: P0
+    security_max: high
+    started_at: "2026-07-23T19:05:28Z"
+    completed_at: "2026-07-23T21:02:30Z"
+  e02s02:
+    status: done
+    title: Approve or deny local Python execution
+    bcps: 5
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 5
+    tasks_failing: 0
+    risk_max: P0
+    security_max: high
+    started_at: "2026-07-23T21:02:30Z"
+    completed_at: "2026-07-23T21:45:09Z"
+  e02s03:
+    status: done
+    title: Disable a tool for the current run
+    bcps: 3
+    epic: e02
+    tasks_total: 4
+    tasks_passing: 4
+    tasks_failing: 0
+    risk_max: P1
+    security_max: high
+    started_at: "2026-07-23T21:45:09Z"
+    completed_at: "2026-07-23T22:02:02Z"
+  e02s04:
+    status: done
+    title: Run safely in read-only or unattended contexts
+    bcps: 5
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 5
+    tasks_failing: 0
+    risk_max: P0
+    security_max: high
+    started_at: "2026-07-23T22:02:02Z"
+    completed_at: "2026-07-23T22:23:57Z"
+  e02s05:
+    status: done
+    title: Run with explicit pre-approved automation
+    bcps: 3
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 5
+    tasks_failing: 0
+    risk_max: P0
+    security_max: high
+    started_at: "2026-07-23T22:23:57Z"
+    verified_at: "2026-07-23T22:34:39Z"
+    completed_at: "2026-07-23T22:36:00Z"
+  e02s06:
+    status: done
+    started_at: "2026-07-23T22:36:00Z"
+    completed_at: "2026-07-23T22:50:00Z"
+    title: Audit approval decisions without secret leakage
+    bcps: 3
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 5
+    tasks_failing: 0
+    risk_max: P1
+    security_max: high
+
 gate_trace:
   verdict: PASS
   generated_at: "2026-07-23T01:20:00Z"

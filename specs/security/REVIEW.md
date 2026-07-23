@@ -1,10 +1,10 @@
-# Security Review — e01s01 Provider/Auth Profiles
+# Security Review — e02s06 Decision Auditing Without Secret Leakage
 
-- Merge base: `f423629862f78c772338a6acbefd6dacbe7b7fab`
-- Reviewed head: `f591c66ff3dbb4d43f85b0696704e84b6821cfb6`
-- Scope: feature diff against `main`, with emphasis on CLI input, profile
-  deserialization, metadata paths, keyring operations, secret transport,
-  deletion, and output redaction.
+- Reviewed at: `2026-07-23T22:45:00Z`
+- Story baseline: `3946426`
+- Merge base: `8bcefba610a4fd1c66c47e665247325b04ecfdb2`
+- Scope: e02s06 production and test changes on `feat/tool-approval-policies`
+- Threat model: `specs/security/epics/e02/THREAT_MODEL.md`
 
 ## Gate result
 
@@ -12,54 +12,44 @@
 
 ## Data-flow review
 
-1. Profile names and endpoint metadata enter through argparse or versioned JSON.
-2. `ProviderProfile` constrains names, rejects unknown fields and URL-embedded
-   credentials, requires explicit capabilities, limits unauthenticated profiles
-   to loopback, rejects query/fragment-bearing URLs, and requires HTTPS or
-   loopback for authenticated profiles.
-3. `ProfileRepository` writes only `ProviderProfile.to_dict()` data through an
-   atomic same-directory replacement with mode `0600`.
-4. API keys enter through a hidden prompt or stdin, flow directly to the
-   credential-store adapter, and are retrieved into memory only when resolving
-   an executable `api_key` profile.
-5. `KeyringCredentialStore` allows only approved native macOS/Linux backends and
-   wraps backend exceptions without including secret values.
-6. Profile inspection passes output through recursive credential redaction.
-7. The resolved credential reaches only `openai.OpenAI(api_key=...)`; it is not
-   passed to the agent messages, local tools, command arguments, or metadata.
+1. `ApprovalSession.authorize` appends one immutable `ApprovalRecord` per evaluated
+   call using allowlisted fields only: sequence, call ID, tool, category,
+   disposition, reason, safe target, and argument count.
+2. Records never receive write content, raw process arguments, provider secrets,
+   environment mappings, or handler output.
+3. Verbose mode emits `format_approval_record` lines to the audit stream (stderr
+   by default) after authorization and before execution side effects.
+4. Nonverbose runs emit no audit lines. Tool-result JSON and final stdout channels
+   are unchanged.
+5. Verbose prepared-call diagnostics use `format_prepared_call`, which excludes the
+   `arguments` tuple while retaining bounded targets and argument counts.
 
-## Resolved during review
+## Vulnerability assessment
 
-- **Credential loss on duplicate creation:** the initial coordinator could
-  overwrite an existing keyring entry before metadata rejected the duplicate,
-  then delete the replacement and leave the original profile without a secret.
-  Fixed by rejecting existing metadata before keyring mutation and covered by
-  `test_duplicate_creation_preserves_the_existing_credential`.
-- **Plaintext remote credential transport:** named secret-backed profiles
-  initially accepted remote `http://` endpoints. Fixed by requiring HTTPS or a
-  loopback host and covered for both secret-backed auth kinds.
+| Category | Result | Evidence |
+|---|---|---|
+| Secret leakage | PASS | Records and stderr events omit write bodies, process args, and credential fixtures. |
+| Log injection | PASS | Control characters and oversized values are escaped/bounded before emission. |
+| Authorization change via audit | PASS | Formatting and emission cannot alter dispositions; failures would surface as print errors only after decisions exist. |
+| Correlation integrity | PASS | Sequence numbers and call IDs preserve batch order across multi-outcome runs. |
+| Scope creep | PASS | No persistent audit file, telemetry package, or network sink was added. |
 
-## Non-blocking hardening notes
+## False-positive filtering
 
-- Metadata and native keyring writes cannot form one crash-atomic
-  operating-system transaction. Supported macOS/Linux mutations are serialized
-  across threads and processes, and compensation failures retain both causes;
-  power-loss consistency remains explicitly outside the P1 guarantee.
-- Backend security ultimately depends on the active native keyring. OrbitRelay
-  rejects unavailable, chained, custom, alternate-file, and Windows backends;
-  Windows profile support remains P7 work.
-- macOS may allow the same Python executable to read a keyring item without a new
-  prompt; this documented upstream behavior is disclosed in the README.
+- Approval prompts may still show control-escaped execution argument previews for
+  interactive consent (e02s02). Audit records and verbose decision events do not.
+- Existing recursive `redact_secrets` remains available for diagnostic mappings and
+  is not used as a post-hoc scrubber for forbidden fields already excluded.
 
-## Independent-review closure
+## Non-blocking residual risks
 
-Five dual-review rounds closed additional findings around URL-carried secrets,
-cross-process consistency, unsafe storage paths, keyring backend selection,
-ambiguous deletion, rollback diagnostics, credential namespaces, coherent
-environment sources, transport-variable isolation, and dotenv interpolation.
-The final AND-gate passed at Reviewer A 97/100 and Reviewer B 98/100 with zero
-must-fix findings. See `specs/verifications/REVIEW-e01s01.md`.
+- Windows terminal certification and remote/persistent audit sinks remain outside P2.
+- Shared approval modules continue to carry multi-story tags by design.
 
-The only production-file changes after the independently reviewed executable
-implementation at `6699209` are non-executable `# story: e01s01` trace comments.
-The release coverage commit adds tests only.
+## Security test evidence
+
+- `tests.test_approvals`: multi-outcome secret-free records; policy/preapproval reasons.
+- `tests.test_redaction`: bounded control-safe record formatting.
+- `tests.test_tools`: verbose write/exec diagnostics exclude content and raw args.
+- `tests.test_agent`: ordered verbose stderr events; silent nonverbose mode.
+- Full gate: 145 project tests and 9 example tests passed; package build green.

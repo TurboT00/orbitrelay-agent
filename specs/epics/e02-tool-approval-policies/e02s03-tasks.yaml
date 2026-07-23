@@ -1,0 +1,41 @@
+story_id: e02s03
+title: Disable a tool for the current run
+status: passing
+bcps: 3
+tasks:
+  - id: 1
+    description: Add disable-for-run decisions and approval-session state tests.
+    verify: "uv run python -m unittest tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: passing
+    allure:
+      severity: high
+      categories: [unit, Policy State, Security Review]
+  - id: 2
+    description: Deny later same-tool calls without prompting while preserving other tool policies.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: passing
+    allure:
+      severity: high
+      categories: [integration, Agent Loop, Security Review]
+  - id: 3
+    description: Prove deny-once semantics and fresh state across independent CLI runs.
+    verify: "uv run python -m unittest tests.test_approvals tests.test_cli -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: passing
+    allure:
+      severity: high
+      categories: [integration, CLI, Security Review]
+  - id: 4
+    description: Run state-isolation and repeated-call security regressions.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: passing
+    allure:
+      severity: high
+      categories: [regression, Policy State, Security Review]

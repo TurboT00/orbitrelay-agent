@@ -1,123 +1,122 @@
-initiative: provider-and-auth-profiles
-roadmap_priority: P1
+initiative: tool-approval-policies
+roadmap_priority: P2
 status: scoped
 
 core_value: >-
-  Let users choose a named, validated provider connection without exposing its
-  credentials, while keeping today's OPENAI_* setup working unchanged.
+  Keep users in control of consequential agent actions by requiring explicit,
+  fail-closed approval for file writes and process execution.
 
 summary: >-
-  P1 introduces per-user provider profiles as the first end-to-end configuration
-  slice. A user can manage non-secret profile metadata, keep profile credentials
-  in the native operating-system credential store, select a profile, and run the
-  existing agent through an API-key-backed OpenAI-compatible endpoint. Invalid
-  profiles fail before any network client is created.
+  P2 introduces a user-consent boundary around OrbitRelay's existing tools.
+  Workspace-confined reads remain available by default, while file writes and
+  process execution require approval unless the user explicitly selects a
+  stricter or pre-approved run policy. Approval requests show the consequential
+  target and enough context for an informed decision before any side effect
+  begins.
 
-  The slice defines and validates the roadmap's four authentication contracts so
-  later providers compose against a stable boundary. Only api_key is connected to
-  the runtime in P1. Codex CLI execution and local-provider execution remain in
-  their roadmap milestones. Existing OPENAI_API_KEY, OPENAI_BASE_URL, and
-  OPENAI_MODEL values continue to form a migration-compatible default profile;
-  OrbitRelay does not silently copy environment credentials into persistent
-  storage.
+  Denials and unavailable approval input become structured tool failures that
+  the model can handle without bypassing policy. Decisions remain auditable for
+  the current run without recording tool-result secrets. P2 covers the existing
+  built-in tool set and terminal workflow only; persistent policy storage,
+  plugins, conversations, and new execution environments remain deferred.
 
 in_scope:
-  - id: P1-S1
+  - id: e02s01
     outcome: >-
-      Define named provider profiles with explicit endpoint, model,
-      provider-declared capabilities, and one of api_key,
-      external_first_party_cli, local_none, or local_service_bearer auth kinds.
-  - id: P1-S2
+      Define user-visible approval behavior for the current read, write, and
+      execution tool categories, with workspace-confined reads allowed and
+      consequential actions requiring consent by default.
+  - id: e02s02
     outcome: >-
-      Validate every auth kind and reject incomplete or contradictory profiles
-      before client construction or network access.
-  - id: P1-S3
+      Let an interactive user approve or deny each proposed file write or process
+      execution after seeing its target path or command, arguments, and workspace.
+  - id: e02s03
     outcome: >-
-      Persist non-secret profile metadata only in the current user's config area
-      and persist profile secrets only through a native OS credential-store
-      contract that fails closed when unavailable.
-  - id: P1-S4
+      Let a user disable a tool for the remainder of one run so repeated model
+      requests cannot reprompt or execute that tool during the same run.
+  - id: e02s04
     outcome: >-
-      Let users create, list, inspect, select, and delete named profiles without
-      displaying or serializing secret values.
-  - id: P1-S5
+      Provide explicit per-run read-only, confirm, and pre-approved policy choices,
+      while making missing approval input in noninteractive use fail closed.
+  - id: e02s05
     outcome: >-
-      Resolve a selected api_key profile into the existing OpenAI-compatible
-      agent runtime while preserving a deterministic OPENAI_* compatibility path.
-  - id: P1-S6
+      Return denied or unavailable approvals to the model as structured tool
+      failures and expose secret-free approval decision records for the run.
+  - id: e02s06
     outcome: >-
-      Redact credentials recursively from profile output, diagnostics, and logs,
-      and prove profile behavior with offline tests using fake credential stores
-      and clients.
+      Prove approval behavior offline across approval, denial, run-scoped disable,
+      end-of-input, timeout, noninteractive, and existing sandbox-validation cases.
 
 out_of_scope:
-  - item: Operational external_first_party_cli authentication
+  - item: Approval rules persisted across runs or shared between users
     reason: >-
-      Deferred to P3; P1 supplies only the validated contract and must not read,
-      copy, or emulate a first-party CLI's credentials.
-  - item: Operational local_none and local_service_bearer providers
+      Deferred until policy lifecycle, ownership, revocation, and storage security
+      are designed; P2 decisions are intentionally run-scoped.
+  - item: Graphical, web, or remote approval interfaces
     reason: >-
-      Deferred to P5 after capability profiles, tool approvals, and conversation
-      foundations exist; P1 supplies only their validated contracts.
-  - item: Third-party OAuth or provider password collection
+      Deferred because P2 secures the existing terminal workflow first and no
+      authenticated remote control plane exists.
+  - item: Approval of provider authentication or credential access
     reason: >-
-      Excluded unless a provider publishes registration, scope, redirect,
-      refresh, revocation, and third-party client contracts.
-  - item: Project-local or repository-shared profile metadata
+      Excluded because P1 credential boundaries are independent from tool consent
+      and must not be weakened or exposed through approval prompts.
+  - item: New tools, plugin registration, or third-party tool policy
     reason: >-
-      Deferred to avoid repository policy, precedence, and accidental disclosure
-      concerns in the first profile slice.
-  - item: Plaintext, encrypted-file, or command-argument secret fallback
+      Deferred to P6 after the built-in approval contract and conversation model
+      are stable.
+  - item: Persistent conversations, streaming, or resumable approval history
     reason: >-
-      Excluded because a missing native credential store must fail closed rather
-      than weaken the approved security boundary.
-  - item: Automatic provider discovery or capability probing
+      Deferred to P4; P2 emits run-local decisions without defining session
+      retention or replay semantics.
+  - item: Additional operating-system sandboxing or remote execution
     reason: >-
-      Deferred because P1 uses explicit provider-declared capabilities; probing
-      requires provider-specific qualification and failure semantics.
-  - item: Tool approval policy, persistent conversations, and streaming
+      Deferred because P2 governs consent for the existing workspace sandbox and
+      local Python execution rather than introducing a new isolation platform.
+  - item: Content-diff review, command allowlist languages, or path-pattern rules
     reason: >-
-      Deferred to P2 and P4 according to the dependency-aware roadmap.
-  - item: New platform-support guarantees
-    reason: >-
-      Deferred to P7; P1 must report an unavailable native credential backend
-      clearly but does not certify additional operating systems.
+      Deferred as policy refinements; P2 establishes the minimum trustworthy
+      consent boundary before adding richer rule systems.
 
 constraints:
   product:
-    - Existing OPENAI_* users retain a working compatibility path.
-    - Named profile metadata is per-user and never written into a workspace.
-    - Environment credentials are not imported into persistent storage implicitly.
-    - Only api_key profiles are executable in P1; the other auth kinds are contract-only.
+    - Reads within the selected workspace remain usable without repetitive prompts.
+    - Writes show the target path before approval is requested.
+    - Execution shows the command, arguments, and selected workspace before approval is requested.
+    - A model request can never approve itself or silently change the user's selected run policy.
+    - Run-scoped denial remains effective for every later request for that tool in the same run.
   security:
-    - Secrets never appear in profile files, command arguments, serialized profiles, logs, or user-visible inspection output.
-    - Native credential storage is accessed behind a replaceable contract and has no plaintext fallback.
-    - Deleting a profile removes both its metadata and its credential-store entry, with deterministic partial-failure reporting.
-    - Credential and profile identifiers must not permit path, service-name, or namespace injection.
+    - No file mutation or process starts before all required approval is granted.
+    - EOF, timeout, unavailable input, malformed decisions, and noninteractive confirmation requirements deny by default.
+    - Read-only and denial policies do not weaken existing workspace path, symlink, or argument validation.
+    - Approval displays and decision records omit provider credentials, tool-result contents, and credential-like values.
+    - Explicit pre-approval is a user-selected run policy and cannot be inferred from model output or environment ambiguity.
   technical:
+    - Preserve the existing bounded agent loop, tool-call correlation, and structured tool-result contract.
     - Preserve the installable orbitrelay and python -m orbitrelay entry points.
-    - Keep provider configuration independent from the agent's tool loop and workspace sandbox.
-    - Preserve Python 3.14 as the currently declared minimum.
-    - Automated tests use fake clients and credential stores and make no live provider or keychain calls.
-    - Provider capabilities are explicit data, not inferred from a /v1 URL.
+    - Keep tests offline with fake approval input, fake tool effects, and no real provider or keyring access.
+    - Preserve Python 3.14 as the currently declared minimum and macOS/Linux as the currently verified developer platforms.
   delivery:
-    - This scope defines outcomes only; storage libraries, file formats, CLI syntax, and module boundaries are selected during planning.
-    - No implementation begins until story slicing and the credential-store adapter design are reviewed.
+    - This scope defines outcomes only; policy interfaces, prompt syntax, timeout values, and module boundaries are selected during planning.
+    - No implementation begins until e02 stories are sliced and the approval threat model and test plan are reviewed.
 
 success_criteria:
-  - Existing OPENAI_* configuration still runs the current API-key-backed agent without requiring a saved profile.
-  - A user can create, list, inspect, select, and delete a per-user named profile while no secret value appears in persisted metadata or command output.
-  - A selected api_key profile reaches the existing agent through a fully offline-tested client-construction boundary.
-  - Invalid profile metadata, missing credentials, unsupported runtime auth kinds, and unavailable credential storage fail before network access with actionable errors.
-  - Unit tests cover valid and invalid forms of all four auth kinds without real credentials.
-  - Serialization and recursive-redaction tests prove that representative nested credential values cannot leak.
-  - Profile deletion behavior is tested for metadata failure, credential-store failure, and retry-safe cleanup.
-  - ./scripts/check.sh passes after implementation, including package build and isolated-wheel smoke checks.
+  - Workspace-confined read tools execute under the default policy without an approval prompt.
+  - Every file write and process execution under confirm policy displays the required context and starts only after explicit approval.
+  - A denied call is returned to the model as a correlated structured tool failure and produces no side effect.
+  - Disabling a tool for the run prevents all later calls to that tool without repeated prompts or side effects.
+  - Read-only mode denies writes and execution, while explicitly selected pre-approved mode permits them without weakening sandbox validation.
+  - Noninteractive runs that require confirmation fail closed before a write or process begins.
+  - Approval decision records identify the tool, disposition, and run context without storing provider secrets or tool-result contents.
+  - Automated tests cover approve, deny, disable-for-run, EOF, timeout, malformed input, and noninteractive behavior.
+  - Existing path-confinement, tool-correlation, provider-profile, package-build, and isolated-wheel checks continue to pass.
+  - ./scripts/check.sh passes after implementation.
 
 references:
-  - docs/project-roadmap.md#p1--provider-and-auth-profiles
-  - README.md#configuration
+  - docs/project-roadmap.md#p2--tool-approval-policies
+  - specs/product/archive/SCOPE-P1-provider-auth-profiles.yaml
   - specs/state.yaml
-  - src/orbitrelay/config.py
-  - src/orbitrelay/cli.py
+  - specs/release-plan.yaml
   - src/orbitrelay/agent.py
+  - src/orbitrelay/tools/__init__.py
+  - src/orbitrelay/tools/write_file.py
+  - src/orbitrelay/tools/run_python_file.py

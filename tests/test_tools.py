@@ -1,11 +1,21 @@
+# story: e02s02
+
 import os
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
-from orbitrelay.tools import FUNCTIONS, TOOL_DEFINITIONS, execute_tool
-
+from orbitrelay.tools import (
+    FUNCTIONS,
+    TOOL_DEFINITIONS,
+    PreparedToolCall,
+    execute_prepared_tool,
+    execute_tool,
+    prepare_tool,
+)
 
 WORKING_DIRECTORY = "/workspace"
 
@@ -35,6 +45,156 @@ class ToolDefinitionsTests(unittest.TestCase):
 
 
 class ExecuteToolTests(unittest.TestCase):
+    def test_prepares_write_without_side_effect_until_execution(self):
+        with tempfile.TemporaryDirectory() as workspace:
+            target = Path(workspace, "notes.txt")
+
+            prepared = prepare_tool(
+                "call-1",
+                "write_file",
+                '{"file_path":"notes.txt","content":"hello"}',
+                workspace,
+            )
+
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
+            self.assertFalse(target.exists())
+
+            result = execute_prepared_tool(prepared)
+
+            self.assertEqual(
+                result,
+                'Successfully wrote to "notes.txt" (5 characters written)',
+            )
+            self.assertEqual(target.read_text(encoding="utf-8"), "hello")
+
+    def test_prepares_python_execution_without_starting_a_process(self):
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                prepared = prepare_tool(
+                    "call-exec",
+                    "run_python_file",
+                    '{"file_path":"task.py","args":["--safe"]}',
+                    workspace,
+                )
+
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
+            run.assert_not_called()
+            self.assertEqual(
+                prepared.approval_request.safe_context,
+                (
+                    ("python", "current-interpreter"),
+                    ("workspace", workspace),
+                    ("file", "task.py"),
+                    ("arguments", ("--safe",)),
+                    ("argument_count", 1),
+                ),
+            )
+
+    def test_rejects_invalid_python_execution_during_preparation(self):
+        with tempfile.TemporaryDirectory() as root:
+            workspace = Path(root, "workspace")
+            workspace.mkdir()
+            Path(root, "outside.py").write_text("print('outside')", encoding="utf-8")
+            Path(workspace, "notes.txt").write_text("not Python", encoding="utf-8")
+            Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+            cases = (
+                ('{"file_path":"../outside.py"}', "outside the permitted"),
+                ('{"file_path":"missing.py"}', "does not exist"),
+                ('{"file_path":"notes.txt"}', "not a Python file"),
+                ('{"file_path":"task.py","args":[7]}', "args must be a list of strings"),
+            )
+
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                for arguments, expected_error in cases:
+                    with self.subTest(arguments=arguments):
+                        prepared = prepare_tool(
+                            "call-exec", "run_python_file", arguments, str(workspace)
+                        )
+                        if not isinstance(prepared, str):
+                            self.fail(f"expected preparation error, got {prepared!r}")
+                        self.assertIn(expected_error, prepared)
+
+            run.assert_not_called()
+
+    def test_rejects_unsafe_write_during_preparation(self):
+        with tempfile.TemporaryDirectory() as root:
+            workspace = Path(root, "workspace")
+            workspace.mkdir()
+            outside_target = Path(root, "escaped.txt")
+
+            prepared = prepare_tool(
+                "call-1",
+                "write_file",
+                '{"file_path":"../escaped.txt","content":"blocked"}',
+                str(workspace),
+            )
+
+            if not isinstance(prepared, str):
+                self.fail(f"expected preparation error, got {prepared!r}")
+            self.assertIn("outside the permitted working directory", prepared)
+            self.assertFalse(outside_target.exists())
+
+    def test_verbose_prepared_write_excludes_raw_content(self):
+        secret_content = "provider-secret-value\x1b[31m"
+        output = StringIO()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            prepared = prepare_tool(
+                "call-1",
+                "write_file",
+                '{"file_path":"notes.txt","content":"provider-secret-value\\u001b[31m"}',
+                workspace,
+            )
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
+
+            with redirect_stdout(output):
+                execute_prepared_tool(prepared, verbose=True)
+
+        visible_output = output.getvalue()
+        self.assertNotIn(secret_content, visible_output)
+        self.assertNotIn("provider-secret-value", visible_output)
+        self.assertIn("notes.txt", visible_output)
+        self.assertIn(str(len(secret_content)), visible_output)
+
+    def test_verbose_prepared_execution_excludes_raw_arguments(self):
+        secret_argument = "provider-secret-token"
+        output = StringIO()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('ok')", encoding="utf-8")
+            prepared = prepare_tool(
+                "call-exec",
+                "run_python_file",
+                '{"file_path":"task.py","args":["--token","provider-secret-token"]}',
+                workspace,
+            )
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
+
+            with (
+                patch(
+                    "orbitrelay.tools.run_python_file.subprocess.run",
+                    return_value=type(
+                        "Completed",
+                        (),
+                        {"returncode": 0, "stdout": "ok\n", "stderr": ""},
+                    )(),
+                ),
+                redirect_stdout(output),
+            ):
+                execute_prepared_tool(prepared, verbose=True)
+
+        visible_output = output.getvalue()
+        self.assertNotIn(secret_argument, visible_output)
+        self.assertNotIn("--token", visible_output)
+        self.assertIn("task.py", visible_output)
+        self.assertIn("argument_count=2", visible_output)
+
     def test_parses_arguments_and_injects_the_fixed_sandbox(self):
         received = {}
 

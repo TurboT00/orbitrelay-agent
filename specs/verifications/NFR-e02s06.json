@@ -1,0 +1,37 @@
+{
+  "story_id": "e02s06",
+  "verified_at": "2026-07-23T22:45:00Z",
+  "attributes": [
+    {
+      "id": "deterministic-formatting",
+      "requirement": "Audit formatting is deterministic and unit tested.",
+      "result": "pass",
+      "evidence": "format_approval_record and format_prepared_call covered by redaction/tools tests."
+    },
+    {
+      "id": "bounded-memory",
+      "requirement": "Audit collection is proportional to tool calls in the eight-response loop.",
+      "result": "pass",
+      "evidence": "ApprovalSession stores one immutable record per evaluated call with no retention beyond the run."
+    },
+    {
+      "id": "nonverbose-compatibility",
+      "requirement": "Nonverbose performance and output remain compatible.",
+      "result": "pass",
+      "evidence": "Nonverbose mode emits no audit lines; tool results and final text channels unchanged."
+    },
+    {
+      "id": "secret-exclusion",
+      "requirement": "Credentials, write content, raw args, and tool results never enter records or events.",
+      "result": "pass",
+      "evidence": "Allowlisted ApprovalRecord fields and adversarial fixture assertions."
+    },
+    {
+      "id": "control-safety",
+      "requirement": "Hostile controls and oversized values cannot escape trusted framing.",
+      "result": "pass",
+      "evidence": "format_approval_record escapes/bounds metadata; tests reject raw ESC and oversized tails."
+    }
+  ],
+  "verdict": "PASS"
+}

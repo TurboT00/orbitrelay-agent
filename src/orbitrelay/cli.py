@@ -1,7 +1,10 @@
 # story: e01s01
+# story: e02s04
+# story: e02s05
 
 import argparse
 import getpass
+import math
 import os
 import sys
 from collections.abc import Callable, Mapping, Sequence
@@ -12,14 +15,18 @@ from dotenv import dotenv_values
 from openai import OpenAI
 
 from .agent import run_agent
+from .approvals import ApprovalMode, ApprovalSession
+from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_cli import run_profile_cli
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
 
-
 OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
+DEFAULT_APPROVAL_TIMEOUT = 60.0
+MAX_APPROVAL_TIMEOUT = 300.0
+CONSEQUENTIAL_TOOL_NAMES = frozenset({"write_file", "run_python_file"})
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -31,7 +38,30 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--workspace",
         help="Workspace directory (default: current directory)",
     )
+    _add_approval_options(parser)
     return parser.parse_args(argv)
+
+
+def _add_approval_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--approval-policy",
+        choices=[mode.value for mode in ApprovalMode],
+        default=ApprovalMode.CONFIRM.value,
+        help="Approval policy: confirm, read-only, or pre-approved",
+    )
+    parser.add_argument(
+        "--approval-timeout",
+        default=str(int(DEFAULT_APPROVAL_TIMEOUT)),
+        metavar="SECONDS",
+        help="Confirmation timeout in seconds (default: 60; maximum: 300)",
+    )
+    parser.add_argument(
+        "--approve-tool",
+        action="append",
+        default=[],
+        metavar="TOOL",
+        help="Pre-approve one exact consequential tool (repeatable)",
+    )
 
 
 def resolve_workspace(value: str | None) -> str:
@@ -102,8 +132,14 @@ def _resolved_config(
     return load_api_config(environment) if profile_config is None else profile_config
 
 
-def _invoke_agent(args: argparse.Namespace, api_config: ApiConfig) -> str:
+def _invoke_agent(
+    args: argparse.Namespace,
+    api_config: ApiConfig,
+    input_stream: TextIO | None,
+) -> str:
     workspace = resolve_workspace(args.workspace)
+    timeout = _approval_timeout(args.approval_timeout)
+    approved_tools = _approved_tools(args)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
     return run_agent(
         client,
@@ -111,6 +147,55 @@ def _invoke_agent(args: argparse.Namespace, api_config: ApiConfig) -> str:
         api_config.model,
         working_directory=workspace,
         verbose=args.verbose,
+        approval_session=_approval_session(
+            input_stream, ApprovalMode(args.approval_policy), timeout, approved_tools
+        ),
+    )
+
+
+def _approval_timeout(value: str) -> float:
+    try:
+        timeout = float(value)
+    except ValueError as exc:
+        raise ValueError("approval timeout must be a positive number of seconds") from exc
+    if not math.isfinite(timeout) or not 0 < timeout <= MAX_APPROVAL_TIMEOUT:
+        raise ValueError("approval timeout must be greater than 0 and at most 300 seconds")
+    return timeout
+
+
+def _approved_tools(args: argparse.Namespace) -> frozenset[str]:
+    tools = tuple(args.approve_tool)
+    mode = ApprovalMode(args.approval_policy)
+    if mode is not ApprovalMode.PRE_APPROVED:
+        if tools:
+            raise ValueError("--approve-tool requires --approval-policy pre-approved")
+        return frozenset()
+    if not tools:
+        raise ValueError("pre-approved policy requires at least one --approve-tool")
+    if len(set(tools)) != len(tools):
+        raise ValueError("approve tool names must not be duplicated")
+    invalid = set(tools) - CONSEQUENTIAL_TOOL_NAMES
+    if invalid:
+        raise ValueError(f"approve tool must be consequential and known: {sorted(invalid)!r}")
+    return frozenset(tools)
+
+
+def _approval_session(
+    input_stream: TextIO | None,
+    mode: ApprovalMode = ApprovalMode.CONFIRM,
+    timeout: float = DEFAULT_APPROVAL_TIMEOUT,
+    approved_tools: frozenset[str] = frozenset(),
+) -> ApprovalSession:
+    source = sys.stdin if input_stream is None else input_stream
+    return ApprovalSession(
+        TerminalAuthorizer(
+            source,
+            sys.stderr,
+            timeout_seconds=timeout,
+            require_tty=input_stream is None,
+        ),
+        mode=mode,
+        approved_tools=approved_tools,
     )
 
 
@@ -119,9 +204,10 @@ def _run_agent_cli(
     repository: ProfileRepository | None,
     credential_store: CredentialStore | None,
     environment: Mapping[str, str],
+    input_stream: TextIO | None,
 ) -> int:
     config = _resolved_config(args, repository, credential_store, environment)
-    print(_invoke_agent(args, config))
+    print(_invoke_agent(args, config, input_stream))
     return 0
 
 
@@ -158,7 +244,11 @@ def _dispatch_cli(
             raw_argv[1:], repository, credential_store, secret_prompt, input_stream
         )
     return _run_agent_cli(
-        parse_args(raw_argv), repository, credential_store, environment
+        parse_args(raw_argv),
+        repository,
+        credential_store,
+        environment,
+        input_stream,
     )
 
 

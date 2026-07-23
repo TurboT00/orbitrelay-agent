@@ -1,0 +1,85 @@
+story_id: e02s03
+verified_at: "2026-07-23T21:54:57Z"
+verifier: verify-work
+risk: P1
+branch: feat/tool-approval-policies
+merge_base: 8bcefba610a4fd1c66c47e665247325b04ecfdb2
+phases:
+  branch:
+    passed: true
+    note: Verification ran outside main/master on the dedicated P2 worktree.
+  preflight:
+    passed: true
+    command: ./scripts/check.sh
+  task_verifies:
+    passed: true
+    total: 4
+    results:
+      - {task: 1, exit_code: 0, tests: 7}
+      - {task: 2, exit_code: 0, tests: 30}
+      - {task: 3, exit_code: 0, tests: 26}
+      - {task: 4, exit_code: 0, tests: 37}
+  build:
+    passed: true
+    command: ./scripts/check.sh
+    artifacts: [sdist, wheel, isolated-wheel CLI smoke]
+  typecheck:
+    passed: true
+    command: lsp_diagnostics using configured Ty route
+    diagnostics: 0
+  lint:
+    passed: true
+    command: lsp_diagnostics using configured Ruff route
+    diagnostics: 0
+  tests:
+    passed: true
+    project_tests: 126
+    example_tests: 9
+  terminal_verdict:
+    command: ./scripts/check.sh
+    exit_code: 0
+    captured_at: "2026-07-23T21:54:57Z"
+    combined_sha256: e47f440856e0280b0ad21e8813e50470f04e132127152842cb6ee92349c11109
+    stdout_summary: >-
+      Ran 126 project tests: OK; ran 9 example tests: OK; built sdist and
+      wheel; isolated-wheel CLI smoke passed; All OrbitRelay checks passed.
+    note: Single contiguous run; evidence is not merged from multiple commands.
+  security:
+    passed: true
+    report: specs/security/REVIEW.md
+    high_confidence_high_findings: 0
+  blind_spots:
+    passed: true
+    report: specs/blind-spots.json
+    high: 0
+    medium: 4
+    low: 2
+    note: Shared-file and specification-reference heuristics are non-blocking; e02s03 has three explicit high-confidence links.
+  completeness_critic:
+    passed: true
+    mode: manual project-root equivalent
+    note: Active e02s03 has explicit code and test links; future pending e02 stories are planned rather than active gaps.
+  manual:
+    passed: true
+    confirmed_by: user
+    steps:
+      - step: Disable write_file for the run
+        expected: The initiating write receives user_disabled_tool and creates no file.
+        actual: User selected d; first.txt was not created.
+        passed: true
+      - step: Retry the disabled tool
+        expected: A later write is denied automatically without a second prompt.
+        actual: second.txt received tool_disabled_for_run with no repeated prompt and no file creation.
+        passed: true
+      - step: Continue using another tool
+        expected: A confined read remains available under normal policy.
+        actual: get_files_info ran and listed only the pre-existing 9-byte file.
+        passed: true
+      - step: Confirm side-effect sentinel
+        expected: Neither requested output file exists.
+        actual: Filesystem inspection found only existing.txt.
+        passed: true
+  gaps:
+    closed: true
+    items: []
+verdict: PASS

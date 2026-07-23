@@ -1,0 +1,50 @@
+story_id: e02s01
+title: Approve or deny a workspace file write
+status: passing
+bcps: 5
+tasks:
+  - id: 1
+    description: Add approval request/decision contracts and failing write decision tests.
+    verify: "uv run python -m unittest tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [unit, Approval, Security Review]
+  - id: 2
+    description: Split tool preparation from side-effect execution while preserving trusted workspace validation.
+    verify: "uv run python -m unittest tests.test_tools -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [integration, Tool Dispatch, Security Review]
+  - id: 3
+    description: Authorize the complete agent batch before executing approved calls and append correlated denial results.
+    verify: "uv run python -m unittest tests.test_agent -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [integration, Agent Loop, Security Review]
+  - id: 4
+    description: Inject the default confirm approval session from CLI using fake terminal input in tests.
+    verify: "uv run python -m unittest tests.test_cli tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [integration, CLI, Security Review]
+  - id: 5
+    description: Run affected write security regressions and verify zero side effects and safe previews.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools tests.test_sandbox tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [regression, Sandbox, Security Review]

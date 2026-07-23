@@ -1,12 +1,26 @@
+# story: e02s01, e02s02
+# story: e02s05
+# story: e02s06
+
 import copy
+import json
+import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from openai.types.chat.chat_completion import ChatCompletion
 
 from orbitrelay.agent import MAX_MODEL_RESPONSES, TurnLimitError, run_agent
-
+from orbitrelay.approvals import (
+    ApprovalDecision,
+    ApprovalMode,
+    ApprovalSession,
+    TerminalAuthorizer,
+)
 
 WORKING_DIRECTORY = "/workspace"
 
@@ -88,7 +102,8 @@ class AgentLoopTests(unittest.TestCase):
         client, completions = scripted_client(first, make_completion(content="done"))
 
         with patch(
-            "orbitrelay.agent.execute_tool", side_effect=["files", "contents"]
+            "orbitrelay.agent.execute_prepared_tool",
+            side_effect=["files", "contents"],
         ) as execute:
             result = run_agent(
                 client,
@@ -99,21 +114,401 @@ class AgentLoopTests(unittest.TestCase):
 
         self.assertEqual(result, "done")
         self.assertEqual(
-            [call.args[:3] for call in execute.call_args_list],
-            [
-                ("get_files_info", "{}", WORKING_DIRECTORY),
-                (
-                    "get_file_content",
-                    '{"file_path":"main.py"}',
-                    WORKING_DIRECTORY,
-                ),
-            ],
+            [call.args[0].name for call in execute.call_args_list],
+            ["get_files_info", "get_file_content"],
         )
         second_messages = completions.calls[1]["messages"]
         self.assertEqual(second_messages[-2]["tool_call_id"], "call-1")
         self.assertEqual(second_messages[-2]["content"], "files")
         self.assertEqual(second_messages[-1]["tool_call_id"], "call-2")
         self.assertEqual(second_messages[-1]["content"], "contents")
+
+    def test_authorizes_complete_write_batch_before_any_execution(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-1",
+                    "write_file",
+                    '{"file_path":"approved.txt","content":"approved"}',
+                ),
+                tool_call(
+                    "call-2",
+                    "write_file",
+                    '{"file_path":"denied.txt","content":"denied"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            approved_target = Path(workspace, "approved.txt")
+            denied_target = Path(workspace, "denied.txt")
+
+            def authorize(requests):
+                self.assertEqual(
+                    [request.call_id for request in requests],
+                    ["call-1", "call-2"],
+                )
+                self.assertFalse(approved_target.exists())
+                self.assertFalse(denied_target.exists())
+                return (
+                    ApprovalDecision.approve(reason="user_approved"),
+                    ApprovalDecision.deny(reason="user_denied"),
+                )
+
+            result = run_agent(
+                client,
+                "write files",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=ApprovalSession(authorize),
+            )
+
+            self.assertEqual(result, "done")
+            self.assertEqual(approved_target.read_text(encoding="utf-8"), "approved")
+            self.assertFalse(denied_target.exists())
+
+        tool_messages = completions.calls[1]["messages"][-2:]
+        self.assertEqual(
+            [message["tool_call_id"] for message in tool_messages],
+            ["call-1", "call-2"],
+        )
+        denial = json.loads(tool_messages[1]["content"])
+        self.assertEqual(denial["error"]["code"], "approval_denied")
+        self.assertEqual(denial["error"]["tool_call_id"], "call-2")
+
+    def test_authorizes_complete_execution_batch_and_correlates_denial(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-exec-1",
+                    "run_python_file",
+                    '{"file_path":"task.py","args":["approved"]}',
+                ),
+                tool_call(
+                    "call-exec-2",
+                    "run_python_file",
+                    '{"file_path":"task.py","args":["denied"]}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                run.return_value = SimpleNamespace(returncode=0, stdout="ran\n", stderr="")
+
+                def authorize(requests):
+                    self.assertEqual(
+                        [request.call_id for request in requests],
+                        ["call-exec-1", "call-exec-2"],
+                    )
+                    run.assert_not_called()
+                    return (
+                        ApprovalDecision.approve(reason="user_approved"),
+                        ApprovalDecision.deny(reason="user_denied"),
+                    )
+
+                result = run_agent(
+                    client,
+                    "run Python",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(authorize),
+                )
+
+            self.assertEqual(result, "done")
+            run.assert_called_once()
+
+        tool_messages = completions.calls[1]["messages"][-2:]
+        self.assertEqual(tool_messages[0]["tool_call_id"], "call-exec-1")
+        self.assertEqual(tool_messages[0]["content"], "STDOUT:\nran\n")
+        denial = json.loads(tool_messages[1]["content"])
+        self.assertEqual(denial["error"]["code"], "approval_denied")
+        self.assertEqual(denial["error"]["tool_call_id"], "call-exec-2")
+
+    def test_invalid_write_content_is_rejected_without_approval(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-1",
+                    "write_file",
+                    '{"file_path":"invalid.txt","content":123}',
+                )
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        def unexpected_approval(_requests):
+            self.fail("invalid write must not request approval")
+
+        with tempfile.TemporaryDirectory() as workspace:
+            result = run_agent(
+                client,
+                "write invalid content",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=ApprovalSession(unexpected_approval),
+            )
+
+            self.assertEqual(result, "done")
+            self.assertFalse(Path(workspace, "invalid.txt").exists())
+
+        tool_message = completions.calls[1]["messages"][-1]
+        self.assertEqual(tool_message["tool_call_id"], "call-1")
+        self.assertIn("invalid arguments", tool_message["content"])
+        self.assertIn("content", tool_message["content"])
+
+    def test_disabled_tool_skips_later_decisions_while_reads_continue(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-disable",
+                    "write_file",
+                    '{"file_path":"blocked.txt","content":"blocked"}',
+                )
+            ]
+        )
+        second = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-blocked",
+                    "write_file",
+                    '{"file_path":"later.txt","content":"later"}',
+                ),
+                tool_call("call-read"),
+            ]
+        )
+        client, completions = scripted_client(
+            first, second, make_completion(content="done")
+        )
+        requested_tools = []
+
+        def authorize(requests):
+            requested_tools.append([request.tool_name for request in requests])
+            if requests[0].tool_name == "write_file":
+                return (ApprovalDecision.disable_tool(),)
+            return (ApprovalDecision.approve(reason="read_allowed"),)
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with patch(
+                "orbitrelay.agent.execute_prepared_tool", return_value="files"
+            ) as execute:
+                result = run_agent(
+                    client,
+                    "disable writes then inspect",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(authorize),
+                )
+            self.assertFalse(Path(workspace, "blocked.txt").exists())
+            self.assertFalse(Path(workspace, "later.txt").exists())
+
+        self.assertEqual(result, "done")
+        self.assertEqual(requested_tools, [["write_file"], ["get_files_info"]])
+        execute.assert_called_once()
+        first_error = json.loads(completions.calls[1]["messages"][-1]["content"])
+        later_error = json.loads(completions.calls[2]["messages"][-2]["content"])
+        self.assertEqual(first_error["error"]["code"], "tool_disabled")
+        self.assertEqual(first_error["error"]["reason"], "user_disabled_tool")
+        self.assertEqual(later_error["error"]["code"], "tool_disabled")
+        self.assertEqual(later_error["error"]["reason"], "tool_disabled_for_run")
+
+    def test_terminal_disable_suppresses_same_batch_repeated_prompt(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-1",
+                    "write_file",
+                    '{"file_path":"first.txt","content":"first"}',
+                ),
+                tool_call(
+                    "call-2",
+                    "write_file",
+                    '{"file_path":"second.txt","content":"second"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+        prompt_output = StringIO()
+        session = ApprovalSession(TerminalAuthorizer(StringIO("d\n"), prompt_output))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            result = run_agent(
+                client,
+                "disable writes",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=session,
+            )
+            self.assertFalse(Path(workspace, "first.txt").exists())
+            self.assertFalse(Path(workspace, "second.txt").exists())
+
+        self.assertEqual(result, "done")
+        self.assertEqual(prompt_output.getvalue().count("Approve write_file"), 1)
+        tool_messages = completions.calls[1]["messages"][-2:]
+        reasons = [json.loads(message["content"])["error"]["reason"] for message in tool_messages]
+        self.assertEqual(reasons, ["user_disabled_tool", "tool_disabled_for_run"])
+
+    def test_read_only_batch_denies_writes_without_prompt_and_executes_reads(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"blocked.txt","content":"blocked"}',
+                ),
+                tool_call("call-read"),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        def unexpected_authorizer(_requests):
+            self.fail("read-only policy must not prompt")
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with patch(
+                "orbitrelay.agent.execute_prepared_tool", return_value="files"
+            ) as execute:
+                result = run_agent(
+                    client,
+                    "inspect safely",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(
+                        unexpected_authorizer, mode=ApprovalMode.READ_ONLY
+                    ),
+                )
+            self.assertFalse(Path(workspace, "blocked.txt").exists())
+
+        self.assertEqual(result, "done")
+        execute.assert_called_once()
+        denial = json.loads(completions.calls[1]["messages"][-2]["content"])
+        self.assertEqual(denial["error"]["code"], "approval_denied")
+        self.assertEqual(denial["error"]["reason"], "read_only_policy")
+
+    def test_expired_confirmation_denies_write_without_side_effect(self):
+        class TimeoutInput:
+            def readline(self):
+                raise TimeoutError
+
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"blocked.txt","content":"blocked"}',
+                )
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            session = ApprovalSession(TerminalAuthorizer(TimeoutInput(), StringIO()))
+            result = run_agent(
+                client,
+                "write safely",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=session,
+            )
+            self.assertFalse(Path(workspace, "blocked.txt").exists())
+
+        self.assertEqual(result, "done")
+        denial = json.loads(completions.calls[1]["messages"][-1]["content"])
+        self.assertEqual(denial["error"]["reason"], "approval_timeout")
+
+    def test_preapproved_write_executes_while_unlisted_execution_is_denied(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"approved.txt","content":"approved"}',
+                ),
+                tool_call(
+                    "call-exec",
+                    "run_python_file",
+                    '{"file_path":"task.py"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('blocked')", encoding="utf-8")
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                result = run_agent(
+                    client,
+                    "write but do not execute",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(
+                        mode=ApprovalMode.PRE_APPROVED,
+                        approved_tools=frozenset({"write_file"}),
+                    ),
+                )
+            self.assertEqual(
+                Path(workspace, "approved.txt").read_text(encoding="utf-8"), "approved"
+            )
+            run.assert_not_called()
+
+        self.assertEqual(result, "done")
+        denial = json.loads(completions.calls[1]["messages"][-1]["content"])
+        self.assertEqual(denial["error"]["reason"], "tool_not_preapproved")
+
+    def test_preapproved_policy_still_enforces_path_and_symlink_confinement(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"escape-link.txt","content":"overwritten"}',
+                ),
+                tool_call(
+                    "call-exec",
+                    "run_python_file",
+                    '{"file_path":"escape.py"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as root:
+            workspace = Path(root, "workspace")
+            outside = Path(root, "outside")
+            workspace.mkdir()
+            outside.mkdir()
+            outside_file = outside / "secret.txt"
+            outside_script = outside / "secret.py"
+            outside_file.write_text("original", encoding="utf-8")
+            outside_script.write_text("print('escaped')", encoding="utf-8")
+            try:
+                (workspace / "escape-link.txt").symlink_to(outside_file)
+                (workspace / "escape.py").symlink_to(outside_script)
+            except (NotImplementedError, OSError) as exc:
+                self.skipTest(f"symlinks unavailable: {exc}")
+
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                result = run_agent(
+                    client,
+                    "escape confinement",
+                    "deepseek-v4-flash",
+                    working_directory=str(workspace),
+                    approval_session=ApprovalSession(
+                        mode=ApprovalMode.PRE_APPROVED,
+                        approved_tools=frozenset({"write_file", "run_python_file"}),
+                    ),
+                )
+
+            self.assertEqual(result, "done")
+            self.assertEqual(outside_file.read_text(encoding="utf-8"), "original")
+            run.assert_not_called()
+
+        tool_messages = completions.calls[1]["messages"][-2:]
+        self.assertIn("outside the permitted working directory", tool_messages[0]["content"])
+        self.assertIn("outside the permitted working directory", tool_messages[1]["content"])
 
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
@@ -126,7 +521,7 @@ class AgentLoopTests(unittest.TestCase):
             make_completion(content="done"),
         )
 
-        with patch("orbitrelay.agent.execute_tool", return_value="ok"):
+        with patch("orbitrelay.agent.execute_prepared_tool", return_value="ok"):
             run_agent(
                 client,
                 "inspect",
@@ -148,7 +543,9 @@ class AgentLoopTests(unittest.TestCase):
         responses.append(make_completion(content="finished at the limit"))
         client, completions = scripted_client(*responses)
 
-        with patch("orbitrelay.agent.execute_tool", return_value="ok") as execute:
+        with patch(
+            "orbitrelay.agent.execute_prepared_tool", return_value="ok"
+        ) as execute:
             result = run_agent(
                 client,
                 "long task",
@@ -167,7 +564,9 @@ class AgentLoopTests(unittest.TestCase):
         ]
         client, completions = scripted_client(*responses)
 
-        with patch("orbitrelay.agent.execute_tool", return_value="ok") as execute:
+        with patch(
+            "orbitrelay.agent.execute_prepared_tool", return_value="ok"
+        ) as execute:
             with self.assertRaisesRegex(TurnLimitError, "8-response limit"):
                 run_agent(
                     client,
@@ -201,7 +600,7 @@ class AgentLoopTests(unittest.TestCase):
         )
         client, _completions = scripted_client(response)
 
-        with patch("orbitrelay.agent.execute_tool") as execute:
+        with patch("orbitrelay.agent.execute_prepared_tool") as execute:
             with self.assertRaisesRegex(RuntimeError, "nonempty id"):
                 run_agent(
                     client,
@@ -218,7 +617,7 @@ class AgentLoopTests(unittest.TestCase):
         )
         client, _completions = scripted_client(response)
 
-        with patch("orbitrelay.agent.execute_tool") as execute:
+        with patch("orbitrelay.agent.execute_prepared_tool") as execute:
             with self.assertRaisesRegex(RuntimeError, "duplicated"):
                 run_agent(
                     client,
@@ -239,6 +638,83 @@ class AgentLoopTests(unittest.TestCase):
                 "deepseek-v4-flash",
                 working_directory=WORKING_DIRECTORY,
             )
+
+    def test_verbose_mode_emits_ordered_decision_events_to_stderr(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call("call-read"),
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"notes.txt","content":"secret-body"}',
+                ),
+            ]
+        )
+        client, _completions = scripted_client(first, make_completion(content="done"))
+        stderr = StringIO()
+        stdout = StringIO()
+
+        def authorize(requests):
+            return (
+                ApprovalDecision.approve(reason="read_allowed"),
+                ApprovalDecision.deny(reason="user_denied"),
+            )
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                result = run_agent(
+                    client,
+                    "inspect then deny write",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    verbose=True,
+                    approval_session=ApprovalSession(authorize),
+                    audit_stream=stderr,
+                )
+
+        self.assertEqual(result, "done")
+        events = [
+            line
+            for line in stderr.getvalue().splitlines()
+            if line.startswith("approval ")
+        ]
+        self.assertEqual(len(events), 2)
+        self.assertIn("call_id=call-read", events[0])
+        self.assertIn("reason=read_allowed", events[0])
+        self.assertIn("call_id=call-write", events[1])
+        self.assertIn("reason=user_denied", events[1])
+        self.assertIn("disposition=denied", events[1])
+        self.assertNotIn("secret-body", stdout.getvalue() + stderr.getvalue())
+
+    def test_nonverbose_mode_emits_no_decision_events(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"notes.txt","content":"secret-body"}',
+                )
+            ]
+        )
+        client, _completions = scripted_client(first, make_completion(content="done"))
+        stderr = StringIO()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with redirect_stderr(stderr):
+                result = run_agent(
+                    client,
+                    "deny write quietly",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    verbose=False,
+                    approval_session=ApprovalSession(
+                        lambda requests: (ApprovalDecision.deny(reason="user_denied"),)
+                    ),
+                    audit_stream=stderr,
+                )
+
+        self.assertEqual(result, "done")
+        self.assertEqual(stderr.getvalue(), "")
 
     def test_verbose_mode_allows_missing_usage(self):
         client, _completions = scripted_client(make_completion(content="done"))

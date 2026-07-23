@@ -1,25 +1,29 @@
-# story: e01s01
+# story: e01s01, e02s01, e02s02
+# story: e02s04
+# story: e02s05
 
+import json
 import os
 import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
-from unittest.mock import Mock, patch
+from types import SimpleNamespace
+from unittest.mock import ANY, Mock, patch
 
 from orbitrelay import cli
-from orbitrelay.credentials import CredentialNotFoundError
+from orbitrelay.approvals import ApprovalRequest
 from orbitrelay.config import DEFAULT_BASE_URL, DEFAULT_MODEL
+from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.profile_store import ProfileNotFoundError, ProfileRepository
 from orbitrelay.profiles import (
     AuthKind,
     ProviderCapability,
     ProviderProfile,
 )
-
 
 CAPABILITIES = {
     ProviderCapability.TOOL_CALLING,
@@ -107,9 +111,244 @@ class CliTests(unittest.TestCase):
             DEFAULT_MODEL,
             working_directory=str(Path(workspace).resolve()),
             verbose=True,
+            approval_session=ANY,
         )
         self.assertEqual(exit_code, 0)
         self.assertEqual(output.getvalue(), "final answer\n")
+
+    def test_main_injects_default_confirmation_with_fake_input(self):
+        fake_client = Mock(name="client")
+        approval_input = StringIO("y\n")
+        approval_output = StringIO()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=fake_client),
+                patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stderr(approval_output),
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(
+                    ["write notes", "--workspace", workspace],
+                    profile_repository=ProfileRepository(
+                        Path(workspace) / "profiles.json"
+                    ),
+                    input_stream=approval_input,
+                )
+                approval_session = run_agent.call_args.kwargs["approval_session"]
+                request = ApprovalRequest.for_write(
+                    call_id="call-1",
+                    target="notes.txt",
+                    content_length=12,
+                )
+                (decision,) = approval_session.authorize((request,))
+
+        self.assertTrue(decision.approved)
+        self.assertIn("write_file", approval_output.getvalue())
+        self.assertIn("notes.txt", approval_output.getvalue())
+        self.assertIn("12", approval_output.getvalue())
+
+    def test_main_approves_or_denies_python_execution_from_fake_input(self):
+        for response, expected_process_calls in (("y\n", 1), ("n\n", 0)):
+            with self.subTest(response=response), tempfile.TemporaryDirectory() as workspace:
+                Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+                fake_client = Mock(name="client")
+                fake_client.chat.completions.create.side_effect = [
+                    {
+                        "choices": [
+                            {
+                                "message": {
+                                    "role": "assistant",
+                                    "content": None,
+                                    "tool_calls": [
+                                        {
+                                            "id": "call-exec",
+                                            "type": "function",
+                                            "function": {
+                                                "name": "run_python_file",
+                                                "arguments": json.dumps(
+                                                    {
+                                                        "file_path": "task.py",
+                                                        "args": ["hostile\x1b[31m"],
+                                                    }
+                                                ),
+                                            },
+                                        }
+                                    ],
+                                }
+                            }
+                        ]
+                    },
+                    {"choices": [{"message": {"role": "assistant", "content": "done"}}]},
+                ]
+                approval_output = StringIO()
+                with (
+                    patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                    patch("orbitrelay.cli.dotenv_values", return_value={}),
+                    patch("orbitrelay.cli.OpenAI", return_value=fake_client),
+                    patch("orbitrelay.tools.run_python_file.subprocess.run") as run,
+                    redirect_stderr(approval_output),
+                    redirect_stdout(StringIO()),
+                ):
+                    run.return_value = SimpleNamespace(
+                        returncode=0, stdout="ran\n", stderr=""
+                    )
+                    exit_code = cli.main(
+                        ["run Python", "--workspace", workspace],
+                        profile_repository=ProfileRepository(
+                            Path(workspace) / "profiles.json"
+                        ),
+                        input_stream=StringIO(response),
+                    )
+
+                self.assertEqual(exit_code, 0)
+                self.assertEqual(run.call_count, expected_process_calls)
+                self.assertIn("run_python_file", approval_output.getvalue())
+                self.assertNotIn("\x1b", approval_output.getvalue())
+
+    def test_independent_cli_runs_receive_fresh_approval_sessions(self):
+        captured_sessions = []
+
+        def capture_session(*_args, **kwargs):
+            captured_sessions.append(kwargs["approval_session"])
+            return "done"
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=Mock(name="client")),
+                patch("orbitrelay.cli.run_agent", side_effect=capture_session),
+                redirect_stderr(StringIO()),
+                redirect_stdout(StringIO()),
+            ):
+                for response in ("d\n", "y\n"):
+                    cli.main(
+                        ["write", "--workspace", workspace],
+                        profile_repository=ProfileRepository(
+                            Path(workspace) / "profiles.json"
+                        ),
+                        input_stream=StringIO(response),
+                    )
+
+        request = ApprovalRequest.for_write(
+            call_id="call-1", target="notes.txt", content_length=1
+        )
+        (disabled,) = captured_sessions[0].authorize((request,))
+        (approved,) = captured_sessions[1].authorize((request,))
+        self.assertEqual(disabled.reason, "user_disabled_tool")
+        self.assertTrue(approved.approved)
+
+    def test_read_only_policy_is_injected_into_agent_session(self):
+        fake_client = Mock(name="client")
+        with tempfile.TemporaryDirectory() as workspace:
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=fake_client),
+                patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(
+                    [
+                        "inspect safely",
+                        "--workspace",
+                        workspace,
+                        "--approval-policy",
+                        "read-only",
+                        "--approval-timeout",
+                        "1.5",
+                    ],
+                    profile_repository=ProfileRepository(Path(workspace) / "profiles.json"),
+                )
+
+        session = run_agent.call_args.kwargs["approval_session"]
+        request = ApprovalRequest.for_write(
+            call_id="call-write", target="notes.txt", content_length=1
+        )
+        (decision,) = session.authorize((request,))
+        self.assertEqual(decision.reason, "read_only_policy")
+
+    def test_invalid_approval_timeout_is_rejected_before_client_creation(self):
+        for value in ("0", "-1", "nan", "inf", "301"):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as workspace:
+                with (
+                    patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                    patch("orbitrelay.cli.dotenv_values", return_value={}),
+                    patch("orbitrelay.cli.OpenAI") as openai,
+                ):
+                    with self.assertRaisesRegex(ValueError, "approval timeout"):
+                        cli.main(
+                            ["inspect", "--workspace", workspace, "--approval-timeout", value],
+                            profile_repository=ProfileRepository(
+                                Path(workspace) / "profiles.json"
+                            ),
+                        )
+                openai.assert_not_called()
+
+    def test_preapproved_tool_is_injected_into_agent_session(self):
+        fake_client = Mock(name="client")
+        with tempfile.TemporaryDirectory() as workspace:
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=fake_client),
+                patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(
+                    [
+                        "write safely",
+                        "--workspace",
+                        workspace,
+                        "--approval-policy",
+                        "pre-approved",
+                        "--approve-tool",
+                        "write_file",
+                    ],
+                    profile_repository=ProfileRepository(Path(workspace) / "profiles.json"),
+                )
+
+        session = run_agent.call_args.kwargs["approval_session"]
+        request = ApprovalRequest.for_write(
+            call_id="call-write", target="notes.txt", content_length=1
+        )
+        (decision,) = session.authorize((request,))
+        self.assertTrue(decision.approved)
+        self.assertEqual(decision.reason, "explicit_preapproval")
+
+    def test_ambiguous_preapproval_configuration_is_rejected_before_client(self):
+        cases = (
+            ["--approval-policy", "pre-approved"],
+            ["--approve-tool", "write_file"],
+            ["--approval-policy", "pre-approved", "--approve-tool", "get_files_info"],
+            ["--approval-policy", "pre-approved", "--approve-tool", "unknown"],
+            [
+                "--approval-policy",
+                "pre-approved",
+                "--approve-tool",
+                "write_file",
+                "--approve-tool",
+                "write_file",
+            ],
+        )
+        for flags in cases:
+            with self.subTest(flags=flags), tempfile.TemporaryDirectory() as workspace:
+                with (
+                    patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                    patch("orbitrelay.cli.dotenv_values", return_value={}),
+                    patch("orbitrelay.cli.OpenAI") as openai,
+                ):
+                    with self.assertRaisesRegex(ValueError, "pre-approved|approve tool"):
+                        cli.main(
+                            ["inspect", "--workspace", workspace, *flags],
+                            profile_repository=ProfileRepository(
+                                Path(workspace) / "profiles.json"
+                            ),
+                        )
+                openai.assert_not_called()
 
     def test_main_rejects_missing_key_before_client_creation(self):
         with tempfile.TemporaryDirectory() as directory:

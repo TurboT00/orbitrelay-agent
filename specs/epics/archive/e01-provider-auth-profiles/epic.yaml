@@ -3,7 +3,7 @@ title: Provider and Auth Profiles
 wsjf: 3.6
 total_bcps: 8
 status: completed
-scope: specs/product/SCOPE_LATEST.yaml
+scope: specs/product/archive/SCOPE-P1-provider-auth-profiles.yaml
 stories:
   - id: e01s01
     title: Manage and run secure provider profiles

@@ -1,44 +1,53 @@
-active_flow: discover
-active_epic_id: null
-active_story_id: null
+active_flow: build_epic
+active_epic_id: e02
+active_story_id: e02s06
 release:
-  current_version: 0.1.0
-  next_target: tool-approval-policies
-  pr_number: 1
-  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/1
-  pr_state: merged
-  merged: true
+  current_version: 0.3.0
+  target_version: 0.3.0
+  next_target: codex-bridge-and-xai-byok
+  pr_number: 2
+  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/2
+  pr_state: open
+  merged: false
   ci_verified: false
   ci_status: not_configured
+  notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 git:
-  branch: main
-  base_hash: f423629
+  branch: feat/tool-approval-policies
+  base_hash: 8bcefba
   handoff_ref: HEAD
-  remote: origin/main
+  remote: origin/feat/tool-approval-policies
   push_requested: true
 working_tree:
   expected_after_handoff: clean
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 106
+  project_tests: 145
   example_tests: 9
-  evidence: specs/verifications/e01s01-verify.yaml
+  evidence: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+  combined_sha256: 3fe858ca9ebb194c15c841018f233bca66651525ed61ff207fa8c488cf3226b6
+epic_cycle:
+  current_step: release-branch
+  next_skill: release-branch
+  story_bcps: 24
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message, release-branch]
+  audit_result: pass
 handoff:
-  last_step_completed: P1 provider/auth profiles approved, archived, and merged through PR 1
+  last_step_completed: 0.3.0 branch pushed and PR #2 opened
   required_reading:
     - README.md
     - docs/project-roadmap.md
+    - specs/archive/RELEASE-0.3.0-tool-approval-policies.md
     - specs/state.yaml
-    - src/orbitrelay/config.py
-    - src/orbitrelay/agent.py
-    - src/orbitrelay/tools/__init__.py
+    - src/orbitrelay/approvals.py
+    - src/orbitrelay/cli.py
   open_decisions:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: scope-work
-  next_action: Scope P2 tool approval policies from clean main before implementation.
+  next_skill: release-branch
+  next_action: Review and merge PR #2 when ready; then tag/publish 0.3.0 if desired.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -48,9 +57,14 @@ decisions:
   next_user_capability: Tool approvals follow provider and auth foundations.
   local_models: Start with Ollama loopback after capability profiles and approvals exist.
   remote_push: Do not push the handoff commit without a new explicit request.
+  approval_batching: Validate and authorize the full model tool-call batch before executing approved calls in original order.
+  approval_timeout: Default interactive decisions to 60 seconds, allow an explicit CLI override, and deny on timeout.
+  approval_preapproved: Require a per-tool allowlist for pre-approved automation; never infer blanket approval.
+  approval_audit: Keep decision records run-local and emit sanitized events to stderr only in verbose mode.
+  p2_plan_order: Build write approval, execution approval, run-scoped disable, unattended safety, per-tool pre-approval, then audit hardening.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
 metrics:
-  story_start: "2026-07-23T00:05:08Z"
+  story_start: "2026-07-23T22:36:00Z"

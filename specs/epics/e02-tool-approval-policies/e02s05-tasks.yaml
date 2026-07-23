@@ -1,0 +1,50 @@
+story_id: e02s05
+title: Run with explicit pre-approved automation
+status: passing
+bcps: 3
+tasks:
+  - id: 1
+    description: Add per-tool pre-approved allowlist and unlisted-tool decision tests.
+    verify: "uv run python -m unittest tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [unit, Preapproval, Security Review]
+  - id: 2
+    description: Add CLI policy and allowlist validation and reject ambiguous combinations before client construction.
+    verify: "uv run python -m unittest tests.test_cli -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [integration, CLI, Security Review]
+  - id: 3
+    description: Execute listed tools without prompts and deny unlisted consequential tools with correlated results.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [integration, Agent Loop, Security Review]
+  - id: 4
+    description: Re-run path and symlink escape coverage under pre-approved policy.
+    verify: "uv run python -m unittest tests.test_tools tests.test_sandbox -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [regression, Sandbox, Security Review]
+  - id: 5
+    description: Run allowlist authority and model-override security regressions.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent tests.test_tools tests.test_sandbox tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: passing
+    allure:
+      severity: critical
+      categories: [regression, Preapproval, Security Review]

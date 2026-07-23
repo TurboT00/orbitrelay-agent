@@ -1,0 +1,24 @@
+release:
+  version: "0.2.0"
+  codename: Provider and Auth Profiles
+  status: completed
+  semantic_release: true
+  bump_hint: minor
+
+epics:
+  - id: e01
+    title: Provider and Auth Profiles
+    capsule_dir: epics/archive/e01-provider-auth-profiles
+    wsjf: 3.6
+    bcps: 8
+    note: >-
+      Highest-priority roadmap foundation. It removes implicit credential handling
+      before tool approvals, delegated auth, and local providers are attempted.
+
+bugs:
+  total: 0
+  fixed: 0
+  deferred: 0
+  wontfix: 0
+  open: 0
+  registry: specs/bugs/registry.yaml

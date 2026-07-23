@@ -1,19 +1,22 @@
 release:
-  version: "0.2.0"
-  codename: Provider and Auth Profiles
-  status: completed
+  version: "0.3.0"
+  codename: Tool Approval Policies
+  status: ready
   semantic_release: true
   bump_hint: minor
+  branch: feat/tool-approval-policies
+  push_requested: false
 
 epics:
-  - id: e01
-    title: Provider and Auth Profiles
-    capsule_dir: epics/archive/e01-provider-auth-profiles
-    wsjf: 3.6
-    bcps: 8
+  - id: e02
+    title: Tool Approval Policies
+    capsule_dir: epics/e02-tool-approval-policies
+    wsjf: 4.0
+    bcps: 24
     note: >-
-      Highest-priority roadmap foundation. It removes implicit credential handling
-      before tool approvals, delegated auth, and local providers are attempted.
+      Highest-priority unblocked roadmap capability. It establishes user consent
+      before consequential tools and unlocks hosted access, conversations, local
+      models, and plugin policy work.
 
 bugs:
   total: 0
