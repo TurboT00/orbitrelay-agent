@@ -1,5 +1,6 @@
-# story: e01s01
+# story: e01s01, e02s01, e02s02
 
+import json
 import os
 import subprocess
 import sys
@@ -8,6 +9,7 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import ANY, Mock, patch
 
 from orbitrelay import cli
@@ -145,6 +147,64 @@ class CliTests(unittest.TestCase):
         self.assertIn("write_file", approval_output.getvalue())
         self.assertIn("notes.txt", approval_output.getvalue())
         self.assertIn("12", approval_output.getvalue())
+
+    def test_main_approves_or_denies_python_execution_from_fake_input(self):
+        for response, expected_process_calls in (("y\n", 1), ("n\n", 0)):
+            with self.subTest(response=response), tempfile.TemporaryDirectory() as workspace:
+                Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+                fake_client = Mock(name="client")
+                fake_client.chat.completions.create.side_effect = [
+                    {
+                        "choices": [
+                            {
+                                "message": {
+                                    "role": "assistant",
+                                    "content": None,
+                                    "tool_calls": [
+                                        {
+                                            "id": "call-exec",
+                                            "type": "function",
+                                            "function": {
+                                                "name": "run_python_file",
+                                                "arguments": json.dumps(
+                                                    {
+                                                        "file_path": "task.py",
+                                                        "args": ["hostile\x1b[31m"],
+                                                    }
+                                                ),
+                                            },
+                                        }
+                                    ],
+                                }
+                            }
+                        ]
+                    },
+                    {"choices": [{"message": {"role": "assistant", "content": "done"}}]},
+                ]
+                approval_output = StringIO()
+                with (
+                    patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                    patch("orbitrelay.cli.dotenv_values", return_value={}),
+                    patch("orbitrelay.cli.OpenAI", return_value=fake_client),
+                    patch("orbitrelay.tools.run_python_file.subprocess.run") as run,
+                    redirect_stderr(approval_output),
+                    redirect_stdout(StringIO()),
+                ):
+                    run.return_value = SimpleNamespace(
+                        returncode=0, stdout="ran\n", stderr=""
+                    )
+                    exit_code = cli.main(
+                        ["run Python", "--workspace", workspace],
+                        profile_repository=ProfileRepository(
+                            Path(workspace) / "profiles.json"
+                        ),
+                        input_stream=StringIO(response),
+                    )
+
+                self.assertEqual(exit_code, 0)
+                self.assertEqual(run.call_count, expected_process_calls)
+                self.assertIn("run_python_file", approval_output.getvalue())
+                self.assertNotIn("\x1b", approval_output.getvalue())
 
     def test_main_rejects_missing_key_before_client_creation(self):
         with tempfile.TemporaryDirectory() as directory:
