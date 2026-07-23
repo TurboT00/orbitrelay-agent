@@ -5,8 +5,8 @@ development_status:
   e02s01: done
   e02s02: done
   e02s03: done
-  e02s04: verified
-  e02s05: pending
+  e02s04: done
+  e02s05: in_progress
   e02s06: pending
 
 epics:
@@ -61,7 +61,7 @@ stories:
     started_at: "2026-07-23T21:45:09Z"
     completed_at: "2026-07-23T22:02:02Z"
   e02s04:
-    status: verified
+    status: done
     title: Run safely in read-only or unattended contexts
     bcps: 5
     epic: e02
@@ -71,8 +71,9 @@ stories:
     risk_max: P0
     security_max: high
     started_at: "2026-07-23T22:02:02Z"
+    completed_at: "2026-07-23T22:23:57Z"
   e02s05:
-    status: pending
+    status: in_progress
     title: Run with explicit pre-approved automation
     bcps: 3
     epic: e02
@@ -81,6 +82,7 @@ stories:
     tasks_failing: 5
     risk_max: P0
     security_max: high
+    started_at: "2026-07-23T22:23:57Z"
   e02s06:
     status: pending
     title: Audit approval decisions without secret leakage
