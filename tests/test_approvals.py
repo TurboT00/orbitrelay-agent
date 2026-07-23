@@ -29,6 +29,13 @@ class ApprovalRequestTests(unittest.TestCase):
 
 
 class ApprovalDecisionTests(unittest.TestCase):
+    def test_approval_exposes_a_stable_reason(self):
+        decision = ApprovalDecision.approve(reason="user_approved")
+
+        self.assertEqual(decision.disposition, ApprovalDisposition.APPROVED)
+        self.assertEqual(decision.reason, "user_approved")
+        self.assertTrue(decision.approved)
+
     def test_denial_exposes_a_stable_reason(self):
         decision = ApprovalDecision.deny(reason="user_denied")
 
