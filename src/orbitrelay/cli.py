@@ -109,20 +109,19 @@ def _invoke_agent(
 ) -> str:
     workspace = resolve_workspace(args.workspace)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
-    approval_session = ApprovalSession(
-        TerminalAuthorizer(
-            sys.stdin if input_stream is None else input_stream,
-            sys.stderr,
-        )
-    )
     return run_agent(
         client,
         args.user_prompt,
         api_config.model,
         working_directory=workspace,
         verbose=args.verbose,
-        approval_session=approval_session,
+        approval_session=_approval_session(input_stream),
     )
+
+
+def _approval_session(input_stream: TextIO | None) -> ApprovalSession:
+    source = sys.stdin if input_stream is None else input_stream
+    return ApprovalSession(TerminalAuthorizer(source, sys.stderr))
 
 
 def _run_agent_cli(
