@@ -215,21 +215,26 @@ def _execution_approval_request(
     file_path, execution_args = arguments["file_path"], arguments.get("args")
     if not isinstance(file_path, str):
         return f'Error: invalid arguments for "{name}": file_path must be a string'
-    if execution_args is None:
-        execution_args = []
-    if not isinstance(execution_args, list) or not all(
-        isinstance(arg, str) for arg in execution_args
-    ):
+    normalized_args = _execution_arguments(execution_args)
+    if normalized_args is None:
         return f'Error: invalid arguments for "{name}": args must be a list of strings'
-    error = validate_python_target(arguments["working_directory"], file_path, execution_args)
+    error = validate_python_target(arguments["working_directory"], file_path, normalized_args)
     if error is not None:
         return error
     return ApprovalRequest.for_execution(
         call_id=call_id,
         workspace=arguments["working_directory"],
         target=file_path,
-        arguments=execution_args,
+        arguments=normalized_args,
     )
+
+
+def _execution_arguments(value: Any) -> list[str] | None:
+    if value is None:
+        return []
+    if not isinstance(value, list) or not all(isinstance(arg, str) for arg in value):
+        return None
+    return value
 
 
 def execute_prepared_tool(
