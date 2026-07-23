@@ -26,7 +26,11 @@ CAPABILITIES = {
 def profile(name="work", auth_kind=AuthKind.API_KEY):
     return ProviderProfile.create(
         name=name,
-        base_url="https://example.test/v1",
+        base_url=(
+            "http://127.0.0.1:11434/v1"
+            if auth_kind is AuthKind.LOCAL_NONE
+            else "https://example.test/v1"
+        ),
         model="test-model",
         auth_kind=auth_kind,
         capabilities=CAPABILITIES,
