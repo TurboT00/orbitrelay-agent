@@ -1,7 +1,14 @@
+import json
 from typing import Any
 
+from .approvals import ApprovalDecision, ApprovalSession
 from .prompts import system_prompt
-from .tools import TOOL_DEFINITIONS, execute_tool
+from .tools import (
+    TOOL_DEFINITIONS,
+    PreparedToolCall,
+    execute_prepared_tool,
+    prepare_tool,
+)
 
 
 MAX_MODEL_RESPONSES = 8
@@ -92,7 +99,10 @@ def run_agent(
     *,
     working_directory: str,
     verbose: bool = False,
+    approval_session: ApprovalSession | None = None,
 ) -> str:
+    if approval_session is None:
+        approval_session = ApprovalSession()
     messages: list[Any] = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
@@ -128,13 +138,32 @@ def run_agent(
             assistant_message = _serialize_assistant_message(message)
             messages.append(assistant_message)
 
+            prepared_calls: list[PreparedToolCall | str] = []
             for call_id, function_name, arguments in validated_calls:
-                result = execute_tool(
-                    function_name,
-                    arguments,
-                    working_directory,
-                    verbose,
+                prepared_calls.append(
+                    prepare_tool(
+                        call_id,
+                        function_name,
+                        arguments,
+                        working_directory,
+                    )
                 )
+
+            requests = tuple(
+                prepared.approval_request
+                for prepared in prepared_calls
+                if isinstance(prepared, PreparedToolCall)
+            )
+            decisions = iter(approval_session.authorize(requests))
+
+            for (call_id, _function_name, _arguments), prepared in zip(
+                validated_calls, prepared_calls, strict=True
+            ):
+                if isinstance(prepared, str):
+                    result = prepared
+                else:
+                    decision = next(decisions)
+                    result = _execute_authorized_call(prepared, decision, verbose)
                 messages.append(
                     {
                         "role": "tool",
@@ -150,3 +179,25 @@ def run_agent(
         return content
 
     raise AssertionError("Unreachable response loop state")
+
+
+def _execute_authorized_call(
+    prepared: PreparedToolCall,
+    decision: ApprovalDecision,
+    verbose: bool,
+) -> str:
+    if decision.approved:
+        return execute_prepared_tool(prepared, verbose)
+
+    request = prepared.approval_request
+    return json.dumps(
+        {
+            "error": {
+                "code": "approval_denied",
+                "reason": decision.reason,
+                "tool": request.tool_name,
+                "tool_call_id": request.call_id,
+            }
+        },
+        sort_keys=True,
+    )

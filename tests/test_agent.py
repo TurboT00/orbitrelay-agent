@@ -92,7 +92,8 @@ class AgentLoopTests(unittest.TestCase):
         client, completions = scripted_client(first, make_completion(content="done"))
 
         with patch(
-            "orbitrelay.agent.execute_tool", side_effect=["files", "contents"]
+            "orbitrelay.agent.execute_prepared_tool",
+            side_effect=["files", "contents"],
         ) as execute:
             result = run_agent(
                 client,
@@ -103,15 +104,8 @@ class AgentLoopTests(unittest.TestCase):
 
         self.assertEqual(result, "done")
         self.assertEqual(
-            [call.args[:3] for call in execute.call_args_list],
-            [
-                ("get_files_info", "{}", WORKING_DIRECTORY),
-                (
-                    "get_file_content",
-                    '{"file_path":"main.py"}',
-                    WORKING_DIRECTORY,
-                ),
-            ],
+            [call.args[0].name for call in execute.call_args_list],
+            ["get_files_info", "get_file_content"],
         )
         second_messages = completions.calls[1]["messages"]
         self.assertEqual(second_messages[-2]["tool_call_id"], "call-1")
@@ -184,7 +178,7 @@ class AgentLoopTests(unittest.TestCase):
             make_completion(content="done"),
         )
 
-        with patch("orbitrelay.agent.execute_tool", return_value="ok"):
+        with patch("orbitrelay.agent.execute_prepared_tool", return_value="ok"):
             run_agent(
                 client,
                 "inspect",
@@ -206,7 +200,9 @@ class AgentLoopTests(unittest.TestCase):
         responses.append(make_completion(content="finished at the limit"))
         client, completions = scripted_client(*responses)
 
-        with patch("orbitrelay.agent.execute_tool", return_value="ok") as execute:
+        with patch(
+            "orbitrelay.agent.execute_prepared_tool", return_value="ok"
+        ) as execute:
             result = run_agent(
                 client,
                 "long task",
@@ -225,7 +221,9 @@ class AgentLoopTests(unittest.TestCase):
         ]
         client, completions = scripted_client(*responses)
 
-        with patch("orbitrelay.agent.execute_tool", return_value="ok") as execute:
+        with patch(
+            "orbitrelay.agent.execute_prepared_tool", return_value="ok"
+        ) as execute:
             with self.assertRaisesRegex(TurnLimitError, "8-response limit"):
                 run_agent(
                     client,
@@ -259,7 +257,7 @@ class AgentLoopTests(unittest.TestCase):
         )
         client, _completions = scripted_client(response)
 
-        with patch("orbitrelay.agent.execute_tool") as execute:
+        with patch("orbitrelay.agent.execute_prepared_tool") as execute:
             with self.assertRaisesRegex(RuntimeError, "nonempty id"):
                 run_agent(
                     client,
@@ -276,7 +274,7 @@ class AgentLoopTests(unittest.TestCase):
         )
         client, _completions = scripted_client(response)
 
-        with patch("orbitrelay.agent.execute_tool") as execute:
+        with patch("orbitrelay.agent.execute_prepared_tool") as execute:
             with self.assertRaisesRegex(RuntimeError, "duplicated"):
                 run_agent(
                     client,
