@@ -17,7 +17,8 @@ class ApprovalDisposition(StrEnum):
     DENIED = "denied"
 
 
-SafeContext = tuple[tuple[str, str | int], ...]
+SafeValue = str | int | tuple[str, ...]
+SafeContext = tuple[tuple[str, SafeValue], ...]
 MAX_SAFE_VALUE_LENGTH = 200
 
 
@@ -125,6 +126,28 @@ class ApprovalRequest:
             ),
         )
 
+    @classmethod
+    def for_execution(
+        cls,
+        *,
+        call_id: str,
+        workspace: str,
+        target: str,
+        arguments: Sequence[str],
+    ) -> "ApprovalRequest":
+        return cls(
+            call_id=call_id,
+            tool_name="run_python_file",
+            category=ToolCategory.EXECUTE,
+            safe_context=(
+                ("python", "current-interpreter"),
+                ("workspace", workspace),
+                ("file", target),
+                ("arguments", tuple(arguments)),
+                ("argument_count", len(arguments)),
+            ),
+        )
+
 
 def format_approval_request(request: ApprovalRequest) -> str:
     context = " ".join(
@@ -135,8 +158,13 @@ def format_approval_request(request: ApprovalRequest) -> str:
     return f"{request.tool_name} ({context})"
 
 
-def _safe_value(value: str | int) -> str:
-    visible = str(value) if isinstance(value, int) else ascii(value)
+def _safe_value(value: SafeValue) -> str:
+    if isinstance(value, int):
+        visible = str(value)
+    elif isinstance(value, tuple):
+        visible = f"[{', '.join(ascii(item) for item in value)}]"
+    else:
+        visible = ascii(value)
     if len(visible) <= MAX_SAFE_VALUE_LENGTH:
         return visible
     return f"{visible[:MAX_SAFE_VALUE_LENGTH]}...<truncated>"
