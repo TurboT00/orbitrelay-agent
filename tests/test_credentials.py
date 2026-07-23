@@ -10,6 +10,7 @@ from orbitrelay.credentials import (
 )
 from orbitrelay.profiles import (
     AuthKind,
+    ProfileExistsError,
     ProfileRepository,
     ProfileStorageError,
     ProviderCapability,
@@ -170,6 +171,18 @@ class ProfileServiceTests(unittest.TestCase):
                 service.create(profile(), secret="top-secret")
 
             self.assertEqual(credentials.values, {})
+
+    def test_duplicate_creation_preserves_the_existing_credential(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            credentials = FakeCredentialStore()
+            service = ProfileService(repository, credentials)
+            service.create(profile(), secret="original-secret")
+
+            with self.assertRaises(ProfileExistsError):
+                service.create(profile(), secret="replacement-secret")
+
+            self.assertEqual(credentials.values, {"work": "original-secret"})
 
     def test_deletion_is_retry_safe_after_metadata_failure(self):
         with tempfile.TemporaryDirectory() as directory:
