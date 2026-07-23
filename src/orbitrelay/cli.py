@@ -12,6 +12,7 @@ from dotenv import dotenv_values
 from openai import OpenAI
 
 from .agent import run_agent
+from .approvals import ApprovalSession, TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_cli import run_profile_cli
@@ -102,15 +103,26 @@ def _resolved_config(
     return load_api_config(environment) if profile_config is None else profile_config
 
 
-def _invoke_agent(args: argparse.Namespace, api_config: ApiConfig) -> str:
+def _invoke_agent(
+    args: argparse.Namespace,
+    api_config: ApiConfig,
+    input_stream: TextIO | None,
+) -> str:
     workspace = resolve_workspace(args.workspace)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
+    approval_session = ApprovalSession(
+        TerminalAuthorizer(
+            sys.stdin if input_stream is None else input_stream,
+            sys.stderr,
+        )
+    )
     return run_agent(
         client,
         args.user_prompt,
         api_config.model,
         working_directory=workspace,
         verbose=args.verbose,
+        approval_session=approval_session,
     )
 
 
@@ -119,9 +131,10 @@ def _run_agent_cli(
     repository: ProfileRepository | None,
     credential_store: CredentialStore | None,
     environment: Mapping[str, str],
+    input_stream: TextIO | None,
 ) -> int:
     config = _resolved_config(args, repository, credential_store, environment)
-    print(_invoke_agent(args, config))
+    print(_invoke_agent(args, config, input_stream))
     return 0
 
 
@@ -158,7 +171,11 @@ def _dispatch_cli(
             raw_argv[1:], repository, credential_store, secret_prompt, input_stream
         )
     return _run_agent_cli(
-        parse_args(raw_argv), repository, credential_store, environment
+        parse_args(raw_argv),
+        repository,
+        credential_store,
+        environment,
+        input_stream,
     )
 
 

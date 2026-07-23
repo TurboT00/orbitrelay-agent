@@ -1,6 +1,7 @@
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from collections.abc import Callable, Sequence
+from typing import TextIO
 
 
 class ToolCategory(StrEnum):
@@ -65,6 +66,48 @@ class ApprovalSession:
             else ApprovalDecision.deny(reason="approval_unavailable")
             for request in requests
         )
+
+
+class TerminalAuthorizer:
+    _MAX_VALUE_LENGTH = 200
+
+    def __init__(self, input_stream: TextIO, output_stream: TextIO) -> None:
+        self._input_stream = input_stream
+        self._output_stream = output_stream
+
+    def __call__(
+        self,
+        requests: tuple["ApprovalRequest", ...],
+    ) -> tuple[ApprovalDecision, ...]:
+        return tuple(self._authorize(request) for request in requests)
+
+    def _authorize(self, request: "ApprovalRequest") -> ApprovalDecision:
+        if request.category is ToolCategory.READ:
+            return ApprovalDecision.approve(reason="read_allowed")
+
+        context = " ".join(
+            f"{key}={self._safe_value(value)}"
+            for key, value in request.safe_context
+        )
+        print(
+            f"Approve {request.tool_name} ({context})? [y/N]: ",
+            end="",
+            file=self._output_stream,
+            flush=True,
+        )
+        response = self._input_stream.readline()
+        if response.strip().lower() in {"y", "yes"}:
+            return ApprovalDecision.approve(reason="user_approved")
+        if response == "":
+            return ApprovalDecision.deny(reason="approval_eof")
+        return ApprovalDecision.deny(reason="user_denied")
+
+    @classmethod
+    def _safe_value(cls, value: str | int) -> str:
+        visible = str(value) if isinstance(value, int) else ascii(value)
+        if len(visible) <= cls._MAX_VALUE_LENGTH:
+            return visible
+        return f"{visible[: cls._MAX_VALUE_LENGTH]}...<truncated>"
 
 
 @dataclass(frozen=True, slots=True)

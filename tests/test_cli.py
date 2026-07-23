@@ -8,7 +8,7 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 from orbitrelay import cli
 from orbitrelay.approvals import ApprovalRequest
@@ -108,6 +108,7 @@ class CliTests(unittest.TestCase):
             DEFAULT_MODEL,
             working_directory=str(Path(workspace).resolve()),
             verbose=True,
+            approval_session=ANY,
         )
         self.assertEqual(exit_code, 0)
         self.assertEqual(output.getvalue(), "final answer\n")
@@ -123,6 +124,7 @@ class CliTests(unittest.TestCase):
                 patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI", return_value=fake_client),
                 patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stderr(approval_output),
                 redirect_stdout(StringIO()),
             ):
                 cli.main(
@@ -132,15 +134,13 @@ class CliTests(unittest.TestCase):
                     ),
                     input_stream=approval_input,
                 )
-
-        approval_session = run_agent.call_args.kwargs["approval_session"]
-        request = ApprovalRequest.for_write(
-            call_id="call-1",
-            target="notes.txt",
-            content_length=12,
-        )
-        with redirect_stderr(approval_output):
-            (decision,) = approval_session.authorize((request,))
+                approval_session = run_agent.call_args.kwargs["approval_session"]
+                request = ApprovalRequest.for_write(
+                    call_id="call-1",
+                    target="notes.txt",
+                    content_length=12,
+                )
+                (decision,) = approval_session.authorize((request,))
 
         self.assertTrue(decision.approved)
         self.assertIn("write_file", approval_output.getvalue())
