@@ -67,8 +67,17 @@ def _validated_endpoint(value: Any, auth_kind: AuthKind) -> str:
         raise ProfileValidationError("base_url must be an absolute HTTP(S) URL")
     if parsed.username is not None or parsed.password is not None:
         raise ProfileValidationError("base_url cannot contain credentials")
-    if auth_kind is AuthKind.LOCAL_NONE and not _is_loopback(parsed.hostname):
+    is_loopback = _is_loopback(parsed.hostname)
+    if auth_kind is AuthKind.LOCAL_NONE and not is_loopback:
         raise ProfileValidationError("local_none base_url must use a loopback host")
+    if (
+        auth_kind in {AuthKind.API_KEY, AuthKind.LOCAL_SERVICE_BEARER}
+        and parsed.scheme != "https"
+        and not is_loopback
+    ):
+        raise ProfileValidationError(
+            "secret-backed profiles require HTTPS or loopback"
+        )
     return base_url
 
 
