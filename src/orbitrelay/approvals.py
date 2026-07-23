@@ -4,7 +4,7 @@
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TextIO
+from typing import Protocol, TextIO
 
 
 class ToolCategory(StrEnum):
@@ -54,6 +54,10 @@ class ApprovalDecision:
 BatchAuthorizer = Callable[
     [tuple["ApprovalRequest", ...]], Sequence[ApprovalDecision]
 ]
+
+
+class ApprovalInput(Protocol):
+    def readline(self) -> str: ...
 
 
 class ApprovalSession:
@@ -139,7 +143,7 @@ class ApprovalSession:
 
 
 class TerminalAuthorizer:
-    def __init__(self, input_stream: TextIO, output_stream: TextIO) -> None:
+    def __init__(self, input_stream: ApprovalInput, output_stream: TextIO) -> None:
         self._input_stream = input_stream
         self._output_stream = output_stream
 
@@ -169,7 +173,10 @@ class TerminalAuthorizer:
             file=self._output_stream,
             flush=True,
         )
-        response = self._input_stream.readline()
+        try:
+            response = self._input_stream.readline()
+        except TimeoutError:
+            return ApprovalDecision.deny(reason="approval_timeout")
         if response.strip().lower() in {"y", "yes"}:
             return ApprovalDecision.approve(reason="user_approved")
         if response.strip().lower() in {"d", "disable"}:
