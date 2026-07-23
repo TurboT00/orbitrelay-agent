@@ -4,9 +4,8 @@ import json
 import os
 import sys
 from collections.abc import Callable, Mapping
-from io import TextIOBase
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -92,7 +91,7 @@ def default_profile_path(environ: Mapping[str, str] | None = None) -> Path:
 def _read_secret(
     *,
     from_stdin: bool,
-    input_stream: TextIOBase,
+    input_stream: TextIO,
     secret_prompt: Callable[[str], str],
 ) -> str:
     if from_stdin:
@@ -137,7 +136,7 @@ def run_profile_command(
     repository: ProfileRepository,
     credential_store: CredentialStore | None,
     secret_prompt: Callable[[str], str],
-    input_stream: TextIOBase,
+    input_stream: TextIO,
 ) -> int:
     if args.profile_action == "create":
         profile = ProviderProfile.create(
@@ -208,7 +207,7 @@ def main(
     profile_repository: ProfileRepository | None = None,
     credential_store: CredentialStore | None = None,
     secret_prompt: Callable[[str], str] = getpass.getpass,
-    input_stream: TextIOBase | None = None,
+    input_stream: TextIO | None = None,
 ) -> int:
     load_dotenv()
     raw_argv = list(sys.argv[1:] if argv is None else argv)

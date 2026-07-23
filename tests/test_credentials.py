@@ -71,7 +71,7 @@ class FakeKeyringModule:
 
     def __init__(self):
         self.values = {}
-        self.backend = type("Backend", (), {"priority": 1})()
+        self.backend: object = type("Backend", (), {"priority": 1})()
         self.failure = None
 
     def get_keyring(self):

@@ -32,7 +32,7 @@ class KeyringCredentialStore:
         if keyring_module is None:
             import keyring as keyring_module
 
-        self._keyring = keyring_module
+        self._keyring: Any = keyring_module
         self._assert_secure_backend()
 
     def _assert_secure_backend(self) -> None:

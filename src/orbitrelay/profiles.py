@@ -128,7 +128,7 @@ class ProviderProfile:
         )
 
     @classmethod
-    def from_dict(cls, value: Mapping[str, Any]) -> ProviderProfile:
+    def from_dict(cls, value: Any) -> ProviderProfile:
         if not isinstance(value, Mapping):
             raise ProfileValidationError("profile metadata must be an object")
         expected = {"name", "base_url", "model", "auth_kind", "capabilities"}
