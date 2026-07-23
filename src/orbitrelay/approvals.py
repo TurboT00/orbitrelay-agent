@@ -2,6 +2,7 @@
 # story: e02s03
 # story: e02s04
 # story: e02s05
+# story: e02s06
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -9,7 +10,20 @@ from enum import StrEnum
 import selectors
 from typing import Any, Protocol, TextIO, cast
 
-from .approval_format import SafeContext, format_approval_request
+from .approval_format import SafeContext, SafeValue, format_approval_request
+
+__all__ = [
+    "ApprovalDecision",
+    "ApprovalDisposition",
+    "ApprovalMode",
+    "ApprovalRecord",
+    "ApprovalRequest",
+    "ApprovalSession",
+    "RecordDisposition",
+    "TerminalAuthorizer",
+    "ToolCategory",
+    "format_approval_request",
+]
 
 
 class ToolCategory(StrEnum):
@@ -23,6 +37,12 @@ class ApprovalDisposition(StrEnum):
     DENIED = "denied"
 
 
+class RecordDisposition(StrEnum):
+    ALLOWED = "allowed"
+    DENIED = "denied"
+    DISABLED = "disabled"
+
+
 class ApprovalMode(StrEnum):
     CONFIRM = "confirm"
     READ_ONLY = "read-only"
@@ -30,6 +50,7 @@ class ApprovalMode(StrEnum):
 
 
 MAX_APPROVAL_ATTEMPTS = 3
+DISABLED_REASONS = frozenset({"user_disabled_tool", "tool_disabled_for_run"})
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,6 +73,18 @@ class ApprovalDecision:
     @classmethod
     def disable_tool(cls) -> "ApprovalDecision":
         return cls.deny(reason="user_disabled_tool")
+
+
+@dataclass(frozen=True, slots=True)
+class ApprovalRecord:
+    sequence: int
+    call_id: str
+    tool_name: str
+    category: ToolCategory
+    disposition: RecordDisposition
+    reason: str
+    safe_target: str | None
+    argument_count: int | None
 
 
 BatchAuthorizer = Callable[
@@ -80,10 +113,15 @@ class ApprovalSession:
         )
         self._disabled_tools: set[str] = set()
         self._approved_tools = approved_tools
+        self._records: list[ApprovalRecord] = []
 
     @property
     def disabled_tools(self) -> frozenset[str]:
         return frozenset(self._disabled_tools)
+
+    @property
+    def records(self) -> tuple[ApprovalRecord, ...]:
+        return tuple(self._records)
 
     def authorize(
         self,
@@ -98,10 +136,13 @@ class ApprovalSession:
         decisions = tuple(self._authorizer(pending)) if pending else ()
         self._validate_decisions(pending, decisions)
         candidates = dict(zip(pending_indexes, decisions, strict=True))
-        return tuple(
+        outcomes = tuple(
             self._apply_policy(request, candidates.get(index))
             for index, request in enumerate(requests)
         )
+        for request, decision in zip(requests, outcomes, strict=True):
+            self._records.append(_record_for(len(self._records) + 1, request, decision))
+        return outcomes
 
     @staticmethod
     def _validate_decisions(
@@ -289,3 +330,46 @@ class ApprovalRequest:
                 ("argument_count", len(arguments)),
             ),
         )
+
+
+def _record_for(
+    sequence: int,
+    request: ApprovalRequest,
+    decision: ApprovalDecision,
+) -> ApprovalRecord:
+    return ApprovalRecord(
+        sequence=sequence,
+        call_id=request.call_id,
+        tool_name=request.tool_name,
+        category=request.category,
+        disposition=_record_disposition(decision),
+        reason=decision.reason,
+        safe_target=_context_str(request.safe_context, "target", "file"),
+        argument_count=_context_int(request.safe_context, "argument_count"),
+    )
+
+
+def _record_disposition(decision: ApprovalDecision) -> RecordDisposition:
+    if decision.approved:
+        return RecordDisposition.ALLOWED
+    if decision.reason in DISABLED_REASONS:
+        return RecordDisposition.DISABLED
+    return RecordDisposition.DENIED
+
+
+def _context_value(context: SafeContext, *keys: str) -> SafeValue | None:
+    values = dict(context)
+    for key in keys:
+        if key in values:
+            return values[key]
+    return None
+
+
+def _context_str(context: SafeContext, *keys: str) -> str | None:
+    value = _context_value(context, *keys)
+    return value if isinstance(value, str) else None
+
+
+def _context_int(context: SafeContext, *keys: str) -> int | None:
+    value = _context_value(context, *keys)
+    return value if isinstance(value, int) else None
