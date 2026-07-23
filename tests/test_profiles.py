@@ -140,10 +140,17 @@ class ProfileRepositoryTests(unittest.TestCase):
             path = Path(directory) / "profiles.json"
             ProfileRepository(path).save(api_key_profile())
 
-            persisted = path.read_text()
+            persisted = json.loads(path.read_text())
 
-            self.assertNotIn("api_key", persisted)
-            self.assertNotIn("secret", persisted)
+            def keys(value):
+                if isinstance(value, dict):
+                    return set(value).union(*(keys(item) for item in value.values()))
+                if isinstance(value, list):
+                    return set().union(*(keys(item) for item in value), set())
+                return set()
+
+            self.assertNotIn("api_key", keys(persisted))
+            self.assertNotIn("secret", keys(persisted))
 
     def test_rejects_accidental_profile_replacement(self):
         with tempfile.TemporaryDirectory() as directory:
