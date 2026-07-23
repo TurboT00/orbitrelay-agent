@@ -66,6 +66,32 @@ class ExecuteToolTests(unittest.TestCase):
             )
             self.assertEqual(target.read_text(encoding="utf-8"), "hello")
 
+    def test_prepares_python_execution_without_starting_a_process(self):
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                prepared = prepare_tool(
+                    "call-exec",
+                    "run_python_file",
+                    '{"file_path":"task.py","args":["--safe"]}',
+                    workspace,
+                )
+
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
+            run.assert_not_called()
+            self.assertEqual(
+                prepared.approval_request.safe_context,
+                (
+                    ("python", "current-interpreter"),
+                    ("workspace", workspace),
+                    ("file", "task.py"),
+                    ("arguments", ("--safe",)),
+                    ("argument_count", 1),
+                ),
+            )
+
     def test_rejects_unsafe_write_during_preparation(self):
         with tempfile.TemporaryDirectory() as root:
             workspace = Path(root, "workspace")
