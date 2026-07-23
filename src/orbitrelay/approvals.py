@@ -4,7 +4,8 @@
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Protocol, TextIO
+import selectors
+from typing import Any, Protocol, TextIO, cast
 
 
 class ToolCategory(StrEnum):
@@ -71,6 +72,8 @@ class ApprovalSession:
         self._authorizer = (
             self._authorize_read_only
             if mode is ApprovalMode.READ_ONLY
+            else self._authorize_pre_approved
+            if mode is ApprovalMode.PRE_APPROVED
             else authorizer or self._authorize_safe_defaults
         )
         self._disabled_tools: set[str] = set()
@@ -142,11 +145,31 @@ class ApprovalSession:
             for request in requests
         )
 
+    @staticmethod
+    def _authorize_pre_approved(
+        requests: tuple["ApprovalRequest", ...],
+    ) -> tuple[ApprovalDecision, ...]:
+        return tuple(
+            ApprovalDecision.approve(reason="read_allowed")
+            if request.category is ToolCategory.READ
+            else ApprovalDecision.deny(reason="pre_approval_unavailable")
+            for request in requests
+        )
+
 
 class TerminalAuthorizer:
-    def __init__(self, input_stream: ApprovalInput, output_stream: TextIO) -> None:
+    def __init__(
+        self,
+        input_stream: ApprovalInput,
+        output_stream: TextIO,
+        *,
+        timeout_seconds: float = 60.0,
+        require_tty: bool = False,
+    ) -> None:
         self._input_stream = input_stream
         self._output_stream = output_stream
+        self._timeout_seconds = timeout_seconds
+        self._require_tty = require_tty
 
     def __call__(
         self,
@@ -174,6 +197,8 @@ class TerminalAuthorizer:
         return ApprovalDecision.deny(reason="approval_invalid_input")
 
     def _prompt_once(self, request: "ApprovalRequest") -> ApprovalDecision | None:
+        if self._require_tty and not _is_tty(self._input_stream):
+            return ApprovalDecision.deny(reason="approval_noninteractive")
         print(
             f"Approve {format_approval_request(request)}? [y/N/d=disable]: ",
             end="",
@@ -181,7 +206,7 @@ class TerminalAuthorizer:
             flush=True,
         )
         try:
-            response = self._input_stream.readline()
+            response = self._read_response()
         except TimeoutError:
             return ApprovalDecision.deny(reason="approval_timeout")
         if response.strip().lower() in {"y", "yes"}:
@@ -193,6 +218,19 @@ class TerminalAuthorizer:
         if response.strip().lower() in {"n", "no"}:
             return ApprovalDecision.deny(reason="user_denied")
         return None
+
+    def _read_response(self) -> str:
+        if self._require_tty:
+            with selectors.DefaultSelector() as selector:
+                selector.register(cast(Any, self._input_stream), selectors.EVENT_READ)
+                if not selector.select(self._timeout_seconds):
+                    raise TimeoutError
+        return self._input_stream.readline()
+
+
+def _is_tty(stream: ApprovalInput) -> bool:
+    isatty = getattr(stream, "isatty", None)
+    return bool(isatty and isatty())
 
 
 @dataclass(frozen=True, slots=True)

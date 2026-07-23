@@ -2,6 +2,7 @@
 
 import argparse
 import getpass
+import math
 import os
 import sys
 from collections.abc import Callable, Mapping, Sequence
@@ -12,7 +13,7 @@ from dotenv import dotenv_values
 from openai import OpenAI
 
 from .agent import run_agent
-from .approvals import ApprovalSession, TerminalAuthorizer
+from .approvals import ApprovalMode, ApprovalSession, TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_cli import run_profile_cli
@@ -20,6 +21,8 @@ from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
 
 OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
+DEFAULT_APPROVAL_TIMEOUT = 60.0
+MAX_APPROVAL_TIMEOUT = 300.0
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -30,6 +33,18 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--workspace",
         help="Workspace directory (default: current directory)",
+    )
+    parser.add_argument(
+        "--approval-policy",
+        choices=[mode.value for mode in ApprovalMode],
+        default=ApprovalMode.CONFIRM.value,
+        help="Approval policy: confirm, read-only, or pre-approved",
+    )
+    parser.add_argument(
+        "--approval-timeout",
+        default=str(int(DEFAULT_APPROVAL_TIMEOUT)),
+        metavar="SECONDS",
+        help="Confirmation timeout in seconds (default: 60; maximum: 300)",
     )
     return parser.parse_args(argv)
 
@@ -108,6 +123,7 @@ def _invoke_agent(
     input_stream: TextIO | None,
 ) -> str:
     workspace = resolve_workspace(args.workspace)
+    timeout = _approval_timeout(args.approval_timeout)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
     return run_agent(
         client,
@@ -115,13 +131,35 @@ def _invoke_agent(
         api_config.model,
         working_directory=workspace,
         verbose=args.verbose,
-        approval_session=_approval_session(input_stream),
+        approval_session=_approval_session(input_stream, ApprovalMode(args.approval_policy), timeout),
     )
 
 
-def _approval_session(input_stream: TextIO | None) -> ApprovalSession:
+def _approval_timeout(value: str) -> float:
+    try:
+        timeout = float(value)
+    except ValueError as exc:
+        raise ValueError("approval timeout must be a positive number of seconds") from exc
+    if not math.isfinite(timeout) or not 0 < timeout <= MAX_APPROVAL_TIMEOUT:
+        raise ValueError("approval timeout must be greater than 0 and at most 300 seconds")
+    return timeout
+
+
+def _approval_session(
+    input_stream: TextIO | None,
+    mode: ApprovalMode = ApprovalMode.CONFIRM,
+    timeout: float = DEFAULT_APPROVAL_TIMEOUT,
+) -> ApprovalSession:
     source = sys.stdin if input_stream is None else input_stream
-    return ApprovalSession(TerminalAuthorizer(source, sys.stderr))
+    return ApprovalSession(
+        TerminalAuthorizer(
+            source,
+            sys.stderr,
+            timeout_seconds=timeout,
+            require_tty=input_stream is None,
+        ),
+        mode=mode,
+    )
 
 
 def _run_agent_cli(
