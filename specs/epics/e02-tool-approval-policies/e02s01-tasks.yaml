@@ -26,7 +26,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_agent -v && printf '%s\\n' 'no new security findings in affected paths'"
     risk: P0
     security: high
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [integration, Agent Loop, Security Review]
