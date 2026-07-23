@@ -17,7 +17,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_tools tests.test_redaction -v && printf '%s\\n' 'no new security findings in affected paths'"
     risk: P1
     security: high
-    status: failing
+    status: passing
     allure:
       severity: high
       categories: [integration, Redaction, Security Review]
