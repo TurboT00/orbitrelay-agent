@@ -6,6 +6,7 @@ from orbitrelay.approvals import (
     ApprovalDecision,
     ApprovalDisposition,
     ApprovalRequest,
+    ApprovalSession,
     ToolCategory,
     format_approval_request,
 )
@@ -67,6 +68,31 @@ class ApprovalDecisionTests(unittest.TestCase):
         self.assertEqual(decision.disposition, ApprovalDisposition.DENIED)
         self.assertEqual(decision.reason, "user_denied")
         self.assertFalse(decision.approved)
+
+
+class ApprovalSessionTests(unittest.TestCase):
+    def test_disable_decision_denies_later_same_tool_without_authorizer(self):
+        authorization_calls = []
+
+        def disable(requests):
+            authorization_calls.append(requests)
+            return (ApprovalDecision.disable_tool(),)
+
+        session = ApprovalSession(disable)
+        first = ApprovalRequest.for_write(
+            call_id="call-1", target="first.txt", content_length=1
+        )
+        later = ApprovalRequest.for_write(
+            call_id="call-2", target="later.txt", content_length=1
+        )
+
+        (first_decision,) = session.authorize((first,))
+        (later_decision,) = session.authorize((later,))
+
+        self.assertEqual(first_decision.reason, "user_disabled_tool")
+        self.assertEqual(later_decision.reason, "tool_disabled_for_run")
+        self.assertEqual(len(authorization_calls), 1)
+        self.assertEqual(session.disabled_tools, frozenset({"write_file"}))
 
 
 if __name__ == "__main__":
