@@ -2,6 +2,7 @@
 # story: e02s03
 # story: e02s04
 # story: e02s05
+# story: e02s06
 
 import unittest
 from io import StringIO
@@ -10,8 +11,10 @@ from orbitrelay.approvals import (
     ApprovalDecision,
     ApprovalDisposition,
     ApprovalMode,
+    ApprovalRecord,
     ApprovalRequest,
     ApprovalSession,
+    RecordDisposition,
     TerminalAuthorizer,
     ToolCategory,
     format_approval_request,
@@ -129,6 +132,96 @@ class ApprovalSessionTests(unittest.TestCase):
         self.assertTrue(write_decision.approved)
         self.assertEqual(execution_decision.reason, "tool_not_preapproved")
         self.assertFalse(execution_decision.approved)
+
+    def test_authorize_appends_secret_free_records_for_every_outcome(self):
+        secret_content = "provider-secret-value"
+        hostile_args = ("--token", "super-secret-token")
+        requested = []
+
+        def authorize(requests):
+            requested.append([request.tool_name for request in requests])
+            return (
+                ApprovalDecision.approve(reason="read_allowed"),
+                ApprovalDecision.approve(reason="user_approved"),
+                ApprovalDecision.disable_tool(),
+                ApprovalDecision.deny(reason="user_denied"),
+            )
+
+        session = ApprovalSession(authorize)
+        read = ApprovalRequest(
+            call_id="call-read",
+            tool_name="get_files_info",
+            category=ToolCategory.READ,
+            safe_context=(),
+        )
+        write = ApprovalRequest.for_write(
+            call_id="call-write",
+            target="notes.txt",
+            content_length=len(secret_content),
+        )
+        disable = ApprovalRequest.for_execution(
+            call_id="call-disable",
+            workspace="/workspace",
+            target="task.py",
+            arguments=hostile_args,
+        )
+        denied = ApprovalRequest.for_write(
+            call_id="call-deny",
+            target="blocked.txt",
+            content_length=1,
+        )
+
+        decisions = session.authorize((read, write, disable, denied))
+        later = session.authorize(
+            (
+                ApprovalRequest.for_execution(
+                    call_id="call-later",
+                    workspace="/workspace",
+                    target="task.py",
+                    arguments=hostile_args,
+                ),
+            )
+        )
+
+        self.assertEqual(
+            [decision.reason for decision in decisions],
+            ["read_allowed", "user_approved", "user_disabled_tool", "user_denied"],
+        )
+        self.assertEqual(later[0].reason, "tool_disabled_for_run")
+        self.assertEqual(requested, [["get_files_info", "write_file", "run_python_file", "write_file"]])
+
+        records = session.records
+        self.assertEqual(len(records), 5)
+        self.assertTrue(all(isinstance(record, ApprovalRecord) for record in records))
+        self.assertEqual([record.sequence for record in records], [1, 2, 3, 4, 5])
+        self.assertEqual(
+            [record.disposition for record in records],
+            [
+                RecordDisposition.ALLOWED,
+                RecordDisposition.ALLOWED,
+                RecordDisposition.DISABLED,
+                RecordDisposition.DENIED,
+                RecordDisposition.DISABLED,
+            ],
+        )
+        self.assertEqual(
+            [record.reason for record in records],
+            [
+                "read_allowed",
+                "user_approved",
+                "user_disabled_tool",
+                "user_denied",
+                "tool_disabled_for_run",
+            ],
+        )
+        self.assertEqual(records[1].safe_target, "notes.txt")
+        self.assertEqual(records[1].argument_count, None)
+        self.assertEqual(records[2].safe_target, "task.py")
+        self.assertEqual(records[2].argument_count, 2)
+        rendered = repr(records)
+        self.assertNotIn(secret_content, rendered)
+        self.assertNotIn("super-secret-token", rendered)
+        self.assertNotIn(hostile_args[0], rendered)
 
     def test_timeout_input_denies_before_authority_is_granted(self):
         class TimeoutInput:
