@@ -251,6 +251,61 @@ class AgentLoopTests(unittest.TestCase):
         self.assertIn("invalid arguments", tool_message["content"])
         self.assertIn("content", tool_message["content"])
 
+    def test_disabled_tool_skips_later_decisions_while_reads_continue(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-disable",
+                    "write_file",
+                    '{"file_path":"blocked.txt","content":"blocked"}',
+                )
+            ]
+        )
+        second = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-blocked",
+                    "write_file",
+                    '{"file_path":"later.txt","content":"later"}',
+                ),
+                tool_call("call-read"),
+            ]
+        )
+        client, completions = scripted_client(
+            first, second, make_completion(content="done")
+        )
+        requested_tools = []
+
+        def authorize(requests):
+            requested_tools.append([request.tool_name for request in requests])
+            if requests[0].tool_name == "write_file":
+                return (ApprovalDecision.disable_tool(),)
+            return (ApprovalDecision.approve(reason="read_allowed"),)
+
+        with tempfile.TemporaryDirectory() as workspace:
+            with patch(
+                "orbitrelay.agent.execute_prepared_tool", return_value="files"
+            ) as execute:
+                result = run_agent(
+                    client,
+                    "disable writes then inspect",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(authorize),
+                )
+            self.assertFalse(Path(workspace, "blocked.txt").exists())
+            self.assertFalse(Path(workspace, "later.txt").exists())
+
+        self.assertEqual(result, "done")
+        self.assertEqual(requested_tools, [["write_file"], ["get_files_info"]])
+        execute.assert_called_once()
+        first_error = json.loads(completions.calls[1]["messages"][-1]["content"])
+        later_error = json.loads(completions.calls[2]["messages"][-2]["content"])
+        self.assertEqual(first_error["error"]["code"], "tool_disabled")
+        self.assertEqual(first_error["error"]["reason"], "user_disabled_tool")
+        self.assertEqual(later_error["error"]["code"], "tool_disabled")
+        self.assertEqual(later_error["error"]["reason"], "tool_disabled_for_run")
+
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
             make_completion(
