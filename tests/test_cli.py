@@ -287,6 +287,68 @@ class CliTests(unittest.TestCase):
                         )
                 openai.assert_not_called()
 
+    def test_preapproved_tool_is_injected_into_agent_session(self):
+        fake_client = Mock(name="client")
+        with tempfile.TemporaryDirectory() as workspace:
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=fake_client),
+                patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(
+                    [
+                        "write safely",
+                        "--workspace",
+                        workspace,
+                        "--approval-policy",
+                        "pre-approved",
+                        "--approve-tool",
+                        "write_file",
+                    ],
+                    profile_repository=ProfileRepository(Path(workspace) / "profiles.json"),
+                )
+
+        session = run_agent.call_args.kwargs["approval_session"]
+        request = ApprovalRequest.for_write(
+            call_id="call-write", target="notes.txt", content_length=1
+        )
+        (decision,) = session.authorize((request,))
+        self.assertTrue(decision.approved)
+        self.assertEqual(decision.reason, "explicit_preapproval")
+
+    def test_ambiguous_preapproval_configuration_is_rejected_before_client(self):
+        cases = (
+            ["--approval-policy", "pre-approved"],
+            ["--approve-tool", "write_file"],
+            ["--approval-policy", "pre-approved", "--approve-tool", "get_files_info"],
+            ["--approval-policy", "pre-approved", "--approve-tool", "unknown"],
+            [
+                "--approval-policy",
+                "pre-approved",
+                "--approve-tool",
+                "write_file",
+                "--approve-tool",
+                "write_file",
+            ],
+        )
+        for flags in cases:
+            with self.subTest(flags=flags), tempfile.TemporaryDirectory() as workspace:
+                with (
+                    patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                    patch("orbitrelay.cli.dotenv_values", return_value={}),
+                    patch("orbitrelay.cli.OpenAI") as openai,
+                ):
+                    with self.assertRaisesRegex(ValueError, "pre-approved|approve tool"):
+                        cli.main(
+                            ["inspect", "--workspace", workspace, *flags],
+                            profile_repository=ProfileRepository(
+                                Path(workspace) / "profiles.json"
+                            ),
+                        )
+                openai.assert_not_called()
+
     def test_main_rejects_missing_key_before_client_creation(self):
         with tempfile.TemporaryDirectory() as directory:
             with (
