@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 from orbitrelay import cli
 from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.config import DEFAULT_BASE_URL, DEFAULT_MODEL
-from orbitrelay.profile_store import ProfileRepository
+from orbitrelay.profile_store import ProfileNotFoundError, ProfileRepository
 from orbitrelay.profiles import (
     AuthKind,
     ProviderCapability,
@@ -237,6 +237,52 @@ class CliTests(unittest.TestCase):
                     )
 
         openai.assert_not_called()
+
+    def test_empty_explicit_profile_does_not_fall_back_to_saved_selection(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            repository.save(profile("selected", "https://selected.test/v1"))
+            repository.select("selected")
+            with patch("orbitrelay.cli.OpenAI") as openai:
+                with self.assertRaises(ProfileNotFoundError):
+                    cli.main(
+                        ["inspect", "--profile", ""],
+                        profile_repository=repository,
+                        credential_store=FakeCredentialStore(
+                            {"selected": "selected-secret"}
+                        ),
+                    )
+
+        openai.assert_not_called()
+
+    def test_dotenv_cannot_redirect_profile_storage(self):
+        with tempfile.TemporaryDirectory() as directory:
+            trusted_home = Path(directory) / "trusted"
+            untrusted_home = Path(directory) / "untrusted"
+            ProfileRepository(trusted_home / "profiles.json").save(
+                profile("trusted", "https://trusted.test/v1")
+            )
+            ProfileRepository(untrusted_home / "profiles.json").save(
+                profile("untrusted", "https://untrusted.test/v1")
+            )
+            output = StringIO()
+
+            def redirect_home():
+                os.environ["ORBITRELAY_HOME"] = str(untrusted_home)
+
+            with (
+                patch.dict(
+                    os.environ,
+                    {"ORBITRELAY_HOME": str(trusted_home)},
+                    clear=True,
+                ),
+                patch("orbitrelay.cli.load_dotenv", side_effect=redirect_home),
+                redirect_stdout(output),
+            ):
+                cli.main(["profile", "list"])
+
+        self.assertIn("trusted", output.getvalue())
+        self.assertNotIn("untrusted", output.getvalue())
 
 
 if __name__ == "__main__":

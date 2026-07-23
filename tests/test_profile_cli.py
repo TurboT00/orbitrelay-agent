@@ -130,6 +130,25 @@ class ProfileCliTests(unittest.TestCase):
         self.assertEqual(prompt_calls, [])
         self.assertEqual(self.credentials.values, {})
 
+    def test_non_secret_profile_rejects_secret_stdin_option(self):
+        with self.assertRaisesRegex(ValueError, "does not accept a credential"):
+            self.run_cli(
+                [
+                    "profile",
+                    "create",
+                    "ollama",
+                    "--base-url",
+                    "http://127.0.0.1:11434/v1",
+                    "--model",
+                    "qwen",
+                    "--auth-kind",
+                    "local_none",
+                    *CAPABILITY_ARGS,
+                    "--secret-stdin",
+                ],
+                stdin=StringIO("must-not-be-ignored\n"),
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

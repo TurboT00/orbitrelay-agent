@@ -79,6 +79,41 @@ class ProviderProfileTests(unittest.TestCase):
                         capabilities=CAPABILITIES,
                     )
 
+    def test_rejects_plaintext_remote_endpoint_for_external_cli_auth(self):
+        with self.assertRaisesRegex(ProfileValidationError, "HTTPS or loopback"):
+            ProviderProfile.create(
+                name="codex",
+                base_url="http://example.test/v1",
+                model="test-model",
+                auth_kind=AuthKind.EXTERNAL_FIRST_PARTY_CLI,
+                capabilities=CAPABILITIES,
+            )
+
+    def test_rejects_query_and_fragment_in_base_url(self):
+        for base_url in (
+            "https://example.test/v1?api_key=must-not-persist",
+            "https://example.test/v1#token=must-not-persist",
+        ):
+            with self.subTest(base_url=base_url):
+                with self.assertRaisesRegex(ProfileValidationError, "query or fragment"):
+                    ProviderProfile.create(
+                        name="unsafe-url",
+                        base_url=base_url,
+                        model="test-model",
+                        auth_kind=AuthKind.API_KEY,
+                        capabilities=CAPABILITIES,
+                    )
+
+    def test_rejects_malformed_port_as_profile_validation_error(self):
+        with self.assertRaisesRegex(ProfileValidationError, "port"):
+            ProviderProfile.create(
+                name="bad-port",
+                base_url="https://example.test:not-a-port/v1",
+                model="test-model",
+                auth_kind=AuthKind.API_KEY,
+                capabilities=CAPABILITIES,
+            )
+
     def test_allows_plaintext_loopback_for_secret_backed_auth(self):
         profile = ProviderProfile.create(
             name="local-bearer",
@@ -228,6 +263,24 @@ class ProfileRepositoryTests(unittest.TestCase):
             path.write_text(json.dumps({"version": 99, "selected": None, "profiles": {}}))
             with self.assertRaisesRegex(ProfileStorageError, "version"):
                 ProfileRepository(path).list_profiles()
+
+    def test_rejects_symlinked_metadata_and_parent_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            real_directory = root / "real"
+            real_directory.mkdir()
+            metadata = real_directory / "profiles.json"
+            ProfileRepository(metadata).save(api_key_profile())
+
+            linked_file = root / "linked-profiles.json"
+            linked_file.symlink_to(metadata)
+            with self.assertRaisesRegex(ProfileStorageError, "symbolic link"):
+                ProfileRepository(linked_file).list_profiles()
+
+            linked_directory = root / "linked-directory"
+            linked_directory.symlink_to(real_directory, target_is_directory=True)
+            with self.assertRaisesRegex(ProfileStorageError, "symbolic link"):
+                ProfileRepository(linked_directory / "profiles.json").list_profiles()
 
 
 if __name__ == "__main__":
