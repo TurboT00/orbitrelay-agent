@@ -161,6 +161,40 @@ class ExecuteToolTests(unittest.TestCase):
         self.assertIn("notes.txt", visible_output)
         self.assertIn(str(len(secret_content)), visible_output)
 
+    def test_verbose_prepared_execution_excludes_raw_arguments(self):
+        secret_argument = "provider-secret-token"
+        output = StringIO()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('ok')", encoding="utf-8")
+            prepared = prepare_tool(
+                "call-exec",
+                "run_python_file",
+                '{"file_path":"task.py","args":["--token","provider-secret-token"]}',
+                workspace,
+            )
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
+
+            with (
+                patch(
+                    "orbitrelay.tools.run_python_file.subprocess.run",
+                    return_value=type(
+                        "Completed",
+                        (),
+                        {"returncode": 0, "stdout": "ok\n", "stderr": ""},
+                    )(),
+                ),
+                redirect_stdout(output),
+            ):
+                execute_prepared_tool(prepared, verbose=True)
+
+        visible_output = output.getvalue()
+        self.assertNotIn(secret_argument, visible_output)
+        self.assertNotIn("--token", visible_output)
+        self.assertIn("task.py", visible_output)
+        self.assertIn("argument_count=2", visible_output)
+
     def test_parses_arguments_and_injects_the_fixed_sandbox(self):
         received = {}
 
