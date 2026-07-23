@@ -1,0 +1,17 @@
+story_id: e02s05
+title: Run with explicit pre-approved automation
+status: planned
+bcps: 3
+tasks:
+  - id: 1
+    description: Provide an explicit per-run pre-approved policy that suppresses approval prompts for built-in consequential tools.
+    verify: "uv run python -m unittest tests.test_cli tests.test_approvals -v"
+    status: pending
+  - id: 2
+    description: Preserve workspace, symlink, and argument validation when a consequential tool is pre-approved.
+    verify: "uv run python -m unittest tests.test_tools tests.test_sandbox -v"
+    status: pending
+  - id: 3
+    description: Reject ambiguous or model-controlled attempts to select pre-approved behavior.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent -v"
+    status: pending

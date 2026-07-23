@@ -1,0 +1,43 @@
+id: e02
+title: Tool Approval Policies
+wsjf: 4.0
+total_bcps: 24
+status: planned
+scope: specs/product/SCOPE_LATEST.yaml
+stories:
+  - id: e02s01
+    title: Approve or deny a workspace file write
+    bcps: 5
+    status: planned
+    delta: MODIFIED
+    tasks: e02s01-tasks.yaml
+  - id: e02s02
+    title: Approve or deny local Python execution
+    bcps: 5
+    status: planned
+    delta: MODIFIED
+    tasks: e02s02-tasks.yaml
+  - id: e02s03
+    title: Disable a tool for the current run
+    bcps: 3
+    status: planned
+    delta: ADDED
+    tasks: e02s03-tasks.yaml
+  - id: e02s04
+    title: Run safely in read-only or unattended contexts
+    bcps: 5
+    status: planned
+    delta: ADDED
+    tasks: e02s04-tasks.yaml
+  - id: e02s05
+    title: Run with explicit pre-approved automation
+    bcps: 3
+    status: planned
+    delta: ADDED
+    tasks: e02s05-tasks.yaml
+  - id: e02s06
+    title: Audit approval decisions without secret leakage
+    bcps: 3
+    status: planned
+    delta: ADDED
+    tasks: e02s06-tasks.yaml

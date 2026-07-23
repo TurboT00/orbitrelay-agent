@@ -1,0 +1,21 @@
+story_id: e02s06
+title: Audit approval decisions without secret leakage
+status: planned
+bcps: 3
+tasks:
+  - id: 1
+    description: Record run-local approval decisions with tool name, disposition, and safe action context.
+    verify: "uv run python -m unittest tests.test_approvals -v"
+    status: pending
+  - id: 2
+    description: Exclude provider credentials, tool-result contents, and credential-like values from decision records and diagnostics.
+    verify: "uv run python -m unittest tests.test_approvals tests.test_redaction -v"
+    status: pending
+  - id: 3
+    description: Correlate approval records with tool-call outcomes across approve, deny, disable, timeout, and unattended paths.
+    verify: "uv run python -m unittest tests.test_agent tests.test_approvals -v"
+    status: pending
+  - id: 4
+    description: Run the complete offline regression, packaging, and isolated-wheel verification gate.
+    verify: "./scripts/check.sh"
+    status: pending

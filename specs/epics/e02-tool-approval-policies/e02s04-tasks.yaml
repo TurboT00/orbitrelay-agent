@@ -1,0 +1,21 @@
+story_id: e02s04
+title: Run safely in read-only or unattended contexts
+status: planned
+bcps: 5
+tasks:
+  - id: 1
+    description: Provide an explicit read-only run policy that allows confined reads and denies writes and execution without prompting.
+    verify: "uv run python -m unittest tests.test_approvals tests.test_tools -v"
+    status: pending
+  - id: 2
+    description: Make confirm policy fail closed on EOF, timeout, malformed input, or unavailable approval input.
+    verify: "uv run python -m unittest tests.test_approvals -v"
+    status: pending
+  - id: 3
+    description: Make noninteractive runs reject approval-required calls before any write or process begins.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent -v"
+    status: pending
+  - id: 4
+    description: Preserve structured model feedback and workspace validation for every unattended denial path.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools -v"
+    status: pending

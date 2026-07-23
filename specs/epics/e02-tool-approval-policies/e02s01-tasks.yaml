@@ -1,0 +1,21 @@
+story_id: e02s01
+title: Approve or deny a workspace file write
+status: planned
+bcps: 5
+tasks:
+  - id: 1
+    description: Specify the default interactive write request, target-path preview, and approve-once or deny-once outcomes.
+    verify: "uv run python -m unittest tests.test_approvals -v"
+    status: pending
+  - id: 2
+    description: Route write_file requests through approval before any file mutation while preserving workspace validation.
+    verify: "uv run python -m unittest tests.test_tools -v"
+    status: pending
+  - id: 3
+    description: Return denied writes to the model as correlated structured tool failures without changing the target file.
+    verify: "uv run python -m unittest tests.test_agent -v"
+    status: pending
+  - id: 4
+    description: Exercise the default write confirmation flow through the CLI with fake input and offline effects.
+    verify: "uv run python -m unittest tests.test_cli tests.test_approvals -v"
+    status: pending

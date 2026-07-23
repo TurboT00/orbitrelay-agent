@@ -1,8 +1,9 @@
-active_flow: discover
-active_epic_id: null
-active_story_id: null
+active_flow: plan
+active_epic_id: e02
+active_story_id: e02s01
 release:
   current_version: 0.1.0
+  target_version: 0.3.0
   next_target: tool-approval-policies
   pr_number: 1
   pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/1
@@ -25,7 +26,7 @@ verification:
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: P1 merged and cleaned up; P2 tool approval policies scoped
+  last_step_completed: P2 tool approval policies sliced into six vertical stories
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -37,8 +38,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: slice-tasks
-  next_action: Slice the approved P2 scope into vertical e02 stories before implementation planning.
+  next_skill: plan-work
+  next_action: Expand e02s01 through e02s06 into countable story specs and implementation plans.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

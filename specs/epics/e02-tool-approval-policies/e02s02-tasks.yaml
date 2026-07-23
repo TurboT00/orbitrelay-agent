@@ -1,0 +1,21 @@
+story_id: e02s02
+title: Approve or deny local Python execution
+status: planned
+bcps: 5
+tasks:
+  - id: 1
+    description: Specify an execution approval request that displays the command, arguments, and selected workspace.
+    verify: "uv run python -m unittest tests.test_approvals -v"
+    status: pending
+  - id: 2
+    description: Route run_python_file requests through approval before a subprocess can start while preserving argument validation.
+    verify: "uv run python -m unittest tests.test_tools -v"
+    status: pending
+  - id: 3
+    description: Return denied execution to the model as a correlated structured tool failure without starting a process.
+    verify: "uv run python -m unittest tests.test_agent -v"
+    status: pending
+  - id: 4
+    description: Exercise approve-once and deny-once execution decisions through the CLI using fake process effects.
+    verify: "uv run python -m unittest tests.test_cli tests.test_approvals -v"
+    status: pending

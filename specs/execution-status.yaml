@@ -10,3 +10,10 @@ gate_trace:
   heuristic_ratio: 0.0
   downgrade_applied: false
   completeness_critic: FILLED
+e02: planned
+e02s01: pending
+e02s02: pending
+e02s03: pending
+e02s04: pending
+e02s05: pending
+e02s06: pending

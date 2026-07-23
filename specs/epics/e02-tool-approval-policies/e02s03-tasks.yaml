@@ -1,0 +1,17 @@
+story_id: e02s03
+title: Disable a tool for the current run
+status: planned
+bcps: 3
+tasks:
+  - id: 1
+    description: Add a user decision that disables the requested tool for the remainder of the current run.
+    verify: "uv run python -m unittest tests.test_approvals -v"
+    status: pending
+  - id: 2
+    description: Deny repeated calls to a disabled tool without reprompting while leaving other tools governed normally.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools -v"
+    status: pending
+  - id: 3
+    description: Prove that run-scoped disables do not persist into a later independent run.
+    verify: "uv run python -m unittest tests.test_approvals tests.test_cli -v"
+    status: pending
