@@ -416,6 +416,45 @@ class AgentLoopTests(unittest.TestCase):
         denial = json.loads(completions.calls[1]["messages"][-1]["content"])
         self.assertEqual(denial["error"]["reason"], "approval_timeout")
 
+    def test_preapproved_write_executes_while_unlisted_execution_is_denied(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-write",
+                    "write_file",
+                    '{"file_path":"approved.txt","content":"approved"}',
+                ),
+                tool_call(
+                    "call-exec",
+                    "run_python_file",
+                    '{"file_path":"task.py"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            Path(workspace, "task.py").write_text("print('blocked')", encoding="utf-8")
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                result = run_agent(
+                    client,
+                    "write but do not execute",
+                    "deepseek-v4-flash",
+                    working_directory=workspace,
+                    approval_session=ApprovalSession(
+                        mode=ApprovalMode.PRE_APPROVED,
+                        approved_tools=frozenset({"write_file"}),
+                    ),
+                )
+            self.assertEqual(
+                Path(workspace, "approved.txt").read_text(encoding="utf-8"), "approved"
+            )
+            run.assert_not_called()
+
+        self.assertEqual(result, "done")
+        denial = json.loads(completions.calls[1]["messages"][-1]["content"])
+        self.assertEqual(denial["error"]["reason"], "tool_not_preapproved")
+
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
             make_completion(
