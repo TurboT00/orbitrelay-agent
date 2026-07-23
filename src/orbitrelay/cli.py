@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from .agent import run_agent
-from .config import load_api_config
+from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, KeyringCredentialStore, ProfileService
 from .profiles import (
     AuthKind,
@@ -26,6 +26,7 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("user_prompt", type=str, help="User prompt")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument("--profile", help="Named provider profile for this run")
     parser.add_argument(
         "--workspace",
         type=str,
@@ -101,6 +102,33 @@ def _read_secret(
 
 def _credential_store(value: CredentialStore | None) -> CredentialStore:
     return KeyringCredentialStore() if value is None else value
+
+
+def resolve_api_config(
+    profile_name: str | None,
+    *,
+    repository: ProfileRepository,
+    credential_store: CredentialStore | None,
+) -> ApiConfig | None:
+    selected_name = profile_name
+    if selected_name is None:
+        selected_name = repository.selected_name()
+    if selected_name is None:
+        return None
+
+    profile = repository.get(selected_name)
+    if profile.auth_kind is not AuthKind.API_KEY:
+        raise ValueError(
+            f'Auth kind "{profile.auth_kind.value}" is not executable in P1'
+        )
+    secret = ProfileService(
+        repository, _credential_store(credential_store)
+    ).get_secret(profile)
+    return ApiConfig(
+        base_url=profile.base_url,
+        api_key=secret,
+        model=profile.model,
+    )
 
 
 def run_profile_command(
@@ -196,7 +224,24 @@ def main(
         )
 
     args = parse_args(raw_argv)
-    api_config = load_api_config()
+    if profile_repository is None:
+        profile_path = default_profile_path()
+        repository = ProfileRepository(profile_path)
+        use_repository = args.profile is not None or profile_path.exists()
+    else:
+        repository = profile_repository
+        use_repository = True
+    api_config = (
+        resolve_api_config(
+            args.profile,
+            repository=repository,
+            credential_store=credential_store,
+        )
+        if use_repository
+        else None
+    )
+    if api_config is None:
+        api_config = load_api_config()
     working_directory = resolve_workspace(args.workspace)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
     result = run_agent(
