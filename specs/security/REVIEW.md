@@ -1,7 +1,7 @@
 # Security Review — e01s01 Provider/Auth Profiles
 
 - Merge base: `f423629862f78c772338a6acbefd6dacbe7b7fab`
-- Reviewed head: `6699209caac5a554e4293335cf794cb1f727f001`
+- Reviewed head: `f591c66ff3dbb4d43f85b0696704e84b6821cfb6`
 - Scope: feature diff against `main`, with emphasis on CLI input, profile
   deserialization, metadata paths, keyring operations, secret transport,
   deletion, and output redaction.
@@ -59,3 +59,7 @@ ambiguous deletion, rollback diagnostics, credential namespaces, coherent
 environment sources, transport-variable isolation, and dotenv interpolation.
 The final AND-gate passed at Reviewer A 97/100 and Reviewer B 98/100 with zero
 must-fix findings. See `specs/verifications/REVIEW-e01s01.md`.
+
+The only production-file changes after the independently reviewed executable
+implementation at `6699209` are non-executable `# story: e01s01` trace comments.
+The release coverage commit adds tests only.

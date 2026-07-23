@@ -5,7 +5,8 @@
 - Audited head: `6699209caac5a554e4293335cf794cb1f727f001`
 - Merge base: `f423629862f78c772338a6acbefd6dacbe7b7fab`
 - Branch: `feat/provider-auth-profiles`
-- Final gate: `./scripts/check.sh` — 92 project tests and 9 example tests passed; distributions and isolated-wheel smoke passed.
+- Final gate: `./scripts/check.sh` — 106 project tests and 9 example tests passed; distributions and isolated-wheel smoke passed.
+- Release coverage gate: 91.48% overall and 96.39% across provider-profile business modules — PASS.
 
 ## Churn-first review
 
@@ -75,7 +76,7 @@ profile metadata and profile-command responsibilities into focused modules.
 - ✓ Every discovered defect has a focused regression test.
 - ✓ Tests use public behavior and fake I/O boundaries rather than mocking
   internal implementation details.
-- ✓ Suite is fast (92 project tests in 0.702 seconds), independent through temp
+- ✓ Suite is fast (106 project tests in 0.642 seconds), independent through temp
   directories/fakes, repeatable and offline, self-validating, and test-first.
 
 ## SOLID, style, and agent readability

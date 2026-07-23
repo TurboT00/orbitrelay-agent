@@ -15,11 +15,11 @@ working_tree:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 92
+  project_tests: 106
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: e01s01 dual independent review PASS at round 5 of 5
+  last_step_completed: e01s01 release gates PASS, including coverage and traceability
   required_reading:
     - README.md
     - docs/project-roadmap.md

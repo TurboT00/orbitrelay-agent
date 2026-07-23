@@ -1,11 +1,11 @@
 {
   "story_id": "e01s01",
-  "verified_at": "2026-07-23T01:11:39Z",
+  "verified_at": "2026-07-23T01:20:00Z",
   "result": "PASS",
   "dimensions": {
     "performance": {
       "result": "PASS",
-      "evidence": "All 92 project tests completed in 0.702 seconds; profile operations are local and synchronous. No project-specific performance threshold exists."
+      "evidence": "All 106 project tests completed in 0.642 seconds; profile operations are local and synchronous. No project-specific performance threshold exists."
     },
     "reliability": {
       "result": "PASS",
@@ -14,6 +14,14 @@
     "operability": {
       "result": "PASS",
       "evidence": "CLI help and invalid-input behavior passed; list/show expose safe state; unavailable keyrings and deferred auth kinds produce actionable pre-network failures."
+    },
+    "coverage": {
+      "result": "PASS",
+      "evidence": "Measured line coverage is 91.48% overall and 96.39% across provider-profile business modules, exceeding the 80% and 95% release thresholds."
+    },
+    "traceability": {
+      "result": "PASS",
+      "evidence": "e01s01 has 100% explicit story coverage, all ten acceptance criteria map to executable tests, and the heuristic link ratio is 0.0."
     }
   }
 }
