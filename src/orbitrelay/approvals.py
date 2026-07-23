@@ -18,6 +18,12 @@ class ApprovalDisposition(StrEnum):
     DENIED = "denied"
 
 
+class ApprovalMode(StrEnum):
+    CONFIRM = "confirm"
+    READ_ONLY = "read-only"
+    PRE_APPROVED = "pre-approved"
+
+
 SafeValue = str | int | tuple[str, ...]
 SafeContext = tuple[tuple[str, SafeValue], ...]
 MAX_SAFE_VALUE_LENGTH = 200
@@ -51,8 +57,17 @@ BatchAuthorizer = Callable[
 
 
 class ApprovalSession:
-    def __init__(self, authorizer: BatchAuthorizer | None = None) -> None:
-        self._authorizer = authorizer or self._authorize_safe_defaults
+    def __init__(
+        self,
+        authorizer: BatchAuthorizer | None = None,
+        *,
+        mode: ApprovalMode = ApprovalMode.CONFIRM,
+    ) -> None:
+        self._authorizer = (
+            self._authorize_read_only
+            if mode is ApprovalMode.READ_ONLY
+            else authorizer or self._authorize_safe_defaults
+        )
         self._disabled_tools: set[str] = set()
 
     @property
@@ -108,6 +123,17 @@ class ApprovalSession:
             ApprovalDecision.approve(reason="read_allowed")
             if request.category is ToolCategory.READ
             else ApprovalDecision.deny(reason="approval_unavailable")
+            for request in requests
+        )
+
+    @staticmethod
+    def _authorize_read_only(
+        requests: tuple["ApprovalRequest", ...],
+    ) -> tuple[ApprovalDecision, ...]:
+        return tuple(
+            ApprovalDecision.approve(reason="read_allowed")
+            if request.category is ToolCategory.READ
+            else ApprovalDecision.deny(reason="read_only_policy")
             for request in requests
         )
 
