@@ -3,8 +3,8 @@ development_status:
   e01s01: done
   e02: in_progress
   e02s01: done
-  e02s02: verified
-  e02s03: pending
+  e02s02: done
+  e02s03: in_progress
   e02s04: pending
   e02s05: pending
   e02s06: pending
@@ -37,7 +37,7 @@ stories:
     started_at: "2026-07-23T19:05:28Z"
     completed_at: "2026-07-23T21:02:30Z"
   e02s02:
-    status: verified
+    status: done
     title: Approve or deny local Python execution
     bcps: 5
     epic: e02
@@ -47,8 +47,9 @@ stories:
     risk_max: P0
     security_max: high
     started_at: "2026-07-23T21:02:30Z"
+    completed_at: "2026-07-23T21:45:09Z"
   e02s03:
-    status: pending
+    status: in_progress
     title: Disable a tool for the current run
     bcps: 3
     epic: e02
@@ -57,6 +58,7 @@ stories:
     tasks_failing: 4
     risk_max: P1
     security_max: high
+    started_at: "2026-07-23T21:45:09Z"
   e02s04:
     status: pending
     title: Run safely in read-only or unattended contexts

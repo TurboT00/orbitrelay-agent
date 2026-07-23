@@ -1,6 +1,6 @@
 active_flow: build_epic
 active_epic_id: e02
-active_story_id: e02s02
+active_story_id: e02s03
 release:
   current_version: 0.1.0
   target_version: 0.3.0
@@ -21,18 +21,18 @@ working_tree:
   expected_after_handoff: clean
 verification:
   command: ./scripts/check.sh
-  result: passed
+  result: pending
   project_tests: 120
   example_tests: 9
-  evidence: specs/verifications/e02s02-verify.yaml
+  evidence: null
 epic_cycle:
-  current_step: release-branch
-  next_skill: release-branch
-  story_bcps: 5
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message]
-  audit_result: pass
+  current_step: develop-tdd
+  next_skill: develop-tdd
+  story_bcps: 3
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch]
+  audit_result: null
 handoff:
-  last_step_completed: e02s02 Conventional Commit and minor-release classification drafted
+  last_step_completed: e02s02 kept on the unpushed P2 branch; e02s03 initialized
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -45,8 +45,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: release-branch
-  next_action: Keep e02s02 on the unpushed P2 branch and continue with e02s03.
+  next_skill: develop-tdd
+  next_action: Implement e02s03 run-scoped tool disable from task 1 using RED/GREEN commits.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -66,4 +66,4 @@ preferences:
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
 metrics:
-  story_start: "2026-07-23T21:02:30Z"
+  story_start: "2026-07-23T21:45:09Z"
