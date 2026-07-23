@@ -1,6 +1,6 @@
 # story: e02s01
 
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import TextIO
@@ -62,13 +62,19 @@ class ApprovalSession:
         self,
         requests: tuple["ApprovalRequest", ...],
     ) -> tuple[ApprovalDecision, ...]:
-        pending = tuple(
-            request for request in requests if request.tool_name not in self._disabled_tools
+        pending_indexes = tuple(
+            index
+            for index, request in enumerate(requests)
+            if request.tool_name not in self._disabled_tools
         )
+        pending = tuple(requests[index] for index in pending_indexes)
         decisions = tuple(self._authorizer(pending)) if pending else ()
         self._validate_decisions(pending, decisions)
-        candidates = iter(decisions)
-        return tuple(self._apply_policy(request, candidates) for request in requests)
+        candidates = dict(zip(pending_indexes, decisions, strict=True))
+        return tuple(
+            self._apply_policy(request, candidates.get(index))
+            for index, request in enumerate(requests)
+        )
 
     @staticmethod
     def _validate_decisions(
@@ -83,14 +89,15 @@ class ApprovalSession:
     def _apply_policy(
         self,
         request: "ApprovalRequest",
-        candidates: "Iterator[ApprovalDecision]",
+        candidate: ApprovalDecision | None,
     ) -> ApprovalDecision:
         if request.tool_name in self._disabled_tools:
             return ApprovalDecision.deny(reason="tool_disabled_for_run")
-        decision = next(candidates)
-        if decision.reason == "user_disabled_tool":
+        if candidate is None:
+            raise AssertionError("Enabled approval request did not have a decision")
+        if candidate.reason == "user_disabled_tool":
             self._disabled_tools.add(request.tool_name)
-        return decision
+        return candidate
 
     @staticmethod
     def _authorize_safe_defaults(
@@ -113,14 +120,24 @@ class TerminalAuthorizer:
         self,
         requests: tuple["ApprovalRequest", ...],
     ) -> tuple[ApprovalDecision, ...]:
-        return tuple(self._authorize(request) for request in requests)
+        disabled_tools: set[str] = set()
+        decisions = []
+        for request in requests:
+            if request.tool_name in disabled_tools:
+                decision = ApprovalDecision.deny(reason="tool_disabled_for_run")
+            else:
+                decision = self._authorize(request)
+            if decision.reason == "user_disabled_tool":
+                disabled_tools.add(request.tool_name)
+            decisions.append(decision)
+        return tuple(decisions)
 
     def _authorize(self, request: "ApprovalRequest") -> ApprovalDecision:
         if request.category is ToolCategory.READ:
             return ApprovalDecision.approve(reason="read_allowed")
 
         print(
-            f"Approve {format_approval_request(request)}? [y/N]: ",
+            f"Approve {format_approval_request(request)}? [y/N/d=disable]: ",
             end="",
             file=self._output_stream,
             flush=True,
@@ -128,6 +145,8 @@ class TerminalAuthorizer:
         response = self._input_stream.readline()
         if response.strip().lower() in {"y", "yes"}:
             return ApprovalDecision.approve(reason="user_approved")
+        if response.strip().lower() in {"d", "disable"}:
+            return ApprovalDecision.disable_tool()
         if response == "":
             return ApprovalDecision.deny(reason="approval_eof")
         return ApprovalDecision.deny(reason="user_denied")
