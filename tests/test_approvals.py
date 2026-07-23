@@ -98,6 +98,37 @@ class ApprovalSessionTests(unittest.TestCase):
         self.assertFalse(write_decision.approved)
         self.assertEqual(write_decision.reason, "read_only_policy")
 
+    def test_preapproved_policy_allows_only_listed_consequential_tools(self):
+        session = ApprovalSession(
+            mode=ApprovalMode.PRE_APPROVED,
+            approved_tools=frozenset({"write_file"}),
+        )
+        read = ApprovalRequest(
+            call_id="call-read",
+            tool_name="get_files_info",
+            category=ToolCategory.READ,
+            safe_context=(),
+        )
+        write = ApprovalRequest.for_write(
+            call_id="call-write", target="notes.txt", content_length=1
+        )
+        execution = ApprovalRequest.for_execution(
+            call_id="call-exec",
+            workspace="/workspace",
+            target="task.py",
+            arguments=(),
+        )
+
+        read_decision, write_decision, execution_decision = session.authorize(
+            (read, write, execution)
+        )
+
+        self.assertTrue(read_decision.approved)
+        self.assertEqual(write_decision.reason, "explicit_preapproval")
+        self.assertTrue(write_decision.approved)
+        self.assertEqual(execution_decision.reason, "tool_not_preapproved")
+        self.assertFalse(execution_decision.approved)
+
     def test_timeout_input_denies_before_authority_is_granted(self):
         class TimeoutInput:
             def readline(self):
