@@ -1,11 +1,14 @@
 release:
   version: "0.3.0"
   codename: Tool Approval Policies
-  status: ready
+  status: completed
   semantic_release: true
   bump_hint: minor
-  branch: feat/tool-approval-policies
-  push_requested: false
+  branch: main
+  tag: v0.3.0
+  pr_number: 2
+  merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
+  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.3.0
 
 epics:
   - id: e02

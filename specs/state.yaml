@@ -7,17 +7,20 @@ release:
   next_target: codex-bridge-and-xai-byok
   pr_number: 2
   pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/2
-  pr_state: open
-  merged: false
+  pr_state: merged
+  merged: true
+  merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
+  tag: v0.3.0
+  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.3.0
   ci_verified: false
   ci_status: not_configured
   notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 git:
-  branch: feat/tool-approval-policies
-  base_hash: 8bcefba
+  branch: main
+  base_hash: 3d1cc4f
   handoff_ref: HEAD
-  remote: origin/feat/tool-approval-policies
-  push_requested: true
+  remote: origin/main
+  push_requested: false
 working_tree:
   expected_after_handoff: clean
 verification:
@@ -26,15 +29,14 @@ verification:
   project_tests: 145
   example_tests: 9
   evidence: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
-  combined_sha256: 3fe858ca9ebb194c15c841018f233bca66651525ed61ff207fa8c488cf3226b6
 epic_cycle:
-  current_step: release-branch
-  next_skill: release-branch
+  current_step: complete
+  next_skill: survey-context
   story_bcps: 24
   completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message, release-branch]
   audit_result: pass
 handoff:
-  last_step_completed: 0.3.0 branch pushed and PR #2 opened
+  last_step_completed: 0.3.0 merged to main, tagged, and released on GitHub
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -46,8 +48,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: release-branch
-  next_action: Review and merge PR #2 when ready; then tag/publish 0.3.0 if desired.
+  next_skill: survey-context
+  next_action: Start the next roadmap slice (P3 Codex bridge / xAI BYOK) when ready.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
