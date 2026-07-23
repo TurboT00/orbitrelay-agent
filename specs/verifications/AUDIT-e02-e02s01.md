@@ -3,7 +3,7 @@
 - Mode: `audit-code --gate`
 - Reviewed head: `3968409`
 - Merge base: `8bcefba610a4fd1c66c47e665247325b04ecfdb2`
-- Result: **FAIL — loop back to develop-tdd**
+- Result: **PASS after one required develop-tdd loop-back**
 
 ## Churn priority
 
@@ -53,12 +53,11 @@
   RED/GREEN rather than narrated or ignored.
 - ✓ No dead or commented-out code was introduced.
 
-### FAIL — Types and Safety
+### PASS — Types and Safety
 
-- ✗ `src/orbitrelay/tools/write_file.py:6` adds public
-  `validate_write_target` without parameter or return annotations.
-- ✗ The touched public `write_file` boundary remains untyped, leaving its new
-  validator contract implicit.
+- ✓ `validate_write_target` and `write_file` now declare parameter and return
+  types at the filesystem side-effect boundary.
+- ✓ Configured Ty reports zero diagnostics across all nine affected files.
 
 ### PASS — Test Coverage and F.I.R.S.T
 
@@ -76,13 +75,12 @@
 - ✓ `PreparedToolCall` binds approval to a validated fixed handler and trusted workspace.
 - ✓ Shared safe formatting removes duplicate terminal/verbose sanitization.
 
-### FAIL — Clarity and Agent Readability
+### PASS — Clarity and Agent Readability
 
-- ✗ `prepare_tool` is 55 lines and combines handler resolution, JSON parsing,
-  signature binding, write-specific validation, approval-request creation, and
-  prepared-call construction.
-- ✗ `run_agent` is 89 lines and embeds batch preparation, authorization, result
-  formatting, and message append mechanics inside the provider response loop.
+- ✓ `prepare_tool` is now 16 lines and delegates parsing/binding, request
+  construction, and write validation to focused helpers.
+- ✓ `run_agent` is now 17 lines; response processing, tool-round authorization,
+  result assembly, and structural call validation each fit within 20 lines.
 - ✓ Files remain under 300 lines, names are specific, and nesting is bounded.
 
 ### PASS — Correctness and Performance
@@ -98,12 +96,29 @@
 **PASS — Fast, Independent, and Self-Validating all pass.** Repeatability and
 Timeliness were also reviewed and passed for the full rubric.
 
-## Required loop-back
+## Completed loop-back
 
-1. Add explicit annotations to the write validation/execution boundary.
-2. Extract a deep write-preparation helper from `prepare_tool`.
-3. Extract batch preparation/authorization/result assembly from `run_agent`.
-4. Re-run diagnostics, affected tests, full check, and this audit gate.
+1. Added explicit annotations to the write validation/execution boundary.
+2. Extracted deep preparation helpers from `prepare_tool`.
+3. Extracted response-loop, batch authorization, and result assembly helpers
+   from `run_agent` while preserving its public interface.
+4. Re-ran 115 project tests, 9 example tests, package builds, isolated-wheel
+   smoke, Ty, Ruff, secret scan, security review, and F.I.R.S.T checks.
+
+Resolution commits: `df19072`, `11137dd`, `ccc86d7`.
+
+## Re-audit gate summary
+
+- PASS Supply Chain & Security
+- PASS Provenance & Metadata
+- PASS Law of Demeter
+- PASS Project Conventions
+- PASS Scope & Boy Scout Rule
+- PASS Types & Safety
+- PASS Test Coverage & F.I.R.S.T
+- PASS SOLID & Heuristics
+- PASS Code Style & Agent Readability
+- PASS Correctness & Performance
 
 ## Rationalizations rejected
 
