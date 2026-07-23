@@ -26,13 +26,13 @@ verification:
   example_tests: 9
   evidence: specs/verifications/e02s04-verify.yaml
 epic_cycle:
-  current_step: audit-code
-  next_skill: audit-code
+  current_step: commit-message
+  next_skill: commit-message
   story_bcps: 5
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work]
-  audit_result: null
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first]
+  audit_result: pass
 handoff:
-  last_step_completed: e02s04 P0 verify-work passed with user-confirmed read-only UAT
+  last_step_completed: e02s04 audit-code and F.I.R.S.T gates passed after the required refactor loop
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -45,8 +45,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: audit-code
-  next_action: Run the non-optional e02s04 code-quality and F.I.R.S.T gates.
+  next_skill: commit-message
+  next_action: Draft the e02s04 Conventional Commit summary and retain the unpushed P2 branch.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
