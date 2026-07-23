@@ -98,6 +98,22 @@ class ProviderProfileTests(unittest.TestCase):
                 capabilities={ProviderCapability.ASSISTANT_MESSAGE_PASSTHROUGH},
             )
 
+    def test_rejects_invalid_contract_for_each_auth_kind(self):
+        for auth_kind in AuthKind:
+            with self.subTest(auth_kind=auth_kind):
+                with self.assertRaisesRegex(ProfileValidationError, "model"):
+                    ProviderProfile.create(
+                        name=f"invalid-{auth_kind.value.replace('_', '-')}",
+                        base_url=(
+                            "http://127.0.0.1:11434/v1"
+                            if auth_kind is AuthKind.LOCAL_NONE
+                            else "https://example.test/v1"
+                        ),
+                        model=" ",
+                        auth_kind=auth_kind,
+                        capabilities=CAPABILITIES,
+                    )
+
     def test_round_trips_secret_free_metadata(self):
         profile = ProviderProfile.create(
             name="deepseek-work",
