@@ -53,7 +53,8 @@ class ExecuteToolTests(unittest.TestCase):
                 workspace,
             )
 
-            self.assertIsInstance(prepared, PreparedToolCall)
+            if not isinstance(prepared, PreparedToolCall):
+                self.fail(f"expected prepared call, got {prepared!r}")
             self.assertFalse(target.exists())
 
             result = execute_prepared_tool(prepared)
@@ -77,7 +78,8 @@ class ExecuteToolTests(unittest.TestCase):
                 str(workspace),
             )
 
-            self.assertIsInstance(prepared, str)
+            if not isinstance(prepared, str):
+                self.fail(f"expected preparation error, got {prepared!r}")
             self.assertIn("outside the permitted working directory", prepared)
             self.assertFalse(outside_target.exists())
 
