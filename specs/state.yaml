@@ -32,7 +32,7 @@ epic_cycle:
   completed_steps: [security-review, survey-context, plan-work, kickoff-branch]
   audit_result: null
 handoff:
-  last_step_completed: Build-epic survey confirmed e02s01 is ready on its clean feature branch
+  last_step_completed: e02s01 task 1 approval request and decision contracts passed their RED-GREEN cycles
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -45,7 +45,7 @@ handoff:
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
   next_skill: develop-tdd
-  next_action: Start e02s01 task 1 with a test-only RED commit for the approval request and decision contracts.
+  next_action: Start e02s01 task 2 with a test-only RED commit for preparing write calls without side effects.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
