@@ -239,6 +239,53 @@ class CliTests(unittest.TestCase):
         self.assertEqual(disabled.reason, "user_disabled_tool")
         self.assertTrue(approved.approved)
 
+    def test_read_only_policy_is_injected_into_agent_session(self):
+        fake_client = Mock(name="client")
+        with tempfile.TemporaryDirectory() as workspace:
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=fake_client),
+                patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(
+                    [
+                        "inspect safely",
+                        "--workspace",
+                        workspace,
+                        "--approval-policy",
+                        "read-only",
+                        "--approval-timeout",
+                        "1.5",
+                    ],
+                    profile_repository=ProfileRepository(Path(workspace) / "profiles.json"),
+                )
+
+        session = run_agent.call_args.kwargs["approval_session"]
+        request = ApprovalRequest.for_write(
+            call_id="call-write", target="notes.txt", content_length=1
+        )
+        (decision,) = session.authorize((request,))
+        self.assertEqual(decision.reason, "read_only_policy")
+
+    def test_invalid_approval_timeout_is_rejected_before_client_creation(self):
+        for value in ("0", "-1", "nan", "inf", "301"):
+            with self.subTest(value=value), tempfile.TemporaryDirectory() as workspace:
+                with (
+                    patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                    patch("orbitrelay.cli.dotenv_values", return_value={}),
+                    patch("orbitrelay.cli.OpenAI") as openai,
+                ):
+                    with self.assertRaisesRegex(ValueError, "approval timeout"):
+                        cli.main(
+                            ["inspect", "--workspace", workspace, "--approval-timeout", value],
+                            profile_repository=ProfileRepository(
+                                Path(workspace) / "profiles.json"
+                            ),
+                        )
+                openai.assert_not_called()
+
     def test_main_rejects_missing_key_before_client_creation(self):
         with tempfile.TemporaryDirectory() as directory:
             with (
