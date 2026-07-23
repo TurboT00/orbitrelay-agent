@@ -4,6 +4,7 @@ import copy
 import json
 import tempfile
 import unittest
+from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -11,7 +12,7 @@ from unittest.mock import patch
 from openai.types.chat.chat_completion import ChatCompletion
 
 from orbitrelay.agent import MAX_MODEL_RESPONSES, TurnLimitError, run_agent
-from orbitrelay.approvals import ApprovalDecision, ApprovalSession
+from orbitrelay.approvals import ApprovalDecision, ApprovalSession, TerminalAuthorizer
 
 WORKING_DIRECTORY = "/workspace"
 
@@ -305,6 +306,42 @@ class AgentLoopTests(unittest.TestCase):
         self.assertEqual(first_error["error"]["reason"], "user_disabled_tool")
         self.assertEqual(later_error["error"]["code"], "tool_disabled")
         self.assertEqual(later_error["error"]["reason"], "tool_disabled_for_run")
+
+    def test_terminal_disable_suppresses_same_batch_repeated_prompt(self):
+        first = make_completion(
+            tool_calls=[
+                tool_call(
+                    "call-1",
+                    "write_file",
+                    '{"file_path":"first.txt","content":"first"}',
+                ),
+                tool_call(
+                    "call-2",
+                    "write_file",
+                    '{"file_path":"second.txt","content":"second"}',
+                ),
+            ]
+        )
+        client, completions = scripted_client(first, make_completion(content="done"))
+        prompt_output = StringIO()
+        session = ApprovalSession(TerminalAuthorizer(StringIO("d\n"), prompt_output))
+
+        with tempfile.TemporaryDirectory() as workspace:
+            result = run_agent(
+                client,
+                "disable writes",
+                "deepseek-v4-flash",
+                working_directory=workspace,
+                approval_session=session,
+            )
+            self.assertFalse(Path(workspace, "first.txt").exists())
+            self.assertFalse(Path(workspace, "second.txt").exists())
+
+        self.assertEqual(result, "done")
+        self.assertEqual(prompt_output.getvalue().count("Approve write_file"), 1)
+        tool_messages = completions.calls[1]["messages"][-2:]
+        reasons = [json.loads(message["content"])["error"]["reason"] for message in tool_messages]
+        self.assertEqual(reasons, ["user_disabled_tool", "tool_disabled_for_run"])
 
     def test_preserves_reasoning_content_across_multiple_tool_rounds(self):
         client, completions = scripted_client(
