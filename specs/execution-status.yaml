@@ -1,7 +1,7 @@
 development_status:
   e01: done
   e01s01: done
-  e02: in_progress
+  e02: done
   e02s01: done
   e02s02: done
   e02s03: done
@@ -14,7 +14,7 @@ epics:
     status: done
     title: Provider and Auth Profiles
   e02:
-    status: in_progress
+    status: done
     title: Tool Approval Policies
     wsjf: 4.0
     total_bcps: 24

@@ -2,15 +2,16 @@ active_flow: build_epic
 active_epic_id: e02
 active_story_id: e02s06
 release:
-  current_version: 0.1.0
+  current_version: 0.3.0
   target_version: 0.3.0
-  next_target: tool-approval-policies
-  pr_number: 1
-  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/1
-  pr_state: merged
-  merged: true
+  next_target: codex-bridge-and-xai-byok
+  pr_number: null
+  pr_url: null
+  pr_state: ready_local
+  merged: false
   ci_verified: false
   ci_status: not_configured
+  notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 git:
   branch: feat/tool-approval-policies
   base_hash: 8bcefba
@@ -24,29 +25,29 @@ verification:
   result: passed
   project_tests: 145
   example_tests: 9
-  evidence: specs/verifications/e02s06-verify.yaml
+  evidence: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+  combined_sha256: 3fe858ca9ebb194c15c841018f233bca66651525ed61ff207fa8c488cf3226b6
 epic_cycle:
   current_step: release-branch
   next_skill: release-branch
-  story_bcps: 3
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message]
+  story_bcps: 24
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work, audit-code, enforce-first, commit-message, release-branch]
   audit_result: pass
 handoff:
-  last_step_completed: e02s06 verified and audited; P2 stories complete on unpushed branch
+  last_step_completed: 0.3.0 release package prepared locally; branch remains unpushed
   required_reading:
     - README.md
     - docs/project-roadmap.md
+    - specs/archive/RELEASE-0.3.0-tool-approval-policies.md
     - specs/state.yaml
     - src/orbitrelay/approvals.py
-    - src/orbitrelay/agent.py
-    - src/orbitrelay/tools/__init__.py
-    - src/orbitrelay/redaction.py
+    - src/orbitrelay/cli.py
   open_decisions:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
   next_skill: release-branch
-  next_action: Keep the unpushed P2 branch and prepare the coherent 0.3.0 release when requested.
+  next_action: On explicit request, push feat/tool-approval-policies and open the 0.3.0 PR; otherwise keep local.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

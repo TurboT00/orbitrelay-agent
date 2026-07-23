@@ -26,24 +26,26 @@ tokens, parse Codex's `auth.json`, or emulate undocumented provider OAuth flows.
 
 ## Current baseline
 
-Version `0.1.0` provides:
+Version `0.3.0` provides:
 
 - an installable `orbitrelay` CLI and `python -m orbitrelay` entry point;
 - configurable OpenAI-compatible base URL, model, and API key;
+- named provider profiles with native OS credential storage (P1);
 - a bounded eight-response tool loop with call correlation;
 - file read/list/write and Python execution tools;
 - workspace path and symlink confinement;
-- 37 offline project tests and 9 calculator example tests; and
+- batch-first tool approval for writes and Python execution (P2);
+- `confirm`, `read-only`, and exact per-tool `pre-approved` policies;
+- run-scoped tool disable and secret-free verbose approval audit events;
+- 145 offline project tests and 9 calculator example tests; and
 - `scripts/check.sh` for repeatable local verification.
 
 Current limitations:
 
-- one environment-defined endpoint profile;
-- no delegated auth abstraction or secure credential store;
-- no user approval gate before writes or process execution;
+- only `api_key` profiles are executable; delegated auth adapters remain roadmap work;
 - no persistent conversations, streaming, capability probing, or plugins;
 - no certified local-model configuration; and
-- Bash-only developer verification on macOS/Linux.
+- Bash-only developer verification on macOS/Linux. Windows profile locking remains P7.
 
 ## Provider evidence and constraints
 
@@ -65,7 +67,7 @@ experience.
 |---|---|---|---|
 | P0 | Foundation handoff | Repeatable local checks and durable project state | Complete |
 | P1 | Provider and auth profiles | Explicit endpoint/auth contracts without secret leakage | P0 |
-| P2 | Tool approval policies | Users control writes and process execution | P1 |
+| P2 | Tool approval policies | Users control writes and process execution | Complete |
 | P3 | Codex CLI bridge and xAI BYOK | Supported account/API paths without invented OAuth | P1, P2 |
 | P4 | Conversations and streaming | Resumable sessions and observable progress | P2 |
 | P5 | Qualified local models | Ollama loopback, then configured vLLM | P1, P2, P4 |
@@ -101,24 +103,28 @@ LAN exposure of local servers.
 
 ## P2 — Tool approval policies
 
+**Status:** complete in `0.3.0`.
+
 **Objective:** make user consent the default boundary for consequential tools.
 
-Minimum policy:
+Delivered policy:
 
 - reads: allow within the selected workspace;
-- writes: prompt by default and display the target path;
-- execution: prompt by default and display command, arguments, and workspace;
-- deny: a user can permanently disable any tool for a run; and
-- automation: explicit flags may select `read-only`, `confirm`, or pre-approved
-  policies without weakening path validation.
+- writes: prompt by default and display the target path and content length;
+- execution: prompt by default with interpreter, workspace, target, and escaped args;
+- deny/disable: deny-once or disable a tool for the rest of the run;
+- automation: `--approval-policy read-only|confirm|pre-approved` with exact
+  `--approve-tool` allowlists; and
+- audit: verbose stderr events with allowlisted metadata only.
 
-Acceptance criteria:
+Acceptance criteria met:
 
-- denied calls are returned to the model as structured tool failures;
+- denied calls return structured tool failures to the model;
 - no write or process starts before approval;
-- noninteractive mode fails closed when approval is required;
+- noninteractive, EOF, timeout, and invalid input fail closed;
 - approvals are auditable without logging tool-result secrets; and
-- tests cover approve, deny, EOF, timeout, and noninteractive behavior.
+- offline tests cover approve, deny, disable, EOF, timeout, read-only,
+  pre-approved, and confinement behavior.
 
 ## P3 — Supported hosted access
 

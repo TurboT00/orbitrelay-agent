@@ -1,9 +1,11 @@
 release:
   version: "0.3.0"
   codename: Tool Approval Policies
-  status: planned
+  status: ready
   semantic_release: true
   bump_hint: minor
+  branch: feat/tool-approval-policies
+  push_requested: false
 
 epics:
   - id: e02

@@ -48,8 +48,10 @@ uv run orbitrelay \
   --workspace examples/calculator
 ```
 
-Include per-response usage and tool-call details with `--verbose`. The module
-entry point is equivalent:
+Include per-response usage and tool-call details with `--verbose`. Verbose mode
+also emits secret-free approval decision lines on stderr.
+
+The module entry point is equivalent:
 
 ```bash
 uv run python -m orbitrelay --help
@@ -144,6 +146,44 @@ P1 validates `api_key`, `external_first_party_cli`, `local_none`, and
 `local_service_bearer` contracts. Only `api_key` profiles are executable in this
 release. The other runtime adapters remain roadmap work.
 
+## Tool approval policies
+
+OrbitRelay authorizes an entire validated tool-call batch before any approved
+handler runs. Workspace-confined reads are allowed by default. Writes and local
+Python execution require consent.
+
+Interactive confirmation is the default policy:
+
+```bash
+uv run orbitrelay "create notes.txt" --workspace /path/to/project
+```
+
+Prompts appear on stderr as `Approve ...? [y/N/d=disable]`. Answer `y` to allow
+once, `n` (or Enter/EOF/timeout) to deny, or `d` to disable that tool for the
+rest of the run. Confirmation times out after 60 seconds by default and can be
+overridden with `--approval-timeout SECONDS` (maximum 300).
+
+Other run policies:
+
+```bash
+# Deny every write/execute without prompting; reads continue.
+uv run orbitrelay "inspect only" --approval-policy read-only
+
+# Allow exact consequential tools without prompting. Unlisted tools stay denied.
+uv run orbitrelay "write the report" \
+  --approval-policy pre-approved \
+  --approve-tool write_file
+```
+
+`--approve-tool` is repeatable and accepts only `write_file` and
+`run_python_file`. Pre-approved mode requires at least one tool name. Path,
+symlink, argument, and workspace validation still apply after approval.
+
+Denied calls return structured tool errors to the model. With `--verbose`,
+OrbitRelay also prints ordered, control-escaped approval events to stderr. Those
+events include call IDs and reasons, not write content, process arguments,
+provider secrets, or tool results.
+
 ## Tools and safety boundary
 
 The model can call four local tools:
@@ -155,9 +195,9 @@ The model can call four local tools:
 
 Every tool path is resolved within the selected workspace, and symlink paths
 that escape it are rejected. The model cannot configure or override that
-workspace. `run_python_file` starts an ordinary local Python process; it
-restricts which script can be selected but is not an operating-system-level
-sandbox for the script's own behavior.
+workspace. `run_python_file` starts an ordinary local Python process with the
+current interpreter, list arguments, and a trusted workspace cwd; it is not an
+operating-system-level sandbox for the script's own behavior.
 
 The agent allows at most eight model responses, including the final textual
 response. If response eight asks for more tools, none of those calls are
