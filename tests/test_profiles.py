@@ -65,6 +65,29 @@ class ProviderProfileTests(unittest.TestCase):
                 capabilities=CAPABILITIES,
             )
 
+    def test_rejects_plaintext_remote_endpoint_for_secret_backed_auth(self):
+        for auth_kind in (AuthKind.API_KEY, AuthKind.LOCAL_SERVICE_BEARER):
+            with self.subTest(auth_kind=auth_kind):
+                with self.assertRaisesRegex(ProfileValidationError, "HTTPS or loopback"):
+                    ProviderProfile.create(
+                        name=f"unsafe-{auth_kind.value.replace('_', '-')}",
+                        base_url="http://example.test/v1",
+                        model="test-model",
+                        auth_kind=auth_kind,
+                        capabilities=CAPABILITIES,
+                    )
+
+    def test_allows_plaintext_loopback_for_secret_backed_auth(self):
+        profile = ProviderProfile.create(
+            name="local-bearer",
+            base_url="http://127.0.0.1:8000/v1",
+            model="test-model",
+            auth_kind=AuthKind.LOCAL_SERVICE_BEARER,
+            capabilities=CAPABILITIES,
+        )
+
+        self.assertEqual(profile.base_url, "http://127.0.0.1:8000/v1")
+
     def test_rejects_missing_required_capability(self):
         with self.assertRaisesRegex(ProfileValidationError, "tool_calling"):
             ProviderProfile.create(
