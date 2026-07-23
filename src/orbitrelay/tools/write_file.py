@@ -3,13 +3,16 @@ import os
 from .path_safety import resolve_path_within
 
 
-def validate_write_target(working_directory, file_path):
+def validate_write_target(working_directory: str, file_path: str) -> str | None:
     try:
         _working_dir, target_file, valid_target_file = resolve_path_within(
             working_directory, file_path
         )
         if not valid_target_file:
-            return f'Error: Cannot write to "{file_path}" as it is outside the permitted working directory'
+            return (
+                f'Error: Cannot write to "{file_path}" as it is outside the '
+                f"permitted working directory"
+            )
 
         if os.path.isdir(target_file):
             return f'Error: Cannot write to "{file_path}" as it is a directory'
@@ -19,7 +22,7 @@ def validate_write_target(working_directory, file_path):
     return None
 
 
-def write_file(working_directory, file_path, content):
+def write_file(working_directory: str, file_path: str, content: str) -> str:
     try:
         validation_error = validate_write_target(working_directory, file_path)
         if validation_error is not None:
@@ -37,5 +40,5 @@ def write_file(working_directory, file_path, content):
             file.write(content)
 
         return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
-    except Exception as e:
-        return f"Error: {e}"
+    except Exception as exc:
+        return f"Error: {exc}"

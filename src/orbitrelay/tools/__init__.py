@@ -127,51 +127,81 @@ def prepare_tool(
     function = FUNCTIONS.get(name)
     if function is None:
         return f'Error: unknown function "{name}"'
+    arguments = _validated_arguments(name, arguments_json, working_directory, function)
+    if isinstance(arguments, str):
+        return arguments
+    approval_request = _approval_request(call_id, name, arguments)
+    if isinstance(approval_request, str):
+        return approval_request
+    return _prepared_call(name, approval_request, function, arguments)
 
-    try:
-        arguments = json.loads(arguments_json)
-    except (json.JSONDecodeError, TypeError) as exc:
-        return f'Error: invalid arguments for "{name}": {exc}'
 
-    if not isinstance(arguments, dict):
-        return f'Error: invalid arguments for "{name}": expected a JSON object'
-
-    arguments["working_directory"] = working_directory
-
-    try:
-        signature(function).bind(**arguments)
-    except TypeError as exc:
-        return f'Error: invalid arguments for "{name}": {exc}'
-
-    category = TOOL_CATEGORIES[name]
-    if name == "write_file":
-        if not isinstance(arguments["file_path"], str):
-            return f'Error: invalid arguments for "{name}": file_path must be a string'
-        if not isinstance(arguments["content"], str):
-            return f'Error: invalid arguments for "{name}": content must be a string'
-        validation_error = validate_write_target(
-            arguments["working_directory"], arguments["file_path"]
-        )
-        if validation_error is not None:
-            return validation_error
-        approval_request = ApprovalRequest.for_write(
-            call_id=call_id,
-            target=arguments["file_path"],
-            content_length=len(arguments["content"]),
-        )
-    else:
-        approval_request = ApprovalRequest(
-            call_id=call_id,
-            tool_name=name,
-            category=category,
-            safe_context=(),
-        )
-
+def _prepared_call(
+    name: str,
+    approval_request: ApprovalRequest,
+    function: Callable[..., str],
+    arguments: dict[str, Any],
+) -> PreparedToolCall:
     return PreparedToolCall(
         name=name,
         approval_request=approval_request,
         _function=function,
         _arguments=tuple(arguments.items()),
+    )
+
+
+def _validated_arguments(
+    name: str,
+    arguments_json: str,
+    working_directory: str,
+    function: Callable[..., str],
+) -> dict[str, Any] | str:
+    try:
+        arguments = json.loads(arguments_json)
+    except (json.JSONDecodeError, TypeError) as exc:
+        return f'Error: invalid arguments for "{name}": {exc}'
+    if not isinstance(arguments, dict):
+        return f'Error: invalid arguments for "{name}": expected a JSON object'
+    arguments["working_directory"] = working_directory
+    try:
+        signature(function).bind(**arguments)
+    except TypeError as exc:
+        return f'Error: invalid arguments for "{name}": {exc}'
+    return arguments
+
+
+def _approval_request(
+    call_id: str,
+    name: str,
+    arguments: dict[str, Any],
+) -> ApprovalRequest | str:
+    if name == "write_file":
+        return _write_approval_request(call_id, name, arguments)
+    return ApprovalRequest(
+        call_id=call_id,
+        tool_name=name,
+        category=TOOL_CATEGORIES[name],
+        safe_context=(),
+    )
+
+
+def _write_approval_request(
+    call_id: str,
+    name: str,
+    arguments: dict[str, Any],
+) -> ApprovalRequest | str:
+    file_path, content = arguments["file_path"], arguments["content"]
+    if not isinstance(file_path, str):
+        return f'Error: invalid arguments for "{name}": file_path must be a string'
+    if not isinstance(content, str):
+        return f'Error: invalid arguments for "{name}": content must be a string'
+    validation_error = validate_write_target(arguments["working_directory"], file_path)
+    if validation_error is not None:
+        return validation_error
+    return ApprovalRequest.for_write(
+        call_id=call_id,
+        target=file_path,
+        content_length=len(content),
     )
 
 
