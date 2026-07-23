@@ -1,12 +1,12 @@
-active_flow: planning
+active_flow: build_epic
 active_epic_id: e01
 active_story_id: e01s01
 release:
   current_version: 0.1.0
   next_target: provider-and-auth-profiles
 git:
-  branch: main
-  base_hash: 8a7eb7ef966f9e67a523223a7b8beca2527dddc0
+  branch: feat/provider-auth-profiles
+  base_hash: f423629
   handoff_ref: HEAD
   remote: origin/main
   push_requested: false
@@ -18,7 +18,7 @@ verification:
   project_tests: 37
   example_tests: 9
 handoff:
-  last_step_completed: P1 story slicing and implementation planning
+  last_step_completed: P1 feature worktree kickoff with green preflight
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -30,8 +30,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: kickoff-branch
-  next_action: Review e01s01, checkpoint planning artifacts, and create the provider-auth-profiles feature worktree.
+  next_skill: develop-tdd
+  next_action: Implement e01s01 tasks in order with offline red-green-refactor cycles.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -45,3 +45,5 @@ preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
+metrics:
+  story_start: "2026-07-23T00:05:08Z"
