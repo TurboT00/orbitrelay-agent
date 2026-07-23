@@ -1,14 +1,14 @@
 release:
   version: "0.2.0"
   codename: Provider and Auth Profiles
-  status: in_progress
+  status: completed
   semantic_release: true
   bump_hint: minor
 
 epics:
   - id: e01
     title: Provider and Auth Profiles
-    capsule_dir: epics/e01-provider-auth-profiles
+    capsule_dir: epics/archive/e01-provider-auth-profiles
     wsjf: 3.6
     bcps: 8
     note: >-

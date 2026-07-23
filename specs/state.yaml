@@ -1,17 +1,17 @@
-active_flow: release
-active_epic_id: e01
-active_story_id: e01s01
+active_flow: discover
+active_epic_id: null
+active_story_id: null
 release:
   current_version: 0.1.0
-  next_target: provider-and-auth-profiles
+  next_target: tool-approval-policies
   pr_number: 1
   pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/1
-  pr_state: open
-  merged: false
+  pr_state: merged
+  merged: true
   ci_verified: false
   ci_status: not_configured
 git:
-  branch: feat/provider-auth-profiles
+  branch: main
   base_hash: f423629
   handoff_ref: HEAD
   remote: origin/main
@@ -25,7 +25,7 @@ verification:
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: e01s01 PR 1 opened; branch pushed but not merged
+  last_step_completed: P1 provider/auth profiles approved, archived, and merged through PR 1
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -37,8 +37,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: release-branch
-  next_action: Review PR 1 and request explicit approval before merging; GitHub reports no configured checks.
+  next_skill: scope-work
+  next_action: Scope P2 tool approval policies from clean main before implementation.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
