@@ -1,5 +1,91 @@
-e01: done
-e01s01: done
+development_status:
+  e01: done
+  e01s01: done
+  e02: in_progress
+  e02s01: in_progress
+  e02s02: pending
+  e02s03: pending
+  e02s04: pending
+  e02s05: pending
+  e02s06: pending
+
+epics:
+  e01:
+    status: done
+    title: Provider and Auth Profiles
+  e02:
+    status: in_progress
+    title: Tool Approval Policies
+    wsjf: 4.0
+    total_bcps: 24
+
+stories:
+  e01s01:
+    status: done
+    title: Configure providers and secure named auth profiles
+    epic: e01
+  e02s01:
+    status: in_progress
+    title: Approve or deny a workspace file write
+    bcps: 5
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 0
+    tasks_failing: 5
+    risk_max: P0
+    security_max: high
+    started_at: "2026-07-23T19:05:28Z"
+  e02s02:
+    status: pending
+    title: Approve or deny local Python execution
+    bcps: 5
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 0
+    tasks_failing: 5
+    risk_max: P0
+    security_max: high
+  e02s03:
+    status: pending
+    title: Disable a tool for the current run
+    bcps: 3
+    epic: e02
+    tasks_total: 4
+    tasks_passing: 0
+    tasks_failing: 4
+    risk_max: P1
+    security_max: high
+  e02s04:
+    status: pending
+    title: Run safely in read-only or unattended contexts
+    bcps: 5
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 0
+    tasks_failing: 5
+    risk_max: P0
+    security_max: high
+  e02s05:
+    status: pending
+    title: Run with explicit pre-approved automation
+    bcps: 3
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 0
+    tasks_failing: 5
+    risk_max: P0
+    security_max: high
+  e02s06:
+    status: pending
+    title: Audit approval decisions without secret leakage
+    bcps: 3
+    epic: e02
+    tasks_total: 5
+    tasks_passing: 0
+    tasks_failing: 5
+    risk_max: P1
+    security_max: high
+
 gate_trace:
   verdict: PASS
   generated_at: "2026-07-23T01:20:00Z"
@@ -10,10 +96,3 @@ gate_trace:
   heuristic_ratio: 0.0
   downgrade_applied: false
   completeness_critic: FILLED
-e02: planned
-e02s01: pending
-e02s02: pending
-e02s03: pending
-e02s04: pending
-e02s05: pending
-e02s06: pending

@@ -2,7 +2,7 @@ STORY KEY: e02s01
 TITLE:     Approve or deny a workspace file write
 TYPE:      Story
 PARENT:    e02
-STATUS:    Refined
+STATUS:    In Progress
 AUTHOR:    OrbitRelay team           DATE: 2026-07-23
 MATURITY:  4
 SIZE:      M

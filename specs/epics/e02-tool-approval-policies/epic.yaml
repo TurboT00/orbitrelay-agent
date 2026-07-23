@@ -2,13 +2,13 @@ id: e02
 title: Tool Approval Policies
 wsjf: 4.0
 total_bcps: 24
-status: planned
+status: in_progress
 scope: specs/product/SCOPE_LATEST.yaml
 stories:
   - id: e02s01
     title: Approve or deny a workspace file write
     bcps: 5
-    status: planned
+    status: in_progress
     delta: MODIFIED
     spec: e02s01-approve-deny-workspace-write.md
     tasks: e02s01-tasks.yaml

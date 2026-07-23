@@ -25,8 +25,14 @@ verification:
   project_tests: 106
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
+epic_cycle:
+  current_step: develop-tdd
+  next_skill: develop-tdd
+  story_bcps: 5
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch]
+  audit_result: null
 handoff:
-  last_step_completed: P2 impact, threat model, and six-story implementation plan approved by user
+  last_step_completed: Build-epic survey confirmed e02s01 is ready on its clean feature branch
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -38,8 +44,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: build-epic
-  next_action: Begin e02s01 through the epic build cycle using develop-tdd and the failing task ledger.
+  next_skill: develop-tdd
+  next_action: Start e02s01 task 1 with a test-only RED commit for the approval request and decision contracts.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -59,4 +65,4 @@ preferences:
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
 metrics:
-  story_start: "2026-07-23T18:05:40Z"
+  story_start: "2026-07-23T19:05:28Z"
