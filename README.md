@@ -134,7 +134,9 @@ OrbitRelay does not combine partial provider settings from the process
 environment and a project `.env`: if the process supplies any `OPENAI_*` setting,
 that mapping is validated as one source; otherwise the loaded `.env` mapping is
 used. This prevents a project file from pairing its endpoint with an inherited
-credential.
+credential. OrbitRelay parses only `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and
+`OPENAI_MODEL` from `.env`; it never copies project-defined proxy, CA, or other
+transport variables into the process environment.
 
 P1 validates `api_key`, `external_first_party_cli`, `local_none`, and
 `local_service_bearer` contracts. Only `api_key` profiles are executable in this

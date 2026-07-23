@@ -6,7 +6,7 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import TextIO
 
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from openai import OpenAI
 
 from .agent import run_agent
@@ -125,10 +125,19 @@ def _run_agent_cli(
 
 def _environment_source(
     process_environment: Mapping[str, str],
+    dotenv_environment: Mapping[str, str],
 ) -> Mapping[str, str]:
     if any(key in process_environment for key in OPENAI_ENV_KEYS):
         return process_environment
-    return os.environ
+    return dotenv_environment
+
+
+def _dotenv_environment() -> dict[str, str]:
+    return {
+        key: value
+        for key, value in dotenv_values().items()
+        if isinstance(value, str) and key in OPENAI_ENV_KEYS
+    }
 
 
 def main(
@@ -143,7 +152,7 @@ def main(
     repository = profile_repository or ProfileRepository(
         default_profile_path(process_environment)
     )
-    load_dotenv()
+    dotenv_environment = _dotenv_environment()
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     if raw_argv and raw_argv[0] == "profile":
         return run_profile_cli(
@@ -153,7 +162,7 @@ def main(
         parse_args(raw_argv),
         repository,
         credential_store,
-        _environment_source(process_environment),
+        _environment_source(process_environment, dotenv_environment),
     )
 
 

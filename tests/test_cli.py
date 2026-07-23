@@ -76,7 +76,7 @@ class CliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as workspace:
             with (
                 patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
-                patch("orbitrelay.cli.load_dotenv") as load_dotenv,
+                patch("orbitrelay.cli.dotenv_values", return_value={}) as dotenv_values,
                 patch("orbitrelay.cli.OpenAI", return_value=fake_client) as openai,
                 patch(
                     "orbitrelay.cli.run_agent", return_value="final answer"
@@ -95,7 +95,7 @@ class CliTests(unittest.TestCase):
                     ),
                 )
 
-        load_dotenv.assert_called_once_with()
+        dotenv_values.assert_called_once_with()
         openai.assert_called_once_with(
             api_key="secret", base_url=DEFAULT_BASE_URL
         )
@@ -113,7 +113,7 @@ class CliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with (
                 patch.dict(os.environ, {}, clear=True),
-                patch("orbitrelay.cli.load_dotenv"),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI") as openai,
             ):
                 with self.assertRaisesRegex(ValueError, "OPENAI_API_KEY is required"):
@@ -134,7 +134,7 @@ class CliTests(unittest.TestCase):
             missing = Path(temporary_directory) / "missing"
             with (
                 patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
-                patch("orbitrelay.cli.load_dotenv"),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI") as openai,
             ):
                 with self.assertRaisesRegex(ValueError, "Workspace is not a directory"):
@@ -166,7 +166,7 @@ class CliTests(unittest.TestCase):
                     },
                     clear=True,
                 ),
-                patch("orbitrelay.cli.load_dotenv"),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI", return_value=fake_client) as openai,
                 patch("orbitrelay.cli.run_agent", return_value="done"),
                 redirect_stdout(StringIO()),
@@ -190,7 +190,7 @@ class CliTests(unittest.TestCase):
 
             with (
                 patch.dict(os.environ, {"OPENAI_API_KEY": "env-secret"}, clear=True),
-                patch("orbitrelay.cli.load_dotenv"),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI", return_value=fake_client) as openai,
                 patch("orbitrelay.cli.run_agent", return_value="done"),
                 redirect_stdout(StringIO()),
@@ -270,16 +270,16 @@ class CliTests(unittest.TestCase):
             )
             output = StringIO()
 
-            def redirect_home():
-                os.environ["ORBITRELAY_HOME"] = str(untrusted_home)
-
             with (
                 patch.dict(
                     os.environ,
                     {"ORBITRELAY_HOME": str(trusted_home)},
                     clear=True,
                 ),
-                patch("orbitrelay.cli.load_dotenv", side_effect=redirect_home),
+                patch(
+                    "orbitrelay.cli.dotenv_values",
+                    return_value={"ORBITRELAY_HOME": str(untrusted_home)},
+                ),
                 redirect_stdout(output),
             ):
                 cli.main(["profile", "list"])
@@ -292,13 +292,15 @@ class CliTests(unittest.TestCase):
             repository = ProfileRepository(Path(directory) / "profiles.json")
             fake_client = Mock(name="client")
 
-            def load_project_dotenv():
-                os.environ["OPENAI_BASE_URL"] = "https://project-controlled.test/v1"
-                os.environ["OPENAI_MODEL"] = "project-model"
-
             with (
                 patch.dict(os.environ, {"OPENAI_API_KEY": "process-key"}, clear=True),
-                patch("orbitrelay.cli.load_dotenv", side_effect=load_project_dotenv),
+                patch(
+                    "orbitrelay.cli.dotenv_values",
+                    return_value={
+                        "OPENAI_BASE_URL": "https://project-controlled.test/v1",
+                        "OPENAI_MODEL": "project-model",
+                    },
+                ),
                 patch("orbitrelay.cli.OpenAI", return_value=fake_client) as openai,
                 patch("orbitrelay.cli.run_agent", return_value="done"),
                 redirect_stdout(StringIO()),
@@ -308,6 +310,75 @@ class CliTests(unittest.TestCase):
         openai.assert_called_once_with(
             api_key="process-key", base_url=DEFAULT_BASE_URL
         )
+
+    def test_dotenv_transport_variables_never_mutate_process_environment(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            repository.save(profile("work", "https://profile.test/v1"))
+            credentials = FakeCredentialStore(
+                {repository.credential_key("work"): "profile-secret"}
+            )
+            dotenv = {
+                "OPENAI_API_KEY": "dotenv-key",
+                "HTTPS_PROXY": "https://project-proxy.test",
+                "ALL_PROXY": "https://project-proxy.test",
+                "SSL_CERT_FILE": "/project/controlled-ca.pem",
+            }
+
+            with (
+                patch.dict(os.environ, {}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value=dotenv),
+                patch("orbitrelay.cli.OpenAI") as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done"),
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(
+                    ["inspect", "--profile", "work"],
+                    profile_repository=repository,
+                    credential_store=credentials,
+                )
+                self.assertNotIn("HTTPS_PROXY", os.environ)
+                self.assertNotIn("ALL_PROXY", os.environ)
+                self.assertNotIn("SSL_CERT_FILE", os.environ)
+
+            openai.assert_called_once_with(
+                api_key="profile-secret", base_url="https://profile.test/v1"
+            )
+
+    def test_uses_dotenv_when_process_has_no_openai_settings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            with (
+                patch.dict(os.environ, {}, clear=True),
+                patch(
+                    "orbitrelay.cli.dotenv_values",
+                    return_value={"OPENAI_API_KEY": "dotenv-key"},
+                ),
+                patch("orbitrelay.cli.OpenAI") as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done"),
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(["inspect"], profile_repository=repository)
+
+        openai.assert_called_once_with(
+            api_key="dotenv-key", base_url=DEFAULT_BASE_URL
+        )
+
+    def test_partial_process_source_does_not_merge_dotenv_api_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            with (
+                patch.dict(os.environ, {"OPENAI_MODEL": "process-model"}, clear=True),
+                patch(
+                    "orbitrelay.cli.dotenv_values",
+                    return_value={"OPENAI_API_KEY": "dotenv-key"},
+                ),
+                patch("orbitrelay.cli.OpenAI") as openai,
+            ):
+                with self.assertRaisesRegex(ValueError, "OPENAI_API_KEY is required"):
+                    cli.main(["inspect"], profile_repository=repository)
+
+        openai.assert_not_called()
 
 
 if __name__ == "__main__":
