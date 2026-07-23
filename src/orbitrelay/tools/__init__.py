@@ -6,11 +6,8 @@ from dataclasses import dataclass, field
 from inspect import signature
 from typing import Any
 
-from orbitrelay.approvals import (
-    ApprovalRequest,
-    ToolCategory,
-    format_approval_request,
-)
+from orbitrelay.approval_format import format_prepared_call
+from orbitrelay.approvals import ApprovalRequest, ToolCategory
 
 from .get_file_content import get_file_content
 from .get_files_info import get_files_info
@@ -244,10 +241,7 @@ def execute_prepared_tool(
     verbose: bool = False,
 ) -> str:
     if verbose:
-        print(
-            f"Calling function: "
-            f"{format_approval_request(prepared.approval_request)}"
-        )
+        print(f"Calling function: {format_prepared_call(prepared.approval_request)}")
     else:
         print(f" - Calling function: {prepared.name}")
 
