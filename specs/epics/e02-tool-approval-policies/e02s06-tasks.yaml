@@ -1,21 +1,50 @@
 story_id: e02s06
 title: Audit approval decisions without secret leakage
-status: planned
+status: failing
 bcps: 3
 tasks:
   - id: 1
-    description: Record run-local approval decisions with tool name, disposition, and safe action context.
-    verify: "uv run python -m unittest tests.test_approvals -v"
-    status: pending
+    description: Add allowlisted approval records and stable reason tests across every policy outcome.
+    verify: "uv run python -m unittest tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: failing
+    allure:
+      severity: high
+      categories: [unit, Audit, Security Review]
   - id: 2
-    description: Exclude provider credentials, tool-result contents, and credential-like values from decision records and diagnostics.
-    verify: "uv run python -m unittest tests.test_approvals tests.test_redaction -v"
-    status: pending
+    description: Remove raw verbose argument printing and add bounded control-safe decision formatting.
+    verify: "uv run python -m unittest tests.test_tools tests.test_redaction -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: failing
+    allure:
+      severity: high
+      categories: [integration, Redaction, Security Review]
   - id: 3
-    description: Correlate approval records with tool-call outcomes across approve, deny, disable, timeout, and unattended paths.
-    verify: "uv run python -m unittest tests.test_agent tests.test_approvals -v"
-    status: pending
+    description: Emit ordered verbose events to stderr without changing nonverbose stdout or tool results.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: failing
+    allure:
+      severity: high
+      categories: [integration, CLI, Security Review]
   - id: 4
-    description: Run the complete offline regression, packaging, and isolated-wheel verification gate.
-    verify: "./scripts/check.sh"
-    status: pending
+    description: Add adversarial secret, control-character, oversized-value, and correlation fixtures.
+    verify: "uv run python -m unittest tests.test_approvals tests.test_redaction tests.test_agent -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: failing
+    allure:
+      severity: high
+      categories: [regression, Audit, Security Review]
+  - id: 5
+    description: Run the complete offline regression, package build, and isolated-wheel gate.
+    verify: "./scripts/check.sh && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P1
+    security: high
+    status: failing
+    allure:
+      severity: high
+      categories: [regression, Packaging, Security Review]

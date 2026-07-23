@@ -1,21 +1,50 @@
 story_id: e02s02
 title: Approve or deny local Python execution
-status: planned
+status: failing
 bcps: 5
 tasks:
   - id: 1
-    description: Specify an execution approval request that displays the command, arguments, and selected workspace.
-    verify: "uv run python -m unittest tests.test_approvals -v"
-    status: pending
+    description: Add execution approval preview and decision tests with hostile argument fixtures.
+    verify: "uv run python -m unittest tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [unit, Approval, Security Review]
   - id: 2
-    description: Route run_python_file requests through approval before a subprocess can start while preserving argument validation.
-    verify: "uv run python -m unittest tests.test_tools -v"
-    status: pending
+    description: Prepare and validate Python execution without launching a process.
+    verify: "uv run python -m unittest tests.test_tools tests.test_sandbox -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [integration, Process Execution, Security Review]
   - id: 3
-    description: Return denied execution to the model as a correlated structured tool failure without starting a process.
-    verify: "uv run python -m unittest tests.test_agent -v"
-    status: pending
+    description: Gate subprocess creation through complete-batch authorization and preserve correlated outcomes.
+    verify: "uv run python -m unittest tests.test_agent -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [integration, Agent Loop, Security Review]
   - id: 4
-    description: Exercise approve-once and deny-once execution decisions through the CLI using fake process effects.
-    verify: "uv run python -m unittest tests.test_cli tests.test_approvals -v"
-    status: pending
+    description: Exercise CLI approve/deny execution using fake input and a fake subprocess boundary.
+    verify: "uv run python -m unittest tests.test_cli tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [integration, CLI, Security Review]
+  - id: 5
+    description: Run execution security regressions and prove no process starts before approval.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools tests.test_sandbox tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [regression, Sandbox, Security Review]

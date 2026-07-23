@@ -1,4 +1,4 @@
-active_flow: plan
+active_flow: build_epic
 active_epic_id: e02
 active_story_id: e02s01
 release:
@@ -26,7 +26,7 @@ verification:
   example_tests: 9
   evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: P2 tool approval policies sliced into six vertical stories
+  last_step_completed: P2 impact, threat model, and six-story implementation plan approved by user
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -38,8 +38,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: plan-work
-  next_action: Expand e02s01 through e02s06 into countable story specs and implementation plans.
+  next_skill: build-epic
+  next_action: Begin e02s01 through the epic build cycle using develop-tdd and the failing task ledger.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -49,6 +49,11 @@ decisions:
   next_user_capability: Tool approvals follow provider and auth foundations.
   local_models: Start with Ollama loopback after capability profiles and approvals exist.
   remote_push: Do not push the handoff commit without a new explicit request.
+  approval_batching: Validate and authorize the full model tool-call batch before executing approved calls in original order.
+  approval_timeout: Default interactive decisions to 60 seconds, allow an explicit CLI override, and deny on timeout.
+  approval_preapproved: Require a per-tool allowlist for pre-approved automation; never infer blanket approval.
+  approval_audit: Keep decision records run-local and emit sanitized events to stderr only in verbose mode.
+  p2_plan_order: Build write approval, execution approval, run-scoped disable, unattended safety, per-tool pre-approval, then audit hardening.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.

@@ -1,21 +1,50 @@
 story_id: e02s04
 title: Run safely in read-only or unattended contexts
-status: planned
+status: failing
 bcps: 5
 tasks:
   - id: 1
-    description: Provide an explicit read-only run policy that allows confined reads and denies writes and execution without prompting.
-    verify: "uv run python -m unittest tests.test_approvals tests.test_tools -v"
-    status: pending
+    description: Add read-only and unavailable-input policy tests with fake timeout and EOF sources.
+    verify: "uv run python -m unittest tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [unit, Fail Closed, Security Review]
   - id: 2
-    description: Make confirm policy fail closed on EOF, timeout, malformed input, or unavailable approval input.
-    verify: "uv run python -m unittest tests.test_approvals -v"
-    status: pending
+    description: Add CLI policy and bounded timeout parsing with pre-network validation.
+    verify: "uv run python -m unittest tests.test_cli -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [integration, CLI, Security Review]
   - id: 3
-    description: Make noninteractive runs reject approval-required calls before any write or process begins.
-    verify: "uv run python -m unittest tests.test_cli tests.test_agent -v"
-    status: pending
+    description: Apply read-only and fail-closed outcomes across agent batches without prompting or side effects.
+    verify: "uv run python -m unittest tests.test_agent tests.test_tools -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [integration, Agent Loop, Security Review]
   - id: 4
-    description: Preserve structured model feedback and workspace validation for every unattended denial path.
-    verify: "uv run python -m unittest tests.test_agent tests.test_tools -v"
-    status: pending
+    description: Preserve confined reads and sandbox failures under every unattended path.
+    verify: "uv run python -m unittest tests.test_tools tests.test_sandbox -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [regression, Sandbox, Security Review]
+  - id: 5
+    description: Run EOF, timeout, malformed-input, and noninteractive security regressions.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent tests.test_tools tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
+    risk: P0
+    security: high
+    status: failing
+    allure:
+      severity: critical
+      categories: [regression, Fail Closed, Security Review]
