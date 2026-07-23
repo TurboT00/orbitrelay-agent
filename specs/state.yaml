@@ -1,4 +1,4 @@
-active_flow: build_epic
+active_flow: verification
 active_epic_id: e01
 active_story_id: e01s01
 release:
@@ -18,7 +18,7 @@ verification:
   project_tests: 37
   example_tests: 9
 handoff:
-  last_step_completed: P1 feature worktree kickoff with green preflight
+  last_step_completed: e01s01 implementation with all task verification commands passing
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -30,8 +30,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: develop-tdd
-  next_action: Implement e01s01 tasks in order with offline red-green-refactor cycles.
+  next_skill: verify-work
+  next_action: Run the P1 acceptance, security, diagnostics, and full-package verification gates.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

@@ -72,6 +72,54 @@ The same protocol boundary is intended to accommodate local servers such as
 Ollama or vLLM in a later release, but no local endpoint is currently tested or
 supported.
 
+## Provider profiles
+
+Named profiles store endpoint, model, auth-kind, and capability metadata in the
+current user's `~/.orbitrelay/profiles.json`. Set `ORBITRELAY_HOME` to use a
+different application directory, which is useful for isolated development and
+tests. Profile files never contain credentials.
+
+Create an API-key profile. OrbitRelay prompts without echoing the credential:
+
+```bash
+orbitrelay profile create deepseek-work \
+  --base-url https://api.deepseek.com \
+  --model deepseek-v4-flash \
+  --auth-kind api_key \
+  --capability tool_calling \
+  --capability assistant_message_passthrough
+```
+
+For automation, add `--secret-stdin` and pipe the credential through standard
+input. Secret-valued command-line options are intentionally unsupported.
+
+Manage and select profiles with:
+
+```bash
+orbitrelay profile list
+orbitrelay profile show deepseek-work
+orbitrelay profile select deepseek-work
+orbitrelay profile delete deepseek-work
+```
+
+At runtime, `--profile NAME` takes precedence over the saved selection, which
+takes precedence over the existing `OPENAI_*` environment configuration:
+
+```bash
+orbitrelay "inspect this project" --profile deepseek-work
+```
+
+Profile credentials use the operating system's native credential service through
+Python `keyring`. OrbitRelay fails closed when no approved native backend is
+available; it never falls back to a plaintext credential file. Linux systems
+need a configured Secret Service or KWallet backend. On macOS, credentials
+created by a Python executable may be readable by that same executable without a
+new prompt unless access is tightened in Keychain Access.
+
+P1 validates `api_key`, `external_first_party_cli`, `local_none`, and
+`local_service_bearer` contracts. Only `api_key` profiles are executable in this
+release. The other runtime adapters remain roadmap work.
+
 ## Tools and safety boundary
 
 The model can call four local tools:

@@ -1,6 +1,6 @@
 story_id: e01s01
 title: Manage and run secure provider profiles
-status: failing
+status: passing
 bcps: 8
 tasks:
   - id: 1
@@ -68,7 +68,7 @@ tasks:
     verify: "./scripts/check.sh"
     risk: P1
     security: medium
-    status: failing
+    status: passing
     allure:
       severity: high
       categories:
