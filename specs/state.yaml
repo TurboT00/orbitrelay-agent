@@ -21,18 +21,18 @@ working_tree:
   expected_after_handoff: clean
 verification:
   command: ./scripts/check.sh
-  result: pending
-  project_tests: 115
+  result: passed
+  project_tests: 120
   example_tests: 9
-  evidence: null
+  evidence: specs/verifications/e02s02-verify.yaml
 epic_cycle:
-  current_step: verify-work
-  next_skill: verify-work
+  current_step: audit-code
+  next_skill: audit-code
   story_bcps: 5
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd]
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd, verify-work]
   audit_result: null
 handoff:
-  last_step_completed: e02s02 developed through five passing task-ledger gates
+  last_step_completed: e02s02 P0 verify-work passed with user-confirmed approval and denial UAT
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -45,8 +45,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: verify-work
-  next_action: Run e02s02 P0 verification and present its manual approval script for user confirmation.
+  next_skill: audit-code
+  next_action: Run the non-optional e02s02 code-quality and F.I.R.S.T gates.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

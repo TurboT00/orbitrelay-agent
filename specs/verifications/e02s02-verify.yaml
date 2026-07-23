@@ -1,0 +1,117 @@
+story_id: e02s02
+verified_at: "2026-07-23T21:41:42Z"
+verifier: verify-work
+risk: P0
+branch: feat/tool-approval-policies
+merge_base: 8bcefba610a4fd1c66c47e665247325b04ecfdb2
+phases:
+  branch:
+    passed: true
+    note: Verification ran outside main/master on the dedicated P2 worktree.
+  preflight:
+    passed: true
+    command: ./scripts/check.sh
+  task_verifies:
+    passed: true
+    total: 5
+    results:
+      - task: 1
+        exit_code: 0
+        tests: 4
+      - task: 2
+        exit_code: 0
+        tests: 23
+      - task: 3
+        exit_code: 0
+        tests: 12
+      - task: 4
+        exit_code: 0
+        tests: 22
+      - task: 5
+        exit_code: 0
+        tests: 39
+  cli_smoke:
+    passed: true
+    checks:
+      - command: uv run orbitrelay --help
+        exit_code: 0
+      - command: uv run python -c "import orbitrelay; import orbitrelay.cli"
+        exit_code: 0
+      - command: uv run orbitrelay prompt --invalid-flag
+        expected_exit_code: 2
+        actual_exit_code: 2
+    version_check: "not applicable: current CLI contract has no --version flag"
+  build:
+    passed: true
+    command: ./scripts/check.sh
+    artifacts: [sdist, wheel, isolated-wheel CLI smoke]
+  typecheck:
+    passed: true
+    command: uvx ty check src tests
+    result: All checks passed
+  lint:
+    passed: true
+    command: lsp_diagnostics using configured Ruff route on seven affected files
+    diagnostics: 0
+  tests:
+    passed: true
+    project_tests: 120
+    example_tests: 9
+  terminal_verdict:
+    command: ./scripts/check.sh
+    exit_code: 0
+    captured_at: "2026-07-23T21:41:42Z"
+    stdout_sha256: b95b3c36b19f617e86351100a5169ec16a380cd719783f8de5279a1578d9180e
+    stderr_sha256: 6c1826da2672fc9297bd759e2caff16db49e2b2001c66400245eca4fc7e8613c
+    combined_sha256: 2c8fac63bbbeb71fa1c6e1b031df18504110e57f713d60988e6154aa9d3eca95
+    stdout_summary: >-
+      Ran 120 project tests: OK; ran 9 example tests: OK; built sdist and
+      wheel; isolated-wheel CLI smoke passed; All OrbitRelay checks passed.
+    note: Single contiguous run; evidence is not merged from multiple commands.
+  security:
+    passed: true
+    report: specs/security/REVIEW.md
+    high_confidence_high_findings: 0
+  blind_spots:
+    passed: true
+    report: specs/blind-spots.json
+    high: 0
+    medium: 2
+    low: 1
+    note: >-
+      Two specification-reference double-tag heuristics and one completed-story
+      stale-tag heuristic are non-blocking; e02s02 has three explicit high-confidence links.
+  completeness_critic:
+    passed: true
+    mode: manual project-root equivalent
+    note: >-
+      The global wrapper resolves its package root. Project-root trace and
+      blind-spot engines found explicit e02s02 code/test links and zero HIGH
+      findings; future pending e02 stories remain planned rather than active gaps.
+  nfr:
+    passed: true
+    report: specs/verifications/NFR-e02s02.json
+  manual:
+    passed: true
+    confirmed_by: user
+    steps:
+      - step: Approve a valid workspace Python execution
+        expected: The prepared script starts once with the approved argument.
+        actual: >-
+          User entered y; OrbitRelay displayed the trusted execution context and
+          the marker contained approved-marker.
+        passed: true
+      - step: Deny the same Python execution
+        expected: No process starts and the model receives a correlated denial.
+        actual: >-
+          User entered n; OrbitRelay reported approval_denied with user_denied,
+          and the filesystem sentinel confirmed no marker was created.
+        passed: true
+      - step: Inspect the approval preview
+        expected: Tool, interpreter label, workspace, file, arguments, and count are visible.
+        actual: User-observed prompt displayed every expected bounded field.
+        passed: true
+  gaps:
+    closed: true
+    items: []
+verdict: PASS
