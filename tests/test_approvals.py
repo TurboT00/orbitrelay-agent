@@ -223,6 +223,35 @@ class ApprovalSessionTests(unittest.TestCase):
         self.assertNotIn("super-secret-token", rendered)
         self.assertNotIn(hostile_args[0], rendered)
 
+    def test_records_capture_policy_timeout_and_preapproval_reasons(self):
+        session = ApprovalSession(
+            mode=ApprovalMode.PRE_APPROVED,
+            approved_tools=frozenset({"write_file"}),
+        )
+        write = ApprovalRequest.for_write(
+            call_id="call-write", target="ok.txt", content_length=2
+        )
+        execution = ApprovalRequest.for_execution(
+            call_id="call-exec",
+            workspace="/workspace",
+            target="task.py",
+            arguments=("--secret", "value"),
+        )
+        session.authorize((write, execution))
+
+        timeout_session = ApprovalSession(
+            TerminalAuthorizer(StringIO("maybe\nmaybe\nmaybe\n"), StringIO())
+        )
+        timeout_session.authorize((write,))
+
+        self.assertEqual(
+            [record.reason for record in session.records],
+            ["explicit_preapproval", "tool_not_preapproved"],
+        )
+        self.assertEqual(timeout_session.records[0].reason, "approval_invalid_input")
+        self.assertNotIn("--secret", repr(session.records))
+        self.assertNotIn("value", repr(session.records))
+
     def test_timeout_input_denies_before_authority_is_granted(self):
         class TimeoutInput:
             def readline(self):
