@@ -1,6 +1,6 @@
 story_id: e02s02
 title: Approve or deny local Python execution
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -44,7 +44,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_agent tests.test_tools tests.test_sandbox tests.test_approvals -v && printf '%s\\n' 'no new security findings in affected paths'"
     risk: P0
     security: high
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories: [regression, Sandbox, Security Review]

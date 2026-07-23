@@ -1,8 +1,9 @@
-# Security Review — e02s01 Workspace Write Approval
+# Security Review — e02s02 Python Execution Approval
 
-- Reviewed at: `2026-07-23T19:49:07Z`
+- Reviewed at: `2026-07-23T21:20:00Z`
+- Story baseline: `a84c622`
 - Merge base: `8bcefba610a4fd1c66c47e665247325b04ecfdb2`
-- Scope: production and test changes for e02s01 against `origin/main`
+- Scope: e02s02 production and test changes on `feat/tool-approval-policies`
 - Threat model: `specs/security/epics/e02/THREAT_MODEL.md`
 
 ## Gate result
@@ -11,60 +12,58 @@
 
 ## Data-flow review
 
-1. Model tool-call IDs, names, and JSON arguments enter through
-   `agent._validate_tool_calls`; the complete response batch is structurally
-   validated before preparation.
-2. `prepare_tool` resolves only fixed built-in handlers, overwrites any
-   model-supplied workspace, binds handler arguments, validates write argument
-   types, and rejects unsafe targets without invoking a handler.
-3. `PreparedToolCall` excludes its handler arguments from `repr`; its approval
-   request contains only call ID, fixed tool name, category, target, and content
-   length. File content remains available only to the eventual approved handler.
-4. `ApprovalSession.authorize` receives the complete tuple of valid requests and
-   validates that one decision exists per request before execution begins.
-5. Denied writes produce correlated JSON errors with fixed fields and never call
-   `execute_prepared_tool`.
-6. Approved writes execute in original order. `write_file` repeats path and
-   symlink confinement at the side-effect boundary.
-7. Terminal and verbose previews share bounded `ascii`-escaped formatting and do
-   not include write content.
+1. Model-controlled JSON enters `prepare_tool`, which resolves a fixed built-in
+   handler, overwrites any supplied workspace, binds the handler signature, and
+   requires a string Python path plus a list containing only string arguments.
+2. `validate_python_target` resolves the path inside the trusted workspace and
+   rejects escapes, missing/non-regular targets, symlinks outside the workspace,
+   and non-`.py` files before an approval request is created.
+3. `ApprovalRequest.for_execution` labels the fixed current interpreter and
+   carries immutable workspace, path, argument tuple, and argument count context.
+   Shared formatting bounds each value and escapes terminal control characters.
+4. `ApprovalSession` obtains the complete batch of decisions before any prepared
+   handler executes. A denial produces one correlated `approval_denied` result.
+5. Approved execution reaches `run_python_file`, which repeats path confinement,
+   uses `sys.executable`, constructs an argument list without a shell, sets the
+   trusted workspace as `cwd`, and retains the existing 30-second process timeout.
 
 ## Vulnerability assessment
 
 | Category | Result | Evidence |
 |---|---|---|
-| Authorization bypass | PASS | Consequential calls default deny without an injected trusted authorizer; CLI injects the terminal session. |
-| Path traversal | PASS | Preparation and execution both use `resolve_path_within`; escape and symlink regressions pass. |
-| Secrets exposure | PASS | Approval requests and verbose output exclude raw content; adversarial secret fixture passes. |
-| Unsafe deserialization | PASS | Untrusted arguments use `json.loads`; only object values with bound fixed handlers proceed. |
-| Command injection | PASS | e02s01 adds no shell construction; Python execution remains a fixed argument-list handler and is not approved by this story. |
-| Prompt spoofing | PASS | Fixed labels plus bounded `ascii` formatting prevent raw terminal controls from reaching trusted framing. |
+| Authorization bypass | PASS | Execute requests are consequential, default-denied, and start no process until the complete decision tuple returns. |
+| Command injection | PASS | `subprocess.run` receives a list beginning with trusted `sys.executable`; no shell, interpolation, `eval`, or arbitrary command is introduced. |
+| Path traversal | PASS | Preparation and execution both call `resolve_path_within`; outside, missing, non-Python, and symlink regressions pass. |
+| Prompt spoofing | PASS | Workspace, path, and arguments use fixed labels with bounded `ascii`-escaped rendering; raw ESC/newline controls do not reach stderr. |
+| Unsafe deserialization | PASS | Input uses `json.loads`, object checking, signature binding, and explicit path/argument runtime types. |
+| Secrets exposure | PASS | Approval output is bounded; process stdout/stderr and environment values are not included in approval previews or decision fields. |
 
-## Gap closed during verification
+## False-positive filtering
 
-Non-string write content originally reached `len()` during preparation and could
-crash the run before a correlated tool result. Verification reopened e02s01 task
-5, added a failing agent-level regression, and now rejects the argument before
-approval or side effects.
+- Replacing a workspace file between preparation and execution requires local
+  filesystem authority inside the documented trusted-user boundary. Confinement
+  is rechecked at execution, and theoretical local races are excluded.
+- Executing model-selected Python is the explicit user-approved capability, not
+  command injection: the executable is fixed, the target is confined, arguments
+  are passed without a shell, and denial remains side-effect free.
+- Provider receipt of an approved tool result is pre-existing agent behavior and
+  is not a new logging or credential-exposure path in this story.
 
 ## Non-blocking residual risks
 
-- Interactive timeout, TTY detection, malformed-input retry limits, and explicit
-  unattended policy selection belong to e02s04 and remain fail-closed defaults
-  or planned hardening rather than e02s01 release claims.
-- Rich Python execution previews belong to e02s02. The current safe default
-  denies execution unless an explicit authorizer decides otherwise.
-- Filesystem namespace changes between validation and open are mitigated by
-  revalidation at execution; power-loss and hostile local-user filesystem races
-  are outside the documented trusted-user boundary.
+- Interactive approval timeout and unattended/TTY policy remain planned for
+  e02s04; the current default continues to fail closed when approval is absent.
+- Run-scoped disable, pre-approved automation, and sanitized verbose decision
+  events remain scoped to e02s03, e02s05, and e02s06 respectively.
+- Arbitrary shell commands, background processes, and remote execution remain
+  out of scope.
 
 ## Security test evidence
 
-- `tests.test_agent`: complete-batch authorization, denial correlation, invalid
-  write rejection, and zero side effects.
-- `tests.test_tools`: preparation/execution split, unsafe target rejection, and
-  secret-free verbose previews.
-- `tests.test_sandbox`: symlink and workspace confinement.
-- `tests.test_approvals`: immutable safe request and explicit decisions.
-- Affected security suite: 35 tests passed.
-- Full project suite: 115 project tests and 9 example tests passed.
+- `tests.test_approvals`: bounded, control-escaped execution context.
+- `tests.test_tools`: side-effect-free preparation and invalid target/argument rejection.
+- `tests.test_agent`: complete-batch decisions, one approved process, correlated denial.
+- `tests.test_cli`: real agent-loop approve/deny flows with fake input and subprocess.
+- `tests.test_sandbox`: interpreter selection and symlink confinement.
+- Affected security suite: 39 tests passed with zero external process execution.
+- Configured Ty and Ruff diagnostics: zero.

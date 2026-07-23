@@ -37,13 +37,13 @@ stories:
     started_at: "2026-07-23T19:05:28Z"
     completed_at: "2026-07-23T21:02:30Z"
   e02s02:
-    status: in_progress
+    status: developed
     title: Approve or deny local Python execution
     bcps: 5
     epic: e02
     tasks_total: 5
-    tasks_passing: 0
-    tasks_failing: 5
+    tasks_passing: 5
+    tasks_failing: 0
     risk_max: P0
     security_max: high
     started_at: "2026-07-23T21:02:30Z"
