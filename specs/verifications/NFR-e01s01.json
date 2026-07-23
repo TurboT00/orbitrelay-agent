@@ -1,0 +1,19 @@
+{
+  "story_id": "e01s01",
+  "verified_at": "2026-07-23T00:21:37Z",
+  "result": "PASS",
+  "dimensions": {
+    "performance": {
+      "result": "PASS",
+      "evidence": "All 70 project tests completed in 0.623 seconds; profile operations are local and synchronous. No project-specific performance threshold exists."
+    },
+    "reliability": {
+      "result": "PASS",
+      "evidence": "Atomic metadata replacement, corrupt-state rejection, cleanup after failed creation, retry-safe deletion, duplicate preservation, and missing-credential behavior are covered offline."
+    },
+    "operability": {
+      "result": "PASS",
+      "evidence": "CLI help and invalid-input behavior passed; list/show expose safe state; unavailable keyrings and deferred auth kinds produce actionable pre-network failures."
+    }
+  }
+}

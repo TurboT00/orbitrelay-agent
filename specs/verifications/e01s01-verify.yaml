@@ -1,0 +1,88 @@
+story_id: e01s01
+verified_at: "2026-07-23T00:21:37Z"
+verifier: verify-work-cli
+risk: P0
+
+phases:
+  branch:
+    passed: true
+    branch: feat/provider-auth-profiles
+    merge_base: f423629862f78c772338a6acbefd6dacbe7b7fab
+  preflight:
+    passed: true
+    command: ./scripts/check.sh
+  build:
+    passed: true
+    artifacts:
+      - source distribution
+      - Python wheel
+      - isolated-wheel CLI smoke
+  typecheck:
+    passed: true
+    command: lsp_diagnostics src/orbitrelay tests
+    note: Zero errors; one non-blocking unused-initializer hint in atomic-write cleanup.
+  lint:
+    passed: true
+    command: lsp_diagnostics src/orbitrelay tests
+    note: Ruff reported zero diagnostics.
+  tests:
+    passed: true
+    project_tests: 70
+    example_tests: 9
+    network_calls: 0
+    native_keyring_calls: 0
+  terminal_verdict:
+    command: ./scripts/check.sh
+    exit_code: 0
+    captured_at: "2026-07-23T00:21:37Z"
+    note: >-
+      Single contiguous final run validated the lockfile, synchronized the locked
+      environment, ran both suites, checked imports and entry points, built both
+      distributions, and ran the command from an isolated wheel.
+  security:
+    passed: true
+    report: specs/security/REVIEW.md
+    unresolved_high_confidence_findings: 0
+  manual:
+    mode: cli
+    steps:
+      - step: Run orbitrelay --help and orbitrelay profile --help.
+        expected: Both command surfaces render usage successfully.
+        actual: Both exited 0 with usage output.
+        passed: true
+      - step: Run orbitrelay with an invalid flag.
+        expected: Argument parsing rejects the flag.
+        actual: Command exited 2 with an argparse error.
+        passed: true
+      - step: Create, select, list, show, and delete a local_none profile under an isolated ORBITRELAY_HOME.
+        expected: Lifecycle succeeds without keyring or network access.
+        actual: Every action exited 0; listing marked the selection and deletion left no profiles.
+        passed: true
+      - step: Inspect generated profile metadata and show output.
+        expected: No credential fields or values are present.
+        actual: Metadata contained neither secret nor api_key fields; show output contained only approved metadata and selection.
+        passed: true
+      - step: Exercise API-key creation, keyring failures, selection precedence, and agent wiring through fake boundaries.
+        expected: Secrets remain outside metadata and failures occur before client creation.
+        actual: Offline integration tests passed for prompt/stdin input, keyring lifecycle, explicit/default/environment precedence, and pre-client rejection.
+        passed: true
+  unavailable_optional_gates:
+    - scripts/check-blind-spots.sh
+    - scripts/lib/completeness-critic.sh
+  gaps:
+    closed: true
+    items:
+      - Duplicate profile creation initially removed the existing credential; fixed and regression-tested.
+      - Secret-backed profiles initially allowed remote plaintext HTTP; fixed and regression-tested.
+
+acceptance:
+  environment_compatibility: passed
+  named_profile_lifecycle: passed
+  deterministic_precedence: passed
+  all_auth_contracts_validated: passed
+  api_key_runtime: passed
+  deferred_auth_runtime_rejection: passed
+  fail_closed_keyring: passed
+  secret_free_serialization: passed
+  recursive_redaction: passed
+  retry_safe_deletion: passed

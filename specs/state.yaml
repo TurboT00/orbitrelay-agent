@@ -1,4 +1,4 @@
-active_flow: verification
+active_flow: review
 active_epic_id: e01
 active_story_id: e01s01
 release:
@@ -15,10 +15,11 @@ working_tree:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 37
+  project_tests: 70
   example_tests: 9
+  evidence: specs/verifications/e01s01-verify.yaml
 handoff:
-  last_step_completed: e01s01 implementation with all task verification commands passing
+  last_step_completed: e01s01 P0 verification with security and NFR evidence
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -30,8 +31,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: verify-work
-  next_action: Run the P1 acceptance, security, diagnostics, and full-package verification gates.
+  next_skill: audit-code
+  next_action: Audit the verified P1 diff, then request independent review before release.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

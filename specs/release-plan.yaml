@@ -1,7 +1,7 @@
 release:
   version: "0.2.0"
   codename: Provider and Auth Profiles
-  status: planning
+  status: in_progress
   semantic_release: true
   bump_hint: minor
 

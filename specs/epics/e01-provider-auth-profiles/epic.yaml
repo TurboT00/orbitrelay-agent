@@ -2,13 +2,13 @@ id: e01
 title: Provider and Auth Profiles
 wsjf: 3.6
 total_bcps: 8
-status: in_progress
+status: completed
 scope: specs/product/SCOPE_LATEST.yaml
 stories:
   - id: e01s01
     title: Manage and run secure provider profiles
     bcps: 8
-    status: verify
+    status: done
     delta: MODIFIED
     spec: e01s01-manage-run-provider-profiles.md
     tasks: e01s01-tasks.yaml
