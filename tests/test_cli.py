@@ -95,7 +95,7 @@ class CliTests(unittest.TestCase):
                     ),
                 )
 
-        dotenv_values.assert_called_once_with()
+        dotenv_values.assert_called_once_with(interpolate=False)
         openai.assert_called_once_with(
             api_key="secret", base_url=DEFAULT_BASE_URL
         )
@@ -379,6 +379,29 @@ class CliTests(unittest.TestCase):
                     cli.main(["inspect"], profile_repository=repository)
 
         openai.assert_not_called()
+
+    def test_dotenv_cannot_interpolate_inherited_secrets(self):
+        for field in ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"):
+            with self.subTest(field=field):
+                dotenv = {
+                    "OPENAI_API_KEY": "dotenv-key",
+                    "OPENAI_BASE_URL": DEFAULT_BASE_URL,
+                    "OPENAI_MODEL": DEFAULT_MODEL,
+                    field: "${AWS_SECRET_ACCESS_KEY}",
+                }
+                with (
+                    patch.dict(
+                        os.environ,
+                        {"AWS_SECRET_ACCESS_KEY": "must-not-expand"},
+                        clear=True,
+                    ),
+                    patch("orbitrelay.cli.dotenv_values", return_value=dotenv),
+                    patch("orbitrelay.cli.OpenAI") as openai,
+                ):
+                    with self.assertRaisesRegex(ValueError, "interpolation"):
+                        cli.main(["inspect"])
+
+                openai.assert_not_called()
 
 
 if __name__ == "__main__":

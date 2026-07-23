@@ -133,11 +133,14 @@ def _environment_source(
 
 
 def _dotenv_environment() -> dict[str, str]:
-    return {
+    values = {
         key: value
-        for key, value in dotenv_values().items()
+        for key, value in dotenv_values(interpolate=False).items()
         if isinstance(value, str) and key in OPENAI_ENV_KEYS
     }
+    if any("${" in value for value in values.values()):
+        raise ValueError("OPENAI_* dotenv interpolation is not supported")
+    return values
 
 
 def main(
