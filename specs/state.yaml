@@ -26,13 +26,13 @@ verification:
   example_tests: 9
   evidence: null
 epic_cycle:
-  current_step: develop-tdd
-  next_skill: develop-tdd
+  current_step: verify-work
+  next_skill: verify-work
   story_bcps: 5
-  completed_steps: [security-review, survey-context, plan-work, kickoff-branch]
+  completed_steps: [security-review, survey-context, plan-work, kickoff-branch, develop-tdd]
   audit_result: null
 handoff:
-  last_step_completed: e02s03 kept on the unpushed P2 branch; e02s04 initialized
+  last_step_completed: e02s04 developed through five passing task-ledger gates
   required_reading:
     - README.md
     - docs/project-roadmap.md
@@ -45,8 +45,8 @@ handoff:
     - Confirm Codex CLI minimum version and subscription-use expectations.
     - Approve session storage and retention before conversation persistence.
     - Approve certified Ollama models before claiming local tool support.
-  next_skill: develop-tdd
-  next_action: Implement e02s04 unattended and read-only safety from task 1 using RED/GREEN commits.
+  next_skill: verify-work
+  next_action: Run e02s04 P0 verification and present minimal unattended-policy UAT for user confirmation.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.

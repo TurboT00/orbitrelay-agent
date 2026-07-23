@@ -61,13 +61,13 @@ stories:
     started_at: "2026-07-23T21:45:09Z"
     completed_at: "2026-07-23T22:02:02Z"
   e02s04:
-    status: in_progress
+    status: developed
     title: Run safely in read-only or unattended contexts
     bcps: 5
     epic: e02
     tasks_total: 5
-    tasks_passing: 0
-    tasks_failing: 5
+    tasks_passing: 5
+    tasks_failing: 0
     risk_max: P0
     security_max: high
     started_at: "2026-07-23T22:02:02Z"
