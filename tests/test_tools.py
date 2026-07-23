@@ -92,6 +92,32 @@ class ExecuteToolTests(unittest.TestCase):
                 ),
             )
 
+    def test_rejects_invalid_python_execution_during_preparation(self):
+        with tempfile.TemporaryDirectory() as root:
+            workspace = Path(root, "workspace")
+            workspace.mkdir()
+            Path(root, "outside.py").write_text("print('outside')", encoding="utf-8")
+            Path(workspace, "notes.txt").write_text("not Python", encoding="utf-8")
+            Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
+            cases = (
+                ('{"file_path":"../outside.py"}', "outside the permitted"),
+                ('{"file_path":"missing.py"}', "does not exist"),
+                ('{"file_path":"notes.txt"}', "not a Python file"),
+                ('{"file_path":"task.py","args":[7]}', "args must be a list of strings"),
+            )
+
+            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+                for arguments, expected_error in cases:
+                    with self.subTest(arguments=arguments):
+                        prepared = prepare_tool(
+                            "call-exec", "run_python_file", arguments, str(workspace)
+                        )
+                        if not isinstance(prepared, str):
+                            self.fail(f"expected preparation error, got {prepared!r}")
+                        self.assertIn(expected_error, prepared)
+
+            run.assert_not_called()
+
     def test_rejects_unsafe_write_during_preparation(self):
         with tempfile.TemporaryDirectory() as root:
             workspace = Path(root, "workspace")
