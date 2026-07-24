@@ -1,6 +1,6 @@
 story_id: e04s03
 title: Persist and resume local sessions
-status: todo
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -8,28 +8,28 @@ tasks:
     verify: "uv run python -m unittest tests.test_sessions -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 2
     description: Implement append-only event persistence under ORBITRELAY_HOME/sessions.
     verify: "uv run python -m unittest tests.test_sessions tests.test_events -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 3
     description: Reconstruct message history for resume without secret fields.
     verify: "uv run python -m unittest tests.test_sessions tests.test_agent -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 4
     description: Reject symlink/world-writable session roots and path-escaping ids.
     verify: "uv run python -m unittest tests.test_sessions -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 5
     description: Wire create/resume options into CLI with temp-home offline tests.
     verify: "uv run python -m unittest tests.test_sessions tests.test_cli -v"
     risk: P0
     security: high
-    status: todo
+    status: passing

@@ -2,7 +2,7 @@ STORY KEY: e04s02
 TITLE:     Stream model tokens and tool progress
 TYPE:      Story
 PARENT:    e04
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      L

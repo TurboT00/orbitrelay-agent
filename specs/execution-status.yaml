@@ -16,14 +16,14 @@ development_status:
   e03s05: done
   e03s06: done
   e03s07: done
-  e04: planned
-  e04s01: todo
-  e04s02: todo
-  e04s03: todo
-  e04s04: todo
-  e04s05: todo
-  e04s06: todo
-  e04s07: todo
+  e04: done
+  e04s01: done
+  e04s02: done
+  e04s03: done
+  e04s04: done
+  e04s05: done
+  e04s06: done
+  e04s07: done
 
 epics:
   e01:
@@ -38,7 +38,7 @@ epics:
     status: done
     title: Supported Hosted Access
   e04:
-    status: planned
+    status: done
     title: Conversations and Streaming
     wsjf: 3.8
     total_bcps: 28
@@ -105,58 +105,65 @@ stories:
     title: Document and verify hosted-access offline
     epic: e03
   e04s01:
-    status: todo
+    status: done
     title: Emit a correlated run event model
     bcps: 5
     epic: e04
     tasks_total: 5
+    tasks_passing: 5
     risk_max: P0
     security_max: high
   e04s02:
-    status: todo
+    status: done
     title: Stream model tokens and tool progress
     bcps: 5
     epic: e04
     tasks_total: 5
+    tasks_passing: 5
     risk_max: P0
     security_max: high
   e04s03:
-    status: todo
+    status: done
     title: Persist and resume local sessions
     bcps: 5
     epic: e04
     tasks_total: 5
+    tasks_passing: 5
     risk_max: P0
     security_max: high
   e04s04:
-    status: todo
+    status: done
     title: List show and delete sessions
     bcps: 3
     epic: e04
     tasks_total: 3
+    tasks_passing: 3
     risk_max: P1
     security_max: high
   e04s05:
-    status: todo
+    status: done
     title: Budget context without splitting tool pairs
     bcps: 4
     epic: e04
     tasks_total: 4
+    tasks_passing: 4
     risk_max: P0
     security_max: high
   e04s06:
-    status: todo
+    status: done
     title: Emit structured run summaries
     bcps: 3
     epic: e04
     tasks_total: 3
+    tasks_passing: 3
     risk_max: P1
     security_max: medium
   e04s07:
-    status: todo
+    status: done
     title: Document and verify conversations offline
     bcps: 3
     epic: e04
     tasks_total: 3
+    tasks_passing: 3
     risk_max: P1
     security_max: high

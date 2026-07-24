@@ -49,7 +49,9 @@ uv run orbitrelay \
 ```
 
 Include per-response usage and tool-call details with `--verbose`. Verbose mode
-also emits secret-free approval decision lines on stderr.
+also emits secret-free approval decision lines and a structured run summary on
+stderr. Opt into live model deltas and tool progress with `--stream` (progress
+on stderr; final answer still on stdout).
 
 The module entry point is equivalent:
 
@@ -199,6 +201,57 @@ uv run orbitrelay codex logout
 `codex exec` is an **alternate runtime path**. Codex owns its own tool sandbox and
 approvals for that path; OrbitRelay local tool approvals still apply to the
 Chat Completions agent loop (`api_key` / SuperGrok profiles).
+
+## Conversations, streaming, and sessions
+
+OrbitRelay runs on a shared internal event model (`run.started`, model/tool/
+approval/usage events, `run.completed`). That model backs streaming, local
+session persistence, context budgeting, and run summaries.
+
+### Streaming
+
+```bash
+# Live token deltas and tool progress on stderr; final answer on stdout
+uv run orbitrelay "explain this project" --stream
+
+# Structured run summary on stderr (status, tool counts, usage)
+uv run orbitrelay "explain this project" --verbose
+```
+
+Non-stream mode remains the default so scripts and pipes only see the final
+answer on stdout.
+
+### Local sessions
+
+Resumable sessions are stored **per user**, not in the project repo:
+
+- Path: `~/.orbitrelay/sessions/<id>/` (or `$ORBITRELAY_HOME/sessions/<id>/`)
+- Layout: `metadata.json`, `messages.jsonl`, `events.jsonl`
+- Permissions: directories `0700`, files `0600`; symlinks and group/world-writable
+  paths are rejected
+- Retention: keep until you delete (no auto-purge)
+- Secrets: provider API keys and OAuth tokens are **never** written into session
+  files (redaction applies). P4 does **not** encrypt session payloads at the app
+  layer—disk access with your user privileges can still read transcripts.
+
+```bash
+# Create or resume a named session
+uv run orbitrelay "first turn" --session demo
+uv run orbitrelay "continue" --session demo
+
+# Auto-generate a session id (printed on stderr)
+uv run orbitrelay "start" --new-session
+
+# Manage sessions
+uv run orbitrelay session list
+uv run orbitrelay session show demo
+uv run orbitrelay session delete demo
+uv run orbitrelay session delete-all --confirm
+```
+
+Context history sent to the model is budgeted so tool-call/result pairs are never
+split: older complete segments drop first; if the newest segment alone cannot fit,
+OrbitRelay fails closed instead of orphaning a tool result.
 
 ## Tool approval policies
 

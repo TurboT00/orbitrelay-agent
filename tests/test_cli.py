@@ -119,6 +119,7 @@ class CliTests(unittest.TestCase):
             working_directory=str(Path(workspace).resolve()),
             verbose=True,
             approval_session=ANY,
+            event_collector=ANY,
         )
         self.assertEqual(exit_code, 0)
         self.assertEqual(output.getvalue(), "final answer\n")

@@ -2,7 +2,7 @@ STORY KEY: e04s07
 TITLE:     Document and verify conversations offline
 TYPE:      Story
 PARENT:    e04
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      S

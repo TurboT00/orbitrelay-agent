@@ -2,7 +2,7 @@ id: e04
 title: Conversations and Streaming
 wsjf: 3.8
 total_bcps: 28
-status: planned
+status: done
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.5.0"
 threat_model: specs/security/epics/e04/THREAT_MODEL.md
@@ -10,49 +10,49 @@ stories:
   - id: e04s01
     title: Emit a correlated run event model
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s01-run-event-model.md
     tasks: e04s01-tasks.yaml
   - id: e04s02
     title: Stream model tokens and tool progress
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s02-stream-progress.md
     tasks: e04s02-tasks.yaml
   - id: e04s03
     title: Persist and resume local sessions
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s03-persist-resume-sessions.md
     tasks: e04s03-tasks.yaml
   - id: e04s04
     title: List show and delete sessions
     bcps: 3
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s04-session-lifecycle-cli.md
     tasks: e04s04-tasks.yaml
   - id: e04s05
     title: Budget context without splitting tool pairs
     bcps: 4
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s05-context-budget-tool-pairs.md
     tasks: e04s05-tasks.yaml
   - id: e04s06
     title: Emit structured run summaries
     bcps: 3
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s06-run-summaries.md
     tasks: e04s06-tasks.yaml
   - id: e04s07
     title: Document and verify conversations offline
     bcps: 3
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s07-docs-offline-verification.md
     tasks: e04s07-tasks.yaml

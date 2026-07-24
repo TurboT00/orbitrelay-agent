@@ -1,14 +1,21 @@
 # story: e02s03
 # story: e02s06
+# story: e04s01
+# story: e04s02
+# story: e04s03
+# story: e04s05
 
 import json
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator, Sequence
 from typing import Any, TextIO
 
 from .approval_format import format_approval_record
 from .approvals import ApprovalDecision, ApprovalSession
+from .context_budget import DEFAULT_MAX_CONTEXT_CHARS, apply_context_budget
+from .events import EventCollector, EventType
 from .prompts import system_prompt
+from .streaming import assemble_chat_completion
 from .tools import (
     TOOL_DEFINITIONS,
     PreparedToolCall,
@@ -107,6 +114,28 @@ def _print_usage(response_number: int, response: Any) -> None:
     )
 
 
+def _emit_usage(
+    collector: EventCollector | None, response_number: int, response: Any
+) -> None:
+    usage = _field(response, "usage")
+    if collector is None:
+        return
+    if usage is None:
+        collector.emit(
+            EventType.USAGE_REPORTED,
+            response_number=response_number,
+            available=False,
+        )
+        return
+    collector.emit(
+        EventType.USAGE_REPORTED,
+        response_number=response_number,
+        available=True,
+        prompt_tokens=_field(usage, "prompt_tokens"),
+        completion_tokens=_field(usage, "completion_tokens"),
+    )
+
+
 def run_agent(
     client: Any,
     user_prompt: str,
@@ -114,18 +143,62 @@ def run_agent(
     *,
     working_directory: str,
     verbose: bool = False,
+    stream: bool = False,
     approval_session: ApprovalSession | None = None,
     audit_stream: TextIO | None = None,
+    event_collector: EventCollector | None = None,
+    initial_messages: Sequence[Any] | None = None,
+    on_messages_update: Callable[[list[Any]], None] | None = None,
+    max_context_chars: int | None = DEFAULT_MAX_CONTEXT_CHARS,
 ) -> str:
-    return _run_response_loop(
-        client,
-        model,
-        _initial_messages(user_prompt),
-        working_directory,
-        verbose,
-        approval_session or ApprovalSession(),
-        sys.stderr if audit_stream is None else audit_stream,
-    )
+    collector = event_collector
+    messages = _starting_messages(user_prompt, initial_messages)
+    if collector is not None:
+        collector.emit(
+            EventType.RUN_STARTED,
+            model=model,
+            workspace=working_directory,
+            stream=stream,
+        )
+    if on_messages_update is not None:
+        on_messages_update(list(messages))
+    try:
+        final_text = _run_response_loop(
+            client,
+            model,
+            messages,
+            working_directory,
+            verbose,
+            stream,
+            approval_session or ApprovalSession(),
+            sys.stderr if audit_stream is None else audit_stream,
+            collector,
+            on_messages_update,
+            max_context_chars,
+        )
+    except Exception as exc:
+        if collector is not None:
+            collector.emit(
+                EventType.RUN_ERROR,
+                error_type=type(exc).__name__,
+                message=str(exc),
+            )
+            collector.emit(EventType.RUN_COMPLETED, status="error")
+        raise
+    if collector is not None:
+        collector.emit(
+            EventType.MODEL_MESSAGE,
+            role="assistant",
+            content=final_text,
+        )
+        collector.emit(EventType.RUN_COMPLETED, status="completed")
+    if on_messages_update is not None:
+        # Persist final assistant message into conversation history.
+        final_messages = list(messages)
+        if not final_messages or final_messages[-1].get("role") != "assistant":
+            final_messages.append({"role": "assistant", "content": final_text})
+        on_messages_update(final_messages)
+    return final_text
 
 
 def _initial_messages(user_prompt: str) -> list[Any]:
@@ -135,19 +208,78 @@ def _initial_messages(user_prompt: str) -> list[Any]:
     ]
 
 
+def _starting_messages(
+    user_prompt: str, initial_messages: Sequence[Any] | None
+) -> list[Any]:
+    if initial_messages is None:
+        return _initial_messages(user_prompt)
+    history = [message for message in initial_messages]
+    history.append({"role": "user", "content": user_prompt})
+    return history
+
+
+def _create_model_response(
+    client: Any,
+    model: str,
+    messages: list[Any],
+    *,
+    stream: bool,
+    collector: EventCollector | None,
+    response_number: int,
+    max_context_chars: int | None,
+) -> Any:
+    outbound = (
+        messages
+        if max_context_chars is None
+        else apply_context_budget(messages, max_chars=max_context_chars)
+    )
+    if not stream:
+        return client.chat.completions.create(
+            model=model, messages=outbound, tools=TOOL_DEFINITIONS
+        )
+    stream_response = client.chat.completions.create(
+        model=model,
+        messages=outbound,
+        tools=TOOL_DEFINITIONS,
+        stream=True,
+    )
+    return assemble_chat_completion(
+        stream_response,
+        collector=collector,
+        response_number=response_number,
+    )
+
+
 def _run_response_loop(
     client: Any,
     model: str,
     messages: list[Any],
     working_directory: str,
     verbose: bool,
+    stream: bool,
     approval_session: ApprovalSession,
     audit_stream: TextIO,
+    event_collector: EventCollector | None,
+    on_messages_update: Callable[[list[Any]], None] | None = None,
+    max_context_chars: int | None = DEFAULT_MAX_CONTEXT_CHARS,
 ) -> str:
-    context = (working_directory, verbose, approval_session, audit_stream)
+    context = (
+        working_directory,
+        verbose,
+        approval_session,
+        audit_stream,
+        event_collector,
+        on_messages_update,
+    )
     for response_number in range(1, MAX_MODEL_RESPONSES + 1):
-        response = client.chat.completions.create(
-            model=model, messages=messages, tools=TOOL_DEFINITIONS
+        response = _create_model_response(
+            client,
+            model,
+            messages,
+            stream=stream,
+            collector=event_collector,
+            response_number=response_number,
+            max_context_chars=max_context_chars,
         )
         final_text = _process_response(response, response_number, messages, context)
         if final_text is not None:
@@ -159,16 +291,26 @@ def _process_response(
     response: Any,
     response_number: int,
     messages: list[Any],
-    context: tuple[str, bool, ApprovalSession, TextIO],
+    context: tuple[
+        str,
+        bool,
+        ApprovalSession,
+        TextIO,
+        EventCollector | None,
+        Callable[[list[Any]], None] | None,
+    ],
 ) -> str | None:
-    _workspace, verbose, _session, _audit = context
+    _workspace, verbose, _session, _audit, collector, on_messages_update = context
     if verbose:
         _print_usage(response_number, response)
+    _emit_usage(collector, response_number, response)
     message = _response_message(response)
     tool_calls = _field(message, "tool_calls") or []
     if not tool_calls:
         return _final_text(message)
     messages.extend(_tool_round_messages(message, tool_calls, response_number, context))
+    if on_messages_update is not None:
+        on_messages_update(list(messages))
     return None
 
 
@@ -193,21 +335,66 @@ def _tool_round_messages(
     message: Any,
     tool_calls: Any,
     response_number: int,
-    context: tuple[str, bool, ApprovalSession, TextIO],
+    context: tuple[
+        str,
+        bool,
+        ApprovalSession,
+        TextIO,
+        EventCollector | None,
+        Callable[[list[Any]], None] | None,
+    ],
 ) -> list[dict[str, Any]]:
-    workspace, verbose, session, audit_stream = context
+    workspace, verbose, session, audit_stream, collector, _on_messages_update = context
     if response_number == MAX_MODEL_RESPONSES:
         raise TurnLimitError(
             f"Model requested more tools after the {MAX_MODEL_RESPONSES}-response "
             f"limit; those calls were not executed"
         )
     validated = _validate_tool_calls(tool_calls)
+    if collector is not None:
+        for call_id, name, _arguments in validated:
+            collector.emit(
+                EventType.TOOL_REQUESTED,
+                tool_call_id=call_id,
+                tool=name,
+            )
+            collector.emit(
+                EventType.TOOL_PROGRESS,
+                tool_call_id=call_id,
+                tool=name,
+                phase="preparing",
+            )
     prepared = _prepare_calls(validated, workspace)
+    if collector is not None:
+        for call_id, name, _arguments in validated:
+            collector.emit(
+                EventType.TOOL_PROGRESS,
+                tool_call_id=call_id,
+                tool=name,
+                phase="authorizing",
+            )
     start = len(session.records)
     decisions = _authorize_calls(prepared, session)
     if verbose:
         _emit_approval_records(session.records[start:], audit_stream)
-    results = _tool_result_messages(validated, prepared, decisions, verbose)
+    if collector is not None:
+        for record in session.records[start:]:
+            collector.emit(
+                EventType.APPROVAL_DECIDED,
+                tool_call_id=record.call_id,
+                tool=record.tool_name,
+                disposition=record.disposition.value,
+                reason=record.reason,
+            )
+            collector.emit(
+                EventType.TOOL_PROGRESS,
+                tool_call_id=record.call_id,
+                tool=record.tool_name,
+                phase="executing",
+            )
+    results = _tool_result_messages(
+        validated, prepared, decisions, verbose, collector
+    )
     return [_serialize_assistant_message(message), *results]
 
 
@@ -243,16 +430,34 @@ def _tool_result_messages(
     prepared_calls: list[PreparedToolResult],
     decisions: Iterator[ApprovalDecision],
     verbose: bool,
+    collector: EventCollector | None = None,
 ) -> list[dict[str, str]]:
     messages = []
-    for (call_id, _name, _arguments), prepared in zip(
+    for (call_id, name, _arguments), prepared in zip(
         validated_calls, prepared_calls, strict=True
     ):
         result = prepared if isinstance(prepared, str) else _execute_authorized_call(
             prepared, next(decisions), verbose
         )
+        if collector is not None:
+            # Do not include raw tool payload content in events (may be large/sensitive).
+            collector.emit(
+                EventType.TOOL_RESULT,
+                tool_call_id=call_id,
+                tool=name,
+                status="error" if _looks_like_tool_error(result) else "ok",
+                content_length=len(result),
+            )
         messages.append({"role": "tool", "tool_call_id": call_id, "content": result})
     return messages
+
+
+def _looks_like_tool_error(result: str) -> bool:
+    try:
+        payload = json.loads(result)
+    except json.JSONDecodeError:
+        return False
+    return isinstance(payload, dict) and "error" in payload
 
 
 def _execute_authorized_call(
