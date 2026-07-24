@@ -2,7 +2,7 @@ active_flow: run_planning
 active_epic_id: e03
 active_story_id: null
 release:
-  current_version: 0.3.0
+  current_version: 0.4.0
   target_version: 0.4.0
   next_target: supported-hosted-access
   last_completed_release: 0.3.0
@@ -10,6 +10,8 @@ release:
   last_completed_pr: 2
   last_completed_merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
   last_completed_notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+  pending_release_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
+  pending_pr_draft: specs/archive/PR-0.4.0-supported-hosted-access.md
   pr_number: null
   pr_url: null
   pr_state: null
@@ -32,9 +34,9 @@ verification:
   evidence: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 planning:
   phase: plan
-  status: planned
+  status: implementation-complete
   entry_skill: survey-context
-  next_skill: plan-work
+  next_skill: release-branch
   scope_status: scoped
   scope_path: specs/product/SCOPE_LATEST.yaml
   research_status: complete
@@ -57,7 +59,7 @@ epic_cycle:
   audit_result: null
 handoff:
   last_step_completed: >-
-    plan-release created e03 capsule (e03s01–e03s07) and updated release-plan
+    P3 0.4.0 implementation complete; release notes + PR draft ready
   document: specs/epics/e03-supported-hosted-access/epic.yaml
   required_reading:
     - specs/product/SCOPE_LATEST.yaml
@@ -70,7 +72,8 @@ handoff:
     - Approve certified Ollama models before claiming local tool support (P5).
   next_skill: develop-tdd
   next_action: >-
-    SuperGrok design decisions locked to recommendations. Implement e03 on a
+    User review, then explicit push + PR for 0.4.0 Supported Hosted Access.
+    Do not push until requested.
     feature branch starting with e03s01 xAI BYOK. Do not implement on main.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
@@ -120,6 +123,7 @@ metrics:
   survey_context_completed_at: "2026-07-24T00:11:40Z"
   scope_work_completed_at: "2026-07-24T00:25:00Z"
   research_first_completed_at: "2026-07-24T00:40:00Z"
+  p3_implementation_completed_at: "2026-07-24T09:33:02Z"
   plan_release_completed_at: "2026-07-24T00:55:00Z"
   baseline_check_result: passed
   baseline_project_tests: 145

@@ -1,12 +1,14 @@
 release:
   version: "0.4.0"
   codename: Supported Hosted Access
-  status: in_progress
+  status: ready_for_pr
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.3.0"
   baseline_tag: v0.3.0
   handoff: specs/HANDOFF_LATEST.md
+  release_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
+  pr_draft: specs/archive/PR-0.4.0-supported-hosted-access.md
   scope: specs/product/SCOPE_LATEST.yaml
 
 previous_release:
