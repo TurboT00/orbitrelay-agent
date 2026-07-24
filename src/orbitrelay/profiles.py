@@ -23,6 +23,7 @@ class AuthKind(StrEnum):
     EXTERNAL_FIRST_PARTY_CLI = "external_first_party_cli"
     LOCAL_NONE = "local_none"
     LOCAL_SERVICE_BEARER = "local_service_bearer"
+    SUBSCRIPTION_OAUTH = "subscription_oauth"
 
 
 class ProviderCapability(StrEnum):
@@ -199,4 +200,5 @@ class ProviderProfile:
         return self.auth_kind in {
             AuthKind.API_KEY,
             AuthKind.LOCAL_SERVICE_BEARER,
+            AuthKind.SUBSCRIPTION_OAUTH,
         }

@@ -10,7 +10,7 @@ development_status:
   e02s06: done
   e03: planned
   e03s01: done
-  e03s02: todo
+  e03s02: done
   e03s03: todo
   e03s04: todo
   e03s05: todo
@@ -82,12 +82,12 @@ stories:
     risk_max: P1
     security_max: high
   e03s02:
-    status: todo
+    status: done
     title: Sign in and out of SuperGrok subscription OAuth
     bcps: 5
     epic: e03
     tasks_total: 5
-    tasks_passing: 0
+    tasks_passing: 5
     tasks_failing: 0
     risk_max: P0
     security_max: high

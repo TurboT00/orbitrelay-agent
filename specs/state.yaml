@@ -1,6 +1,6 @@
 active_flow: run_planning
 active_epic_id: e03
-active_story_id: e03s02
+active_story_id: e03s03
 release:
   current_version: 0.3.0
   target_version: 0.4.0

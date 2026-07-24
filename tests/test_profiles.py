@@ -143,7 +143,11 @@ class ProviderProfileTests(unittest.TestCase):
             )
 
     def test_rejects_plaintext_remote_endpoint_for_secret_backed_auth(self):
-        for auth_kind in (AuthKind.API_KEY, AuthKind.LOCAL_SERVICE_BEARER):
+        for auth_kind in (
+            AuthKind.API_KEY,
+            AuthKind.LOCAL_SERVICE_BEARER,
+            AuthKind.SUBSCRIPTION_OAUTH,
+        ):
             with self.subTest(auth_kind=auth_kind):
                 with self.assertRaisesRegex(ProfileValidationError, "HTTPS or loopback"):
                     ProviderProfile.create(

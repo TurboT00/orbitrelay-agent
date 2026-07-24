@@ -2,6 +2,7 @@
 # story: e02s04
 # story: e02s05
 # story: e03s01
+# story: e03s02
 
 import argparse
 import getpass
@@ -17,6 +18,7 @@ from openai import OpenAI
 
 from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
+from .auth_cli import run_auth_cli
 from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
@@ -245,6 +247,13 @@ def _dispatch_cli(
     if raw_argv and raw_argv[0] == "profile":
         return run_profile_cli(
             raw_argv[1:], repository, credential_store, secret_prompt, input_stream
+        )
+    if raw_argv and raw_argv[0] == "auth":
+        return run_auth_cli(
+            raw_argv[1:],
+            repository,
+            credential_store,
+            input_stream=input_stream,
         )
     return _run_agent_cli(
         parse_args(raw_argv),

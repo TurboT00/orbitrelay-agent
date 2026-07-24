@@ -2,7 +2,7 @@ STORY KEY: e03s02
 TITLE:     Sign in and out of SuperGrok subscription OAuth
 TYPE:      Story
 PARENT:    e03
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      L
