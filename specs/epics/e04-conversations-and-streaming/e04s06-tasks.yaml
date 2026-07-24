@@ -1,0 +1,23 @@
+story_id: e04s06
+title: Emit structured run summaries
+status: todo
+bcps: 3
+tasks:
+  - id: 1
+    description: Add RunSummary dataclass and failing tests from event logs.
+    verify: "uv run python -m unittest tests.test_run_summary -v"
+    risk: P1
+    security: medium
+    status: todo
+  - id: 2
+    description: Build summaries from the event collector at run end.
+    verify: "uv run python -m unittest tests.test_run_summary tests.test_events -v"
+    risk: P1
+    security: medium
+    status: todo
+  - id: 3
+    description: Optionally print summary in verbose mode; keep default stdout final-answer friendly.
+    verify: "uv run python -m unittest tests.test_run_summary tests.test_cli -v"
+    risk: P2
+    security: low
+    status: todo

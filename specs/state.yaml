@@ -31,44 +31,47 @@ verification:
   example_tests: 9
   evidence: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 planning:
-  phase: discover
-  status: scoped
+  phase: plan
+  status: planned
   entry_skill: survey-context
-  next_skill: research-first
+  next_skill: plan-work
   scope_status: scoped
   scope_path: specs/product/SCOPE_LATEST.yaml
+  research_status: complete
+  release_plan: specs/release-plan.yaml
+  epic_capsule: specs/epics/e04-conversations-and-streaming
   notes: >-
-    P4 Conversations and streaming scoped on clean main after v0.4.0. Locked:
-    full P4 in 0.5.0; per-user ~/.orbitrelay/sessions; 0700/0600 only; keep
-    until user deletes. Next: research-first then plan-release/slice-tasks.
+    P4 researched and plan-released. e04 capsule has seven stories with verify
+    tasks. Next: plan-work/kickoff-branch/develop-tdd starting e04s01. No coding
+    on main.
 epic_cycle:
-  current_step: research-first
-  next_skill: research-first
+  current_step: plan-work
+  next_skill: plan-work
   story_bcps: null
   completed_steps:
     - survey-context
     - scope-work
+    - research-first
+    - plan-release
   audit_result: null
 handoff:
   last_step_completed: >-
-    P4 scope-work complete; SCOPE_LATEST written for Conversations and streaming
-  document: specs/product/SCOPE_LATEST.yaml
+    P4 research-first + plan-release; e04 stories e04s01–e04s07 ready
+  document: specs/epics/e04-conversations-and-streaming/epic.yaml
   required_reading:
     - specs/product/SCOPE_LATEST.yaml
     - specs/release-plan.yaml
-    - docs/project-roadmap.md
-    - specs/archive/RELEASE-0.4.0-supported-hosted-access.md
+    - specs/epics/e04-conversations-and-streaming/epic.yaml
+    - specs/security/epics/e04/THREAT_MODEL.md
+    - specs/execution-status.yaml
     - src/orbitrelay/agent.py
-    - src/orbitrelay/approvals.py
-    - src/orbitrelay/cli.py
-    - src/orbitrelay/redaction.py
   open_decisions:
     - Approve certified Ollama models before claiming local tool support (P5).
     - Exact event schema fields, stream sink CLI flags, and session file format (plan-work).
   next_skill: research-first
   next_action: >-
-    research-first for event/stream/session prior art, then plan-release for e04.
-    Do not implement before stories are sliced.
+    kickoff-branch feat/e04-conversations-and-streaming, then develop-tdd e04s01.
+    Do not implement on main.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -117,6 +120,9 @@ preferences:
   - Keep GitHub optional until cross-machine development makes CI valuable.
   - Start P3 from discover/scope, not from implementation commits.
 metrics:
+  p4_plan_release_completed_at: "2026-07-24T17:41:41Z"
+  p4_research_completed_at: "2026-07-24T17:41:41Z"
+
   p4_scope_completed_at: "2026-07-24T17:35:22Z"
 
   p4_survey_started_at: "2026-07-24T16:53:22Z"

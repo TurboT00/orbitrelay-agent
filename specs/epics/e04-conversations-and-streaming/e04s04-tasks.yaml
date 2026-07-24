@@ -1,0 +1,23 @@
+story_id: e04s04
+title: List show and delete sessions
+status: todo
+bcps: 3
+tasks:
+  - id: 1
+    description: Add failing tests for list/show/delete/delete-all.
+    verify: "uv run python -m unittest tests.test_sessions -v"
+    risk: P1
+    security: high
+    status: todo
+  - id: 2
+    description: Implement session CLI commands with secret-free show output.
+    verify: "uv run python -m unittest tests.test_sessions tests.test_cli -v"
+    risk: P1
+    security: high
+    status: todo
+  - id: 3
+    description: Ensure delete is permanent and list reflects filesystem state.
+    verify: "uv run python -m unittest tests.test_sessions -v"
+    risk: P1
+    security: medium
+    status: todo

@@ -1,0 +1,35 @@
+story_id: e04s02
+title: Stream model tokens and tool progress
+status: todo
+bcps: 5
+tasks:
+  - id: 1
+    description: Add failing tests for stream=True transport adapter and delta events.
+    verify: "uv run python -m unittest tests.test_streaming -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 2
+    description: Implement provider stream normalization into model.delta/model.message events.
+    verify: "uv run python -m unittest tests.test_streaming tests.test_events -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 3
+    description: Wire CLI opt-in streaming flag to injectable sink (stderr/stdout policy tested).
+    verify: "uv run python -m unittest tests.test_streaming tests.test_cli -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 4
+    description: Emit tool.progress events around prepare/authorize/execute.
+    verify: "uv run python -m unittest tests.test_streaming tests.test_agent -v"
+    risk: P1
+    security: high
+    status: todo
+  - id: 5
+    description: Prove non-stream default path regressions remain green.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent -v"
+    risk: P0
+    security: medium
+    status: todo

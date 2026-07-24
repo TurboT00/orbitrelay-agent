@@ -155,3 +155,80 @@ references:
   - src/orbitrelay/approvals.py
   - src/orbitrelay/cli.py
   - src/orbitrelay/redaction.py
+
+prior_art:
+  researched_at: "2026-07-24"
+  status: complete
+  next_skill: plan-release
+  candidates:
+    - name: OrbitRelay agent loop + approval records
+      source: src/orbitrelay/agent.py, approvals.py, approval_format.py, redaction.py
+      verdict: extend
+      notes: >-
+        run_agent is non-streaming chat.completions.create with correlated
+        tool_call_id results and optional verbose approval audit on stderr.
+        Build a first-class event bus/emitter that both the stream sink and
+        session store subscribe to, rather than printing ad-hoc strings only.
+    - name: ProfileStore permission model
+      source: src/orbitrelay/profile_store.py
+      verdict: compose
+      notes: >-
+        Reuse ORBITRELAY_HOME, 0o700 dirs, 0o600 files, symlink rejection, and
+        flock patterns for sessions under ORBITRELAY_HOME/sessions.
+    - name: OpenAI Chat Completions streaming
+      source: https://platform.openai.com/docs/guides/streaming-responses
+      verdict: extend
+      notes: >-
+        Provider transport uses stream=True; chunks expose choices[0].delta
+        content/tool_calls. OrbitRelay should normalize provider chunks into
+        its own event types so xAI/OpenAI differences stay at the edge.
+        Non-stream mode remains default for scripts/pipes.
+    - name: Codex JSONL event stream (inspiration only)
+      source: https://developers.openai.com/codex/noninteractive/
+      verdict: compose
+      notes: >-
+        Useful shape reference (thread/turn/item/error JSONL) for machine-readable
+        progress. Do not couple OrbitRelay Chat Completions loop to Codex exec
+        events; keep Codex as alternate process boundary.
+    - name: External session frameworks (LangGraph/etc.)
+      source: ecosystem scan
+      verdict: build
+      notes: >-
+        Adopting a heavyweight orchestration framework would fight the small
+        offline-tested CLI architecture. Build a minimal JSONL/JSON session
+        format owned by OrbitRelay.
+
+  pinned_contracts:
+    event_model:
+      required_types:
+        - run.started
+        - model.delta
+        - model.message
+        - tool.requested
+        - approval.decided
+        - tool.progress
+        - tool.result
+        - usage.reported
+        - run.error
+        - run.completed
+      correlation: tool events carry tool_call_id; approvals correlate to tool requests
+      redaction: serialize through redact_secrets / allowlisted fields only
+    streaming:
+      provider_flag: "chat.completions.create(..., stream=True)"
+      default: non-stream for scripts; opt-in --stream (name finalized in plan-work)
+      sink: injectable TextIO/event consumer; terminal-friendly text + optional JSONL
+    sessions:
+      root: "$ORBITRELAY_HOME/sessions or ~/.orbitrelay/sessions"
+      permissions: "dirs 0700, files 0600; reject symlinks and group/world-writable"
+      retention: keep-until-delete with list/show/delete
+      format_candidate: "one directory per session id; append-only events.jsonl + metadata.json"
+      secrets: never store API keys or OAuth tokens in session files
+    context_budget:
+      rule: drop or keep complete tool-call/result pairs together; never orphan a tool result
+    run_summary:
+      fields_candidate: [status, response_count, tool_counts, approval_counts, usage, error_code]
+
+  outcome_summary: >-
+    Build OrbitRelay-owned event model, stream adapter, and session store by
+    extending agent.py and composing ProfileStore safety patterns. Use OpenAI
+    stream=True at the transport edge only.

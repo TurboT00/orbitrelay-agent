@@ -1,7 +1,7 @@
 release:
   version: "0.5.0"
   codename: Conversations and Streaming
-  status: planned
+  status: planning
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.4.0"
@@ -23,11 +23,13 @@ epics:
   - id: e04
     title: Conversations and Streaming
     capsule_dir: epics/e04-conversations-and-streaming
-    status: pending_discovery
+    status: planned
+    wsjf: 3.8
+    bcps: 28
     note: >-
-      Next priority after P3. Event model first, then streaming, per-user
-      sessions (0700/0600, keep-until-delete), context budgeting, run summaries.
-      Epic capsule and stories to be created during plan-release after research.
+      Event model first, then streaming, per-user sessions (0700/0600,
+      keep-until-delete), pair-preserving context budget, run summaries.
+      WSJF includes +2 security boost for session/transcript handling.
 
 bugs:
   total: 0
