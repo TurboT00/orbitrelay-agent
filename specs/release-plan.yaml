@@ -1,7 +1,7 @@
 release:
   version: "0.5.0"
   codename: Conversations and Streaming
-  status: ready_for_pr
+  status: released
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.4.0"
@@ -10,6 +10,9 @@ release:
   scope: specs/product/SCOPE_LATEST.yaml
   release_notes: specs/archive/RELEASE-0.5.0-conversations-and-streaming.md
   pr_draft: specs/archive/PR-0.5.0-conversations-and-streaming.md
+  released_tag: v0.5.0
+  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.5.0
+  merge_commit: a29e5dc1827ab9b6a2538ea12c25aaa9750e360e
 
 previous_release:
   version: "0.4.0"

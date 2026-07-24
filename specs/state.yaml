@@ -1,18 +1,18 @@
-active_flow: run_planning
-active_epic_id: e04
+active_flow: none
+active_epic_id: null
 active_story_id: null
 release:
   current_version: 0.5.0
-  target_version: 0.5.0
-  next_target: conversations-and-streaming
-  last_completed_release: 0.4.0
-  last_completed_tag: v0.4.0
-  last_completed_pr: 3
-  last_completed_merge_commit: a983f944be785d3cbfa5b32dda00eeb7dad3411a
-  last_completed_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
-  pr_number: 3
-  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/3
-  pr_state: merged
+  target_version: null
+  next_target: null
+  last_completed_release: 0.5.0
+  last_completed_tag: v0.5.0
+  last_completed_pr: null
+  last_completed_merge_commit: a29e5dc1827ab9b6a2538ea12c25aaa9750e360e
+  last_completed_notes: specs/archive/RELEASE-0.5.0-conversations-and-streaming.md
+  pr_number: null
+  pr_url: null
+  pr_state: null
   merged: true
   ci_verified: false
   ci_status: not_configured
@@ -34,7 +34,7 @@ planning:
   phase: plan
   status: planned
   entry_skill: survey-context
-  next_skill: release-branch
+  next_skill: survey-context
   scope_status: scoped
   scope_path: specs/product/SCOPE_LATEST.yaml
   research_status: complete
@@ -56,7 +56,7 @@ epic_cycle:
   audit_result: null
 handoff:
   last_step_completed: >-
-    P4 e04 fully implemented; 0.5.0 release handoff ready on feature branch
+    P4 0.5.0 merged to main and tagged v0.5.0
   document: specs/epics/e04-conversations-and-streaming/epic.yaml
   required_reading:
     - specs/product/SCOPE_LATEST.yaml
@@ -70,7 +70,8 @@ handoff:
     - Exact event schema fields, stream sink CLI flags, and session file format (plan-work).
   next_skill: research-first
   next_action: >-
-    Review branch, then explicit push + PR for 0.5.0 Conversations and Streaming.
+    P4 complete. Next roadmap item is P5 Qualified local models when ready.
+    Start with survey-context; do not begin without user direction.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -113,13 +114,15 @@ decisions:
   approval_audit: Keep decision records run-local and emit sanitized events to stderr only in verbose mode.
   p2_status: Completed and released as 0.3.0.
   p3_status: Completed and released as 0.4.0.
-  p4_status: Implemented on feat/e04-conversations-and-streaming (pending PR/release).
+  p4_status: Completed and released as 0.5.0.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
   - Start P3 from discover/scope, not from implementation commits.
 metrics:
+  release_0_5_0_completed_at: "2026-07-24T21:11:53Z"
+
   p4_implementation_completed_at: "2026-07-24T21:08:48Z"
 
   p4_plan_release_completed_at: "2026-07-24T17:41:41Z"
