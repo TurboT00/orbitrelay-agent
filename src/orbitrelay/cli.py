@@ -7,6 +7,7 @@
 # story: e03s04
 # story: e03s05
 # story: e03s06
+# story: e04s02
 
 import argparse
 import getpass
@@ -24,6 +25,7 @@ from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
 from .auth_cli import run_auth_cli
 from .codex_cli import run_codex_cli
+from .events import EventCollector, EventType, RunEvent
 from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
@@ -49,6 +51,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="OrbitRelay coding agent")
     parser.add_argument("user_prompt", help="User prompt")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
+    parser.add_argument(
+        "--stream",
+        action="store_true",
+        help="Stream model token deltas and tool progress to stderr",
+    )
     parser.add_argument("--profile", help="Named provider profile for this run")
     parser.add_argument(
         "--workspace",
@@ -175,6 +182,18 @@ def _provider_http_error_message(exc: APIStatusError) -> str:
     return f"Provider request failed (HTTP {status})"
 
 
+def _stream_live_sink(event: RunEvent) -> None:
+    if event.type is EventType.MODEL_DELTA:
+        text = event.data.get("text")
+        if isinstance(text, str) and text:
+            print(text, end="", file=sys.stderr, flush=True)
+        return
+    if event.type is EventType.TOOL_PROGRESS:
+        tool = event.data.get("tool", "tool")
+        phase = event.data.get("phase", "progress")
+        print(f"\n[{phase}] {tool}", file=sys.stderr, flush=True)
+
+
 def _invoke_agent(
     args: argparse.Namespace,
     api_config: ApiConfig,
@@ -184,19 +203,29 @@ def _invoke_agent(
     timeout = _approval_timeout(args.approval_timeout)
     approved_tools = _approved_tools(args)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
+    stream = bool(getattr(args, "stream", False))
+    run_kwargs: dict[str, object] = {
+        "working_directory": workspace,
+        "verbose": args.verbose,
+        "approval_session": _approval_session(
+            input_stream, ApprovalMode(args.approval_policy), timeout, approved_tools
+        ),
+    }
+    if stream:
+        run_kwargs["stream"] = True
+        run_kwargs["event_collector"] = EventCollector(live_sink=_stream_live_sink)
     try:
-        return run_agent(
+        final_text = run_agent(
             client,
             args.user_prompt,
             api_config.model,
-            working_directory=workspace,
-            verbose=args.verbose,
-            approval_session=_approval_session(
-                input_stream, ApprovalMode(args.approval_policy), timeout, approved_tools
-            ),
+            **run_kwargs,  # type: ignore[arg-type]
         )
     except APIStatusError as exc:
         raise ValueError(_provider_http_error_message(exc)) from exc
+    if stream:
+        print(file=sys.stderr)
+    return final_text
 
 
 def _approval_timeout(value: str) -> float:

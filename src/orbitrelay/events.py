@@ -12,8 +12,10 @@ from .redaction import redact_secrets
 
 class EventType(StrEnum):
     RUN_STARTED = "run.started"
+    MODEL_DELTA = "model.delta"
     MODEL_MESSAGE = "model.message"
     TOOL_REQUESTED = "tool.requested"
+    TOOL_PROGRESS = "tool.progress"
     APPROVAL_DECIDED = "approval.decided"
     TOOL_RESULT = "tool.result"
     USAGE_REPORTED = "usage.reported"
@@ -36,8 +38,9 @@ class RunEvent:
 class EventCollector:
     """Ordered, secret-redacting event sink for a single run."""
 
-    def __init__(self) -> None:
+    def __init__(self, live_sink: Any | None = None) -> None:
         self._events: list[RunEvent] = []
+        self._live_sink = live_sink
 
     @property
     def events(self) -> tuple[RunEvent, ...]:
@@ -47,6 +50,8 @@ class EventCollector:
         typed = event_type if isinstance(event_type, EventType) else EventType(event_type)
         event = RunEvent(type=typed, data=dict(data))
         self._events.append(event)
+        if self._live_sink is not None:
+            self._live_sink(event)
         return event
 
     def as_dicts(self) -> list[dict[str, Any]]:

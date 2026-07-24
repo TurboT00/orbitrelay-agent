@@ -1,6 +1,7 @@
 # story: e02s03
 # story: e02s06
 # story: e04s01
+# story: e04s02
 
 import json
 import sys
@@ -11,6 +12,7 @@ from .approval_format import format_approval_record
 from .approvals import ApprovalDecision, ApprovalSession
 from .events import EventCollector, EventType
 from .prompts import system_prompt
+from .streaming import assemble_chat_completion
 from .tools import (
     TOOL_DEFINITIONS,
     PreparedToolCall,
@@ -138,6 +140,7 @@ def run_agent(
     *,
     working_directory: str,
     verbose: bool = False,
+    stream: bool = False,
     approval_session: ApprovalSession | None = None,
     audit_stream: TextIO | None = None,
     event_collector: EventCollector | None = None,
@@ -148,6 +151,7 @@ def run_agent(
             EventType.RUN_STARTED,
             model=model,
             workspace=working_directory,
+            stream=stream,
         )
     try:
         final_text = _run_response_loop(
@@ -156,6 +160,7 @@ def run_agent(
             _initial_messages(user_prompt),
             working_directory,
             verbose,
+            stream,
             approval_session or ApprovalSession(),
             sys.stderr if audit_stream is None else audit_stream,
             collector,
@@ -186,12 +191,39 @@ def _initial_messages(user_prompt: str) -> list[Any]:
     ]
 
 
+def _create_model_response(
+    client: Any,
+    model: str,
+    messages: list[Any],
+    *,
+    stream: bool,
+    collector: EventCollector | None,
+    response_number: int,
+) -> Any:
+    if not stream:
+        return client.chat.completions.create(
+            model=model, messages=messages, tools=TOOL_DEFINITIONS
+        )
+    stream_response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        tools=TOOL_DEFINITIONS,
+        stream=True,
+    )
+    return assemble_chat_completion(
+        stream_response,
+        collector=collector,
+        response_number=response_number,
+    )
+
+
 def _run_response_loop(
     client: Any,
     model: str,
     messages: list[Any],
     working_directory: str,
     verbose: bool,
+    stream: bool,
     approval_session: ApprovalSession,
     audit_stream: TextIO,
     event_collector: EventCollector | None,
@@ -204,8 +236,13 @@ def _run_response_loop(
         event_collector,
     )
     for response_number in range(1, MAX_MODEL_RESPONSES + 1):
-        response = client.chat.completions.create(
-            model=model, messages=messages, tools=TOOL_DEFINITIONS
+        response = _create_model_response(
+            client,
+            model,
+            messages,
+            stream=stream,
+            collector=event_collector,
+            response_number=response_number,
         )
         final_text = _process_response(response, response_number, messages, context)
         if final_text is not None:
@@ -268,7 +305,21 @@ def _tool_round_messages(
                 tool_call_id=call_id,
                 tool=name,
             )
+            collector.emit(
+                EventType.TOOL_PROGRESS,
+                tool_call_id=call_id,
+                tool=name,
+                phase="preparing",
+            )
     prepared = _prepare_calls(validated, workspace)
+    if collector is not None:
+        for call_id, name, _arguments in validated:
+            collector.emit(
+                EventType.TOOL_PROGRESS,
+                tool_call_id=call_id,
+                tool=name,
+                phase="authorizing",
+            )
     start = len(session.records)
     decisions = _authorize_calls(prepared, session)
     if verbose:
@@ -281,6 +332,12 @@ def _tool_round_messages(
                 tool=record.tool_name,
                 disposition=record.disposition.value,
                 reason=record.reason,
+            )
+            collector.emit(
+                EventType.TOOL_PROGRESS,
+                tool_call_id=record.call_id,
+                tool=record.tool_name,
+                phase="executing",
             )
     results = _tool_result_messages(
         validated, prepared, decisions, verbose, collector

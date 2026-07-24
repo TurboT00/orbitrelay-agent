@@ -17,7 +17,7 @@ stories:
   - id: e04s02
     title: Stream model tokens and tool progress
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s02-stream-progress.md
     tasks: e04s02-tasks.yaml

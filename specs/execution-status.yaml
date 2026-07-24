@@ -18,7 +18,7 @@ development_status:
   e03s07: done
   e04: planned
   e04s01: done
-  e04s02: todo
+  e04s02: done
   e04s03: todo
   e04s04: todo
   e04s05: todo
@@ -114,11 +114,12 @@ stories:
     risk_max: P0
     security_max: high
   e04s02:
-    status: todo
+    status: done
     title: Stream model tokens and tool progress
     bcps: 5
     epic: e04
     tasks_total: 5
+    tasks_passing: 5
     risk_max: P0
     security_max: high
   e04s03:
