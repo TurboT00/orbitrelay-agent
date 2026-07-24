@@ -1,6 +1,6 @@
 story_id: e04s07
 title: Document and verify conversations offline
-status: todo
+status: passing
 bcps: 3
 tasks:
   - id: 1
@@ -8,16 +8,16 @@ tasks:
     verify: "rg -n "session|stream|ORBITRELAY_HOME/sessions|0700" README.md"
     risk: P2
     security: medium
-    status: todo
+    status: passing
   - id: 2
     description: Align roadmap status for P4 implementation notes if needed.
     verify: "rg -n "P4|Conversations and streaming" docs/project-roadmap.md"
     risk: P2
     security: low
-    status: todo
+    status: passing
   - id: 3
     description: Run full offline gate after P4 implementation.
     verify: "./scripts/check.sh"
     risk: P0
     security: high
-    status: todo
+    status: passing

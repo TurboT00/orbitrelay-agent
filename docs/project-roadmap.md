@@ -147,19 +147,21 @@ Acceptance criteria met:
 
 ## P4 — Conversations and streaming
 
-Implement one event model before adding both features. It must represent model
-output, tool requests, approval decisions, tool results, usage, errors, and run
-completion.
+**Status:** implemented on branch `feat/e04-conversations-and-streaming` (package
+target `0.5.0`).
 
-Then add:
+Delivered design:
 
-- token and tool-progress streaming;
-- local resumable sessions with explicit retention and deletion;
+- one shared run event model (model/tool/approval/usage/error/completion);
+- opt-in token and tool-progress streaming (`--stream`);
+- local resumable sessions under `$ORBITRELAY_HOME/sessions` with `0700`/`0600`
+  permissions, keep-until-delete retention, list/show/delete lifecycle, and no
+  app-level encryption;
 - context-window budgeting that preserves complete tool-call/result pairs; and
-- structured run summaries suitable for terminal output and later telemetry.
+- structured run summaries on verbose stderr.
 
-Session content is user data. Storage location, encryption expectations, and
-retention defaults require approval before implementation.
+Session content is user data. Secrets remain in the OS keyring only and must not
+appear in session files.
 
 ## P5 — Qualified local models
 

@@ -2,7 +2,7 @@ id: e04
 title: Conversations and Streaming
 wsjf: 3.8
 total_bcps: 28
-status: planned
+status: done
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.5.0"
 threat_model: specs/security/epics/e04/THREAT_MODEL.md
@@ -52,7 +52,7 @@ stories:
   - id: e04s07
     title: Document and verify conversations offline
     bcps: 3
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s07-docs-offline-verification.md
     tasks: e04s07-tasks.yaml

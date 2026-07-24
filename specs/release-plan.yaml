@@ -1,13 +1,15 @@
 release:
   version: "0.5.0"
   codename: Conversations and Streaming
-  status: planning
+  status: ready_for_pr
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.4.0"
   baseline_tag: v0.4.0
   handoff: specs/HANDOFF_LATEST.md
   scope: specs/product/SCOPE_LATEST.yaml
+  release_notes: specs/archive/RELEASE-0.5.0-conversations-and-streaming.md
+  pr_draft: specs/archive/PR-0.5.0-conversations-and-streaming.md
 
 previous_release:
   version: "0.4.0"
@@ -23,7 +25,7 @@ epics:
   - id: e04
     title: Conversations and Streaming
     capsule_dir: epics/e04-conversations-and-streaming
-    status: planned
+    status: done
     wsjf: 3.8
     bcps: 28
     note: >-
