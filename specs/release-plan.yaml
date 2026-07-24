@@ -1,7 +1,7 @@
 release:
   version: "0.4.0"
   codename: Supported Hosted Access
-  status: ready_for_pr
+  status: pr_open
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.3.0"

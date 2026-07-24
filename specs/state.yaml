@@ -12,18 +12,18 @@ release:
   last_completed_notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
   pending_release_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
   pending_pr_draft: specs/archive/PR-0.4.0-supported-hosted-access.md
-  pr_number: null
-  pr_url: null
-  pr_state: null
+  pr_number: 3
+  pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/3
+  pr_state: open
   merged: false
   ci_verified: false
   ci_status: not_configured
 git:
-  branch: main
+  branch: feat/e03-supported-hosted-access
   base_hash: 1456e4e
   handoff_ref: HEAD
   remote: origin/main
-  push_requested: false
+  push_requested: true
 working_tree:
   expected_after_handoff: clean
 verification:
@@ -72,9 +72,7 @@ handoff:
     - Approve certified Ollama models before claiming local tool support (P5).
   next_skill: develop-tdd
   next_action: >-
-    User review, then explicit push + PR for 0.4.0 Supported Hosted Access.
-    Do not push until requested.
-    feature branch starting with e03s01 xAI BYOK. Do not implement on main.
+    Review and merge PR #3; then tag v0.4.0 after merge if desired.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
