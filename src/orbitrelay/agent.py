@@ -3,6 +3,7 @@
 # story: e04s01
 # story: e04s02
 # story: e04s03
+# story: e04s05
 
 import json
 import sys
@@ -11,6 +12,7 @@ from typing import Any, TextIO
 
 from .approval_format import format_approval_record
 from .approvals import ApprovalDecision, ApprovalSession
+from .context_budget import DEFAULT_MAX_CONTEXT_CHARS, apply_context_budget
 from .events import EventCollector, EventType
 from .prompts import system_prompt
 from .streaming import assemble_chat_completion
@@ -147,6 +149,7 @@ def run_agent(
     event_collector: EventCollector | None = None,
     initial_messages: Sequence[Any] | None = None,
     on_messages_update: Callable[[list[Any]], None] | None = None,
+    max_context_chars: int | None = DEFAULT_MAX_CONTEXT_CHARS,
 ) -> str:
     collector = event_collector
     messages = _starting_messages(user_prompt, initial_messages)
@@ -171,6 +174,7 @@ def run_agent(
             sys.stderr if audit_stream is None else audit_stream,
             collector,
             on_messages_update,
+            max_context_chars,
         )
     except Exception as exc:
         if collector is not None:
@@ -222,14 +226,20 @@ def _create_model_response(
     stream: bool,
     collector: EventCollector | None,
     response_number: int,
+    max_context_chars: int | None,
 ) -> Any:
+    outbound = (
+        messages
+        if max_context_chars is None
+        else apply_context_budget(messages, max_chars=max_context_chars)
+    )
     if not stream:
         return client.chat.completions.create(
-            model=model, messages=messages, tools=TOOL_DEFINITIONS
+            model=model, messages=outbound, tools=TOOL_DEFINITIONS
         )
     stream_response = client.chat.completions.create(
         model=model,
-        messages=messages,
+        messages=outbound,
         tools=TOOL_DEFINITIONS,
         stream=True,
     )
@@ -251,6 +261,7 @@ def _run_response_loop(
     audit_stream: TextIO,
     event_collector: EventCollector | None,
     on_messages_update: Callable[[list[Any]], None] | None = None,
+    max_context_chars: int | None = DEFAULT_MAX_CONTEXT_CHARS,
 ) -> str:
     context = (
         working_directory,
@@ -268,6 +279,7 @@ def _run_response_loop(
             stream=stream,
             collector=event_collector,
             response_number=response_number,
+            max_context_chars=max_context_chars,
         )
         final_text = _process_response(response, response_number, messages, context)
         if final_text is not None:

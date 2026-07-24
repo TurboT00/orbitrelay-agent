@@ -21,7 +21,7 @@ development_status:
   e04s02: done
   e04s03: done
   e04s04: done
-  e04s05: todo
+  e04s05: done
   e04s06: todo
   e04s07: todo
 
@@ -141,11 +141,12 @@ stories:
     risk_max: P1
     security_max: high
   e04s05:
-    status: todo
+    status: done
     title: Budget context without splitting tool pairs
     bcps: 4
     epic: e04
     tasks_total: 4
+    tasks_passing: 4
     risk_max: P0
     security_max: high
   e04s06:

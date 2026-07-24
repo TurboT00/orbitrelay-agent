@@ -38,7 +38,7 @@ stories:
   - id: e04s05
     title: Budget context without splitting tool pairs
     bcps: 4
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s05-context-budget-tool-pairs.md
     tasks: e04s05-tasks.yaml

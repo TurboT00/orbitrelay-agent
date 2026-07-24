@@ -1,6 +1,6 @@
 story_id: e04s05
 title: Budget context without splitting tool pairs
-status: todo
+status: passing
 bcps: 4
 tasks:
   - id: 1
@@ -8,22 +8,22 @@ tasks:
     verify: "uv run python -m unittest tests.test_context_budget -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 2
     description: Implement budget algorithm over serialized message history.
     verify: "uv run python -m unittest tests.test_context_budget -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 3
     description: Integrate budget before model calls on resume/long runs.
     verify: "uv run python -m unittest tests.test_context_budget tests.test_agent -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 4
     description: Document budget behavior in code comments/tests as executable spec.
     verify: "uv run python -m unittest tests.test_context_budget -v"
     risk: P2
     security: low
-    status: todo
+    status: passing
