@@ -102,7 +102,6 @@ decisions:
     Accept shared Grok CLI OAuth client_id as consumer-session compatibility
     (not OrbitRelay-owned app registration); document truthfully.
   next_user_capability: Supported hosted access — Codex CLI bridge + xAI BYOK + SuperGrok OAuth.
-  active_story_id: e03s02
   local_models: Start with Ollama loopback after capability profiles, approvals, and hosted-access foundations exist.
   remote_push: Do not push without an explicit user request.
   approval_batching: Validate and authorize the full model tool-call batch before executing approved calls in original order.
