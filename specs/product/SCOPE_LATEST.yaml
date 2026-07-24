@@ -1,48 +1,365 @@
 initiative: supported-hosted-access
 roadmap_priority: P3
-status: handoff-ready
+status: scoped
+target_version: "0.4.0"
+codename: Supported Hosted Access
 predecessor: tool-approval-policies (P2, released as 0.3.0)
 
 core_value: >-
-  Let users reach supported hosted providers through documented auth boundaries—
-  official Codex CLI process integration and xAI API-key profiles—without
-  inventing OAuth or weakening existing credential and tool-approval guarantees.
+  Let users reach supported hosted providers through documented boundaries—
+  official Codex CLI process integration, xAI API-key (BYOK) profiles, and
+  SuperGrok / X Premium subscription OAuth—without inventing unsupported
+  password collection, without reading foreign auth files, and without
+  weakening existing credential or tool-approval guarantees.
 
 summary: >-
-  P3 has not been scoped into vertical stories yet. The next agent must run
-  discover/scope work before implementation. Target capabilities are:
-  (1) detect and use a separately installed official Codex CLI for documented
-  login/logout/noninteractive execution without reading auth.json; and
-  (2) support xAI/Grok bring-your-own-key profiles while keeping generic
-  OpenAI-compatible configuration available.
+  P3 makes OrbitRelay usable with the hosted providers users already pay for.
+  Codex ChatGPT-backed access is integrated only as an alternate runtime path
+  that detects a separately installed official `codex` executable, delegates
+  login/logout to documented Codex commands, and invokes documented
+  noninteractive `codex exec`—never by reading `CODEX_HOME/auth.json` or
+  reproducing Codex OAuth. Codex is not forced through the existing OpenAI
+  Chat Completions tool loop.
 
-  P1 already models AuthKind.EXTERNAL_FIRST_PARTY_CLI but only AuthKind.API_KEY
-  is executable. P2 approval policies must remain enforced for local tools no
-  matter which provider path is selected.
+  xAI is dual-path. BYOK remains first-class: named `api_key` profiles (and an
+  `XAI_API_KEY` migration path) against the public OpenAI-compatible endpoint
+  `https://api.x.ai/v1`, with secrets only in the native OS keyring. Separately,
+  SuperGrok / X Premium subscription access is first-class OAuth against the
+  xAI account auth surface used by Hermes and Pi (accounts.x.ai / auth.x.ai
+  device-code and/or browser+PKCE). Subscription OAuth tokens are stored only
+  through OrbitRelay’s existing credential contract—not plaintext auth.json—
+  and power the existing local agent loop and tool-approval policies. API-key
+  billing and subscription entitlement are documented as distinct tracks;
+  tier/403 entitlement failures fail closed with clear recovery guidance.
 
-in_scope_direction:
-  - Codex CLI detection, version reporting, and documented command boundaries
-  - Codex login/logout delegation to the official CLI
-  - Noninteractive Codex exec integration appropriate to OrbitRelay's agent UX
-  - xAI API-key profile preset and credential entry via existing keyring path
-  - Tests that fake subprocess/CLI and avoid real network or real auth files
-  - Documentation of supported setup and explicit non-support for invented OAuth
+  P1 already models `AuthKind.EXTERNAL_FIRST_PARTY_CLI` and only executes
+  `AuthKind.API_KEY` today. P3 connects those contracts carefully, adds the
+  subscription OAuth path required for SuperGrok usage, preserves P2 batch-first
+  approvals for local tools on every provider path that still uses OrbitRelay
+  tools, and proves behavior with offline fakes (subprocess, OAuth, HTTP).
 
-out_of_scope_direction:
-  - Reading or copying CODEX_HOME/auth.json or browser session state
-  - Homegrown OAuth/device-code flows for Codex or xAI
-  - Conversation persistence, streaming, or session retention (P4)
-  - Ollama/vLLM local-model certification (P5)
-  - Plugin systems (P6)
-  - Windows certification and CI introduction unless user expands scope (P7)
+locked_decisions:
+  - id: ship_shape
+    decision: >-
+      0.4.0 ships both Codex CLI bridge and xAI hosted access (BYOK + SuperGrok
+      OAuth) in one release epic; stories may still be sequenced inside the epic.
+  - id: codex_runtime
+    decision: >-
+      Codex uses an alternate runtime path that shells out to documented Codex
+      CLI commands (`login`/`logout`/`exec` and version/status). It is not
+      presented as another Chat Completions provider feeding the current loop.
+  - id: codex_packaging
+    decision: >-
+      Document install only. Do not vendor or depend on `codex` as a Python
+      package. Detect PATH setup; fail with clear install guidance if missing.
+  - id: codex_version_policy
+    decision: >-
+      Detect and report Codex version. Warn when below a researched documented
+      floor if one is known; do not hard-block unknown newer formats. Official
+      CLI owns auth, refresh, storage, logout, and licensing wording.
+  - id: xai_byok
+    decision: >-
+      First-class xAI API-key profiles via secure credential entry and
+      `XAI_API_KEY` env migration. Default base URL `https://api.x.ai/v1`.
+      Default model `grok-4.5` (official xAI docs, 2026-07-17). Uses existing
+      `api_key` auth + keyring and the existing Chat Completions agent loop.
+  - id: xai_supergrok_oauth
+    decision: >-
+      First-class SuperGrok / X Premium subscription OAuth is in P3 scope.
+      Evidence: official xAI Hermes announcement (x.ai/news/grok-hermes),
+      Hermes `xai-oauth` device-code flow against accounts.x.ai/auth.x.ai, and
+      Pi `pi-xai-oauth` browser+PKCE / device flows plus Grok CLI session proxy
+      usage. OrbitRelay must not collect passwords, must not read
+      `~/.grok/auth.json` / Hermes auth files, and must store tokens only via
+      the native OS credential contract. Document that API keys do not draw
+      SuperGrok subscription usage, and that some tiers may return HTTP 403 on
+      OAuth inference despite successful browser login.
+  - id: approvals_invariant
+    decision: >-
+      P2 approval policies, workspace confinement, and secret-free audit remain
+      enforced for OrbitRelay local tools on every path that still executes those
+      tools. Codex alternate-path tool side effects, if any, are governed by
+      Codex itself and must not bypass OrbitRelay’s local sandbox claims.
 
-open_questions:
-  - Codex minimum version and subscription-use wording
-  - Whether Codex bridge and xAI BYOK ship as one release or sequenced stories
-  - How Codex execution composes with the current Chat Completions tool loop
-  - Default xAI base URL/model and env var naming
+in_scope:
+  - id: e03s01
+    outcome: >-
+      Users can create, select, inspect, and delete an xAI BYOK profile (or use
+      `XAI_API_KEY` migration) and run the existing Chat Completions agent loop
+      against xAI’s public API endpoint with keyring-backed secrets only.
+  - id: e03s02
+    outcome: >-
+      Users can complete SuperGrok / X Premium OAuth login (device-code and/or
+      browser+PKCE against documented xAI account auth endpoints), refresh
+      tokens, inspect auth status, and log out without OrbitRelay reading
+      foreign auth files or writing plaintext token files.
+  - id: e03s03
+    outcome: >-
+      A SuperGrok OAuth session can drive OrbitRelay’s existing agent loop and
+      local tools under current approval policies, with clear failure modes for
+      missing login, expired/revoked refresh, and entitlement/403 responses.
+  - id: e03s04
+    outcome: >-
+      Users can detect a separately installed official `codex` executable,
+      report availability/version separately from model API profiles, and
+      receive install guidance when Codex is missing.
+  - id: e03s05
+    outcome: >-
+      Users can delegate Codex interactive login and logout to documented Codex
+      CLI commands without OrbitRelay reproducing OAuth or reading
+      `CODEX_HOME/auth.json`.
+  - id: e03s06
+    outcome: >-
+      Users can run a noninteractive Codex-backed task through the documented
+      `codex exec` boundary as an alternate runtime path, with version warnings
+      per the detect-and-warn policy and without claiming Chat Completions
+      protocol equivalence.
+  - id: e03s07
+    outcome: >-
+      Offline tests and user docs cover BYOK, SuperGrok OAuth, and Codex bridge
+      setup/failure modes; `./scripts/check.sh` remains the mechanical gate; no
+      real network, real keyring backends, or real auth files are required in CI.
 
-entry_skill: survey-context
-next_skill_after_survey: scope-work
-handoff_doc: specs/HANDOFF_LATEST.md
-baseline_release: v0.3.0
+out_of_scope:
+  - item: Reading or copying CODEX_HOME/auth.json, ~/.grok/auth.json, Hermes auth.json, browser cookies, or other foreign session stores
+    reason: >-
+      Locked security boundary. Official CLIs own their on-disk auth; OrbitRelay
+      uses process boundaries or its own credential contract only.
+  - item: Collecting provider passwords or scraping undocumented browser session state
+    reason: >-
+      Forbidden. Only documented device-code / browser OAuth or API-key entry.
+  - item: Claiming a stable third-party xAI developer OAuth client-registration program beyond the consumer SuperGrok/X Premium account flow
+    reason: >-
+      Public developer API docs remain API-key oriented; SuperGrok OAuth is
+      scoped as subscription session auth endorsed for agents (Hermes), not as
+      inventing a private app-registration console.
+  - item: Impersonating the official Grok CLI client identity or silently reusing its private wire-protocol headers beyond what research pins as necessary and disclosed
+    reason: >-
+      Prefer truthful OrbitRelay identity, documented endpoints, and fail-closed
+      behavior when contracts change.
+  - item: Bundling or auto-installing the Codex binary
+    reason: >-
+      Packaging decision is document-install only.
+  - item: Forcing Codex through the existing Chat Completions tool loop
+    reason: >-
+      Product decision: alternate runtime path only in P3.
+  - item: Conversation persistence, streaming UX, or session retention defaults
+    reason: Deferred to P4.
+  - item: Ollama/vLLM local-model certification
+    reason: Deferred to P5.
+  - item: Plugin systems and third-party tool trust
+    reason: Deferred to P6.
+  - item: Windows certification and CI introduction
+    reason: Deferred to P7 unless the user expands scope.
+  - item: TTS, image/video generation, or other non-chat xAI surfaces
+    reason: >-
+      Out of P3 agent-loop scope; subscription token reuse for media APIs can be
+      reconsidered later once chat OAuth is stable.
+
+constraints:
+  product:
+    - API-key xAI use must not be blocked while SuperGrok OAuth is unavailable or entitlement-gated.
+    - SuperGrok OAuth and API-key paths must be labeled as distinct billing/entitlement tracks in user-facing docs.
+    - Codex availability/version is reported separately from OpenAI-compatible model profiles.
+    - Missing Codex, missing login, timeout, denial, and 403 entitlement failures fail closed with actionable messages.
+    - Local tool approvals remain batch-first and fail-closed on every OrbitRelay tool path.
+  security:
+    - Native OS credential store only for OrbitRelay-managed secrets and OAuth tokens; no plaintext secret files.
+    - Never read or copy foreign auth.json / cookie stores.
+    - Never log access tokens, refresh tokens, authorization codes, or API keys.
+    - OAuth redirect/device flows must bind state/PKCE (or equivalent documented device-code security) and reject unbound codes.
+    - Workspace path/symlink confinement and approval deny-by-default remain mandatory for local tools.
+  technical:
+    - Preserve installable `orbitrelay` and `python -m orbitrelay` entry points.
+    - Preserve existing generic OpenAI-compatible configuration.
+    - Connect `AuthKind.EXTERNAL_FIRST_PARTY_CLI` for Codex rather than inventing a parallel auth taxonomy.
+    - SuperGrok OAuth may introduce a dedicated auth kind or profile metadata only if it fits the existing profile model without weakening validation.
+    - Keep tests offline with fake subprocess, fake OAuth endpoints, and temp profile homes.
+    - Preserve Python 3.14 as the currently declared minimum and macOS/Linux as currently verified developer platforms.
+  delivery:
+    - Research-first has pinned Codex command surface, xAI BYOK defaults, and SuperGrok OAuth endpoint candidates (see prior_art). Module boundaries remain plan-work.
+    - No implementation begins until e03 stories are sliced and the hosted-access threat model is reviewed.
+    - Re-verify OAuth client identity and inference endpoint choice before coding if upstream contracts change.
+
+success_criteria:
+  - An xAI BYOK profile (or `XAI_API_KEY` path) can complete a fake-HTTP offline agent run against xAI defaults without secret leakage in metadata or logs.
+  - SuperGrok OAuth login can complete against a fake auth server, persist tokens only via the credential contract, refresh, report status, and log out.
+  - A SuperGrok-authenticated profile can drive the existing agent loop with local tools under confirm/read-only/pre-approved policies in offline tests.
+  - Entitlement/401/403 and missing-login failures return clear errors and produce no local side effects before approval.
+  - Codex missing/present/version detection works offline with a fake executable and never touches auth.json.
+  - Codex login/logout delegation invokes only documented command boundaries in tests.
+  - Codex exec alternate path runs a scripted noninteractive success and failure path without claiming Chat Completions equivalence.
+  - Docs explain install/login for Codex, BYOK vs SuperGrok billing distinction, and recovery for tier/403 cases.
+  - Existing profile, approval, sandbox, package-build, and isolated-wheel checks continue to pass.
+  - ./scripts/check.sh passes after implementation.
+
+research_evidence:
+  - title: xAI official Hermes SuperGrok announcement
+    url: https://x.ai/news/grok-hermes
+    note: >-
+      xAI publicly states users can use a Grok subscription inside Hermes Agent
+      via OAuth and points to Hermes setup docs; available on every tier per
+      announcement copy.
+  - title: Hermes xAI Grok OAuth guide
+    url: https://hermes-agent.nousresearch.com/docs/guides/xai-grok-oauth
+    note: >-
+      Device-code OAuth against accounts.x.ai/auth.x.ai; no XAI_API_KEY; tokens
+      refreshed; documents HTTP 403 tier gating on OAuth API surface and API-key
+      fallback.
+  - title: Pi pi-xai-oauth package
+    url: https://pi.dev/packages/pi-xai-oauth
+    note: >-
+      Browser+PKCE and device OAuth; OAuth session traffic via
+      cli-chat-proxy.grok.com; API-key traffic via api.x.ai; reuses official Grok
+      CLI credentials optionally; labels subscription usage lookup as unofficial.
+  - title: xAI API authentication / chat surfaces
+    url: https://docs.x.ai/docs/api-reference#authentication
+    note: >-
+      Public developer API remains the OpenAI-compatible api.x.ai surface used
+      for BYOK; subscription OAuth is a distinct consumer/session path.
+  - title: Codex auth and noninteractive docs
+    urls:
+      - https://developers.openai.com/codex/auth/
+      - https://developers.openai.com/codex/noninteractive/
+    note: >-
+      Codex owns login/refresh/storage/logout; OrbitRelay may invoke documented
+      commands only.
+
+references:
+  - specs/HANDOFF_LATEST.md
+  - docs/project-roadmap.md#p3--supported-hosted-access
+  - specs/product/archive/SCOPE-P2-tool-approval-policies.yaml
+  - specs/product/archive/SCOPE-P1-provider-auth-profiles.yaml
+  - specs/state.yaml
+  - specs/release-plan.yaml
+  - src/orbitrelay/profiles.py
+  - src/orbitrelay/cli.py
+  - src/orbitrelay/credentials.py
+  - src/orbitrelay/approvals.py
+  - src/orbitrelay/agent.py
+
+prior_art:
+  researched_at: "2026-07-24"
+  status: complete
+  next_skill: plan-release
+  candidates:
+    - name: OrbitRelay AuthKind + profiles + keyring
+      source: src/orbitrelay/profiles.py, credentials.py, cli.py
+      verdict: extend
+      notes: >-
+        EXTERNAL_FIRST_PARTY_CLI already modeled and non-secret; only API_KEY is
+        executable today (cli.py rejects other kinds). CredentialStore is the
+        only secret persistence path. SuperGrok tokens should extend this
+        contract rather than invent plaintext files.
+    - name: OrbitRelay Chat Completions agent loop
+      source: src/orbitrelay/agent.py + openai 2.46.0
+      verdict: extend
+      notes: >-
+        BYOK xAI can reuse client.chat.completions.create against
+        https://api.x.ai/v1. SuperGrok may require Responses-style transport
+        (Hermes/Pi evidence); plan-work must choose chat.completions-with-bearer
+        vs Responses adapter without changing local tool/approval contracts.
+    - name: Official Codex CLI process boundary
+      source: https://developers.openai.com/codex/auth/ ; https://developers.openai.com/codex/noninteractive/ ; https://developers.openai.com/codex/cli/reference/
+      verdict: extend
+      notes: >-
+        Documented stable commands: `codex login` (browser default;
+        `--device-auth`; `--with-api-key` stdin; `--with-access-token` stdin;
+        `codex login status` exit 0 when credentials present), `codex logout`,
+        `codex exec`/`codex e` with `--json` JSONL events, `--output-last-message/-o`,
+        `--cd/-C`, sandbox/approval flags. Never read auth.json. No hard minimum
+        version published in these pages — detect+warn policy stands. Local
+        machine currently has no `codex` on PATH.
+    - name: xAI BYOK OpenAI-compatible API
+      source: https://docs.x.ai/developers/quickstart ; https://docs.x.ai/developers/models/grok-4.5 ; https://docs.x.ai/developers/grok-4-5
+      verdict: extend
+      notes: >-
+        Env `XAI_API_KEY`; base URL `https://api.x.ai/v1`; Bearer auth; model id
+        `grok-4.5` supports function calling and both Chat Completions and
+        Responses. Official OpenAI Python SDK pattern is already OrbitRelay's
+        stack. Default model pin: grok-4.5.
+    - name: Hermes xai-oauth SuperGrok flow
+      source: https://hermes-agent.nousresearch.com/docs/guides/xai-grok-oauth ; https://x.ai/news/grok-hermes
+      verdict: compose
+      notes: >-
+        Official xAI endorsement of SuperGrok OAuth inside Hermes. Device-code
+        against auth.x.ai / accounts.x.ai; inference base https://api.x.ai/v1;
+        transport described as Responses API; documents HTTP 403 tier gating and
+        API-key fallback. Do not adopt Hermes package (different product); reuse
+        the documented flow shape and failure modes.
+    - name: pi-xai-oauth / Grok CLI OAuth constants
+      source: https://pi.dev/packages/pi-xai-oauth ; https://github.com/BlockedPath/pi-xai-oauth/blob/main/extensions/xai/constants.ts
+      verdict: compose
+      notes: >-
+        Pins first-party OAuth endpoints used by Grok CLI clients: issuer
+        https://auth.x.ai; authorize/device/token/jwks under /oauth2 and
+        .well-known; client_id b1a00492-073a-47ea-816f-4c329264a828; scopes
+        include openid profile email offline_access grok-cli:access api:access
+        conversations:read conversations:write; device grant
+        urn:ietf:params:oauth:grant-type:device_code; PKCE S256 for browser.
+        OAuth session proxy https://cli-chat-proxy.grok.com/v1 vs API-key
+        https://api.x.ai/v1. Do not vendor the JS package; port only the
+        security-relevant protocol pins after ToS/identity review in plan-work.
+        OrbitRelay must not read ~/.grok/auth.json even though Pi optionally does.
+    - name: npm/openai or xai-sdk as new deps
+      source: pyproject.toml / PyPI
+      verdict: adopt
+      notes: >-
+        Keep existing openai package for BYOK Chat Completions. Do not add
+        xai-sdk unless Responses gRPC path becomes mandatory; prefer REST via
+        openai or stdlib HTTP for OAuth token exchange.
+
+  pinned_contracts:
+    codex:
+      detect: which/PATH lookup for `codex`
+      version: `codex --version` (warn-only floor TBD if release notes later publish one)
+      login_browser: `codex login`
+      login_device: `codex login --device-auth`
+      login_status: `codex login status` (exit 0 => credentials present)
+      logout: `codex logout`
+      exec: `codex exec --json --cd <workspace> <prompt>`
+      exec_final_message: `codex exec -o <path> ...`
+      never: read CODEX_HOME/auth.json; reproduce ChatGPT OAuth inside OrbitRelay
+    xai_byok:
+      env: XAI_API_KEY
+      base_url: https://api.x.ai/v1
+      default_model: grok-4.5
+      auth_header: "Authorization: Bearer <api_key>"
+      loop: existing chat.completions tool loop
+    xai_supergrok_oauth:
+      issuer: https://auth.x.ai
+      accounts_origin: https://accounts.x.ai
+      discovery: https://auth.x.ai/.well-known/openid-configuration
+      authorize: https://auth.x.ai/oauth2/authorize
+      device_code: https://auth.x.ai/oauth2/device/code
+      token: https://auth.x.ai/oauth2/token
+      jwks: https://auth.x.ai/.well-known/jwks.json
+      device_grant_type: urn:ietf:params:oauth:grant-type:device_code
+      client_id_candidate: b1a00492-073a-47ea-816f-4c329264a828
+      scope_candidate: >-
+        openid profile email offline_access grok-cli:access api:access
+        conversations:read conversations:write
+      api_base: https://api.x.ai/v1
+      session_proxy_candidate: https://cli-chat-proxy.grok.com/v1
+      default_model_candidate: grok-4.5
+      known_failure: HTTP 403 entitlement gating after successful login
+      storage: OrbitRelay OS keyring only; never ~/.grok/auth.json or plaintext files
+      open_design_questions:
+        - >-
+          Prefer device-code first (headless-friendly, matches Hermes) with
+          optional browser+PKCE second, or browser-first like Pi desktop?
+        - >-
+          Inference transport for OAuth: try Chat Completions bearer on api.x.ai
+          first to reuse agent.py, or implement Responses (+ optional
+          cli-chat-proxy) if Completions rejects subscription tokens.
+        - >-
+          Whether OrbitRelay should use the Grok CLI public client_id or obtain
+          a distinct registered client if/when xAI offers one; using the shared
+          Grok CLI client_id must be explicitly accepted as consumer-session
+          compatibility, not as OrbitRelay-owned OAuth app registration.
+
+  outcome_summary: >-
+    Build OrbitRelay-owned Codex subprocess bridge and xAI dual auth (BYOK +
+    SuperGrok OAuth) by extending existing profiles/credentials/agent seams.
+    Compose protocol knowledge from Codex docs, Hermes, and pi-xai-oauth without
+    adopting those codebases or reading foreign auth files.

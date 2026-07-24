@@ -1,6 +1,8 @@
 # story: e01s01, e02s01, e02s02
 # story: e02s04
 # story: e02s05
+# story: e03s01
+# story: e03s03
 
 import json
 import os
@@ -16,7 +18,12 @@ from unittest.mock import ANY, Mock, patch
 
 from orbitrelay import cli
 from orbitrelay.approvals import ApprovalRequest
-from orbitrelay.config import DEFAULT_BASE_URL, DEFAULT_MODEL
+from orbitrelay.config import (
+    DEFAULT_BASE_URL,
+    DEFAULT_MODEL,
+    XAI_DEFAULT_BASE_URL,
+    XAI_DEFAULT_MODEL,
+)
 from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.profile_store import ProfileNotFoundError, ProfileRepository
 from orbitrelay.profiles import (
@@ -357,7 +364,9 @@ class CliTests(unittest.TestCase):
                 patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI") as openai,
             ):
-                with self.assertRaisesRegex(ValueError, "OPENAI_API_KEY is required"):
+                with self.assertRaisesRegex(
+                    ValueError, "OPENAI_API_KEY or XAI_API_KEY is required"
+                ):
                     cli.main(
                         ["inspect"],
                         profile_repository=ProfileRepository(
@@ -459,7 +468,7 @@ class CliTests(unittest.TestCase):
                 )
             )
             with patch("orbitrelay.cli.OpenAI") as openai:
-                with self.assertRaisesRegex(ValueError, "not executable in P1"):
+                with self.assertRaisesRegex(ValueError, "not executable"):
                     cli.main(
                         ["inspect", "--profile", "ollama"],
                         profile_repository=repository,
@@ -605,6 +614,41 @@ class CliTests(unittest.TestCase):
             api_key="dotenv-key", base_url=DEFAULT_BASE_URL
         )
 
+    def test_uses_xai_api_key_with_xai_defaults(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            with (
+                patch.dict(os.environ, {"XAI_API_KEY": "xai-secret"}, clear=True),
+                patch("orbitrelay.cli.OpenAI") as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(["inspect"], profile_repository=repository)
+
+        openai.assert_called_once_with(
+            api_key="xai-secret", base_url=XAI_DEFAULT_BASE_URL
+        )
+        self.assertEqual(run_agent.call_args.args[2], XAI_DEFAULT_MODEL)
+
+    def test_uses_dotenv_xai_api_key_when_process_has_no_transport_settings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            with (
+                patch.dict(os.environ, {}, clear=True),
+                patch(
+                    "orbitrelay.cli.dotenv_values",
+                    return_value={"XAI_API_KEY": "dotenv-xai-key"},
+                ),
+                patch("orbitrelay.cli.OpenAI") as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done"),
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(["inspect"], profile_repository=repository)
+
+        openai.assert_called_once_with(
+            api_key="dotenv-xai-key", base_url=XAI_DEFAULT_BASE_URL
+        )
+
     def test_partial_process_source_does_not_merge_dotenv_api_key(self):
         with tempfile.TemporaryDirectory() as directory:
             repository = ProfileRepository(Path(directory) / "profiles.json")
@@ -616,7 +660,9 @@ class CliTests(unittest.TestCase):
                 ),
                 patch("orbitrelay.cli.OpenAI") as openai,
             ):
-                with self.assertRaisesRegex(ValueError, "OPENAI_API_KEY is required"):
+                with self.assertRaisesRegex(
+                    ValueError, "OPENAI_API_KEY or XAI_API_KEY is required"
+                ):
                     cli.main(["inspect"], profile_repository=repository)
 
         openai.assert_not_called()
@@ -643,6 +689,141 @@ class CliTests(unittest.TestCase):
                         cli.main(["inspect"])
 
                 openai.assert_not_called()
+
+    def test_supergrok_oauth_profile_runs_with_access_token(self):
+        from orbitrelay.supergrok_oauth import SuperGrokTokenBundle
+
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            repository.save(
+                profile(
+                    "supergrok",
+                    "https://api.x.ai/v1",
+                    auth_kind=AuthKind.SUBSCRIPTION_OAUTH,
+                )
+            )
+            bundle = SuperGrokTokenBundle(
+                access_token="access-live",
+                refresh_token="refresh-live",
+                expires_at=9_999_999_999.0,
+            )
+            credentials = FakeCredentialStore(
+                {repository.credential_key("supergrok"): bundle.to_json()}
+            )
+            with (
+                patch.dict(os.environ, {}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI") as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done"),
+                redirect_stdout(StringIO()),
+            ):
+                code = cli.main(
+                    ["inspect", "--profile", "supergrok"],
+                    profile_repository=repository,
+                    credential_store=credentials,
+                )
+
+        self.assertEqual(code, 0)
+        openai.assert_called_once_with(
+            api_key="access-live", base_url="https://api.x.ai/v1"
+        )
+
+    def test_supergrok_missing_login_fails_before_client(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            repository.save(
+                profile(
+                    "supergrok",
+                    "https://api.x.ai/v1",
+                    auth_kind=AuthKind.SUBSCRIPTION_OAUTH,
+                )
+            )
+            with patch("orbitrelay.cli.OpenAI") as openai:
+                with self.assertRaisesRegex(ValueError, "login required"):
+                    cli.main(
+                        ["inspect", "--profile", "supergrok"],
+                        profile_repository=repository,
+                        credential_store=FakeCredentialStore(),
+                    )
+
+        openai.assert_not_called()
+
+    def test_provider_http_403_maps_to_entitlement_guidance(self):
+        from openai import APIStatusError
+
+        error = APIStatusError(
+            "forbidden",
+            response=SimpleNamespace(
+                status_code=403, headers={}, request=SimpleNamespace()
+            ),
+            body=None,
+        )
+        error.status_code = 403
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            with (
+                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=Mock()),
+                patch("orbitrelay.cli.run_agent", side_effect=error),
+            ):
+                with self.assertRaisesRegex(ValueError, "entitlement|403|BYOK"):
+                    cli.main(
+                        ["inspect"],
+                        profile_repository=repository,
+                    )
+
+    def test_supergrok_run_still_honors_confirm_approvals(self):
+        from orbitrelay.supergrok_oauth import SuperGrokTokenBundle
+
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            repository.save(
+                profile(
+                    "supergrok",
+                    "https://api.x.ai/v1",
+                    auth_kind=AuthKind.SUBSCRIPTION_OAUTH,
+                )
+            )
+            bundle = SuperGrokTokenBundle(
+                access_token="access-live",
+                refresh_token="refresh-live",
+                expires_at=9_999_999_999.0,
+            )
+            credentials = FakeCredentialStore(
+                {repository.credential_key("supergrok"): bundle.to_json()}
+            )
+            captured = {}
+
+            def fake_run_agent(*args, **kwargs):
+                captured["approval_session"] = kwargs["approval_session"]
+                return "done"
+
+            with (
+                patch.dict(os.environ, {}, clear=True),
+                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch("orbitrelay.cli.OpenAI", return_value=Mock()),
+                patch("orbitrelay.cli.run_agent", side_effect=fake_run_agent),
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(
+                    [
+                        "inspect",
+                        "--profile",
+                        "supergrok",
+                        "--approval-policy",
+                        "confirm",
+                    ],
+                    profile_repository=repository,
+                    credential_store=credentials,
+                    input_stream=StringIO("a\n"),
+                )
+
+        from orbitrelay.approvals import ApprovalSession
+
+        session = captured["approval_session"]
+        self.assertIsInstance(session, ApprovalSession)
+        self.assertEqual(session.disabled_tools, frozenset())
 
 
 if __name__ == "__main__":

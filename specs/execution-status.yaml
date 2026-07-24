@@ -8,7 +8,14 @@ development_status:
   e02s04: done
   e02s05: done
   e02s06: done
-  e03: pending
+  e03: done
+  e03s01: done
+  e03s02: done
+  e03s03: done
+  e03s04: done
+  e03s05: done
+  e03s06: done
+  e03s07: done
 
 epics:
   e01:
@@ -20,11 +27,14 @@ epics:
     wsjf: 4.0
     total_bcps: 24
   e03:
-    status: pending
+    status: done
     title: Supported Hosted Access
+    wsjf: 3.6
+    total_bcps: 26
+    capsule_dir: specs/epics/e03-supported-hosted-access
     note: >-
-      Next roadmap epic (P3). Not sliced yet. Fresh agent must discover/scope
-      before implementation. See specs/HANDOFF_LATEST.md.
+      Planned after research-first. Stories e03s01–e03s07 ready for plan-work /
+      develop-tdd. Do not implement until kickoff-branch.
 
 stories:
   e01s01:
@@ -36,82 +46,98 @@ stories:
     title: Approve or deny a workspace file write
     bcps: 5
     epic: e02
-    tasks_total: 5
-    tasks_passing: 5
-    tasks_failing: 0
-    risk_max: P0
-    security_max: high
-    started_at: "2026-07-23T19:05:28Z"
-    completed_at: "2026-07-23T21:02:30Z"
   e02s02:
     status: done
     title: Approve or deny local Python execution
     bcps: 5
     epic: e02
-    tasks_total: 5
-    tasks_passing: 5
-    tasks_failing: 0
-    risk_max: P0
-    security_max: high
-    started_at: "2026-07-23T21:02:30Z"
-    completed_at: "2026-07-23T21:45:09Z"
   e02s03:
     status: done
     title: Disable a tool for the current run
     bcps: 3
     epic: e02
-    tasks_total: 4
-    tasks_passing: 4
-    tasks_failing: 0
-    risk_max: P1
-    security_max: high
-    started_at: "2026-07-23T21:45:09Z"
-    completed_at: "2026-07-23T22:02:02Z"
   e02s04:
     status: done
     title: Run safely in read-only or unattended contexts
     bcps: 5
     epic: e02
-    tasks_total: 5
-    tasks_passing: 5
-    tasks_failing: 0
-    risk_max: P0
-    security_max: high
-    started_at: "2026-07-23T22:02:02Z"
-    completed_at: "2026-07-23T22:23:57Z"
   e02s05:
     status: done
     title: Run with explicit pre-approved automation
     bcps: 3
     epic: e02
+  e02s06:
+    status: done
+    title: Audit approval decisions without secret leakage
+    bcps: 3
+    epic: e02
+  e03s01:
+    status: done
+    title: Run OrbitRelay with an xAI BYOK profile
+    bcps: 3
+    epic: e03
+    tasks_total: 3
+    tasks_passing: 3
+    tasks_failing: 0
+    risk_max: P1
+    security_max: high
+  e03s02:
+    status: done
+    title: Sign in and out of SuperGrok subscription OAuth
+    bcps: 5
+    epic: e03
     tasks_total: 5
     tasks_passing: 5
     tasks_failing: 0
     risk_max: P0
     security_max: high
-    started_at: "2026-07-23T22:23:57Z"
-    verified_at: "2026-07-23T22:34:39Z"
-    completed_at: "2026-07-23T22:36:00Z"
-  e02s06:
+  e03s03:
     status: done
-    started_at: "2026-07-23T22:36:00Z"
-    completed_at: "2026-07-23T22:50:00Z"
-    title: Audit approval decisions without secret leakage
-    bcps: 3
-    epic: e02
+    title: Run the agent loop on a SuperGrok OAuth session
+    bcps: 5
+    epic: e03
     tasks_total: 5
     tasks_passing: 5
     tasks_failing: 0
+    risk_max: P0
+    security_max: high
+  e03s04:
+    status: done
+    title: Detect Codex CLI availability and version
+    bcps: 2
+    epic: e03
+    tasks_total: 2
+    tasks_passing: 2
+    tasks_failing: 0
+    risk_max: P1
+    security_max: medium
+  e03s05:
+    status: done
+    title: Delegate Codex login and logout to the official CLI
+    bcps: 3
+    epic: e03
+    tasks_total: 3
+    tasks_passing: 3
+    tasks_failing: 0
+    risk_max: P0
+    security_max: high
+  e03s06:
+    status: done
+    title: Run a Codex exec alternate runtime path
+    bcps: 5
+    epic: e03
+    tasks_total: 5
+    tasks_passing: 5
+    tasks_failing: 0
+    risk_max: P0
+    security_max: high
+  e03s07:
+    status: done
+    title: Document and verify hosted-access offline
+    bcps: 3
+    epic: e03
+    tasks_total: 3
+    tasks_passing: 3
+    tasks_failing: 0
     risk_max: P1
     security_max: high
-
-gate_trace:
-  verdict: PASS
-  generated_at: "2026-07-23T01:20:00Z"
-  rationale: >-
-    e01s01 has explicit implementation and test links, all ten acceptance
-    criteria map to executable tests, five verify artifacts exist, and the
-    adversarial missing-tag gap was filled before reevaluation.
-  heuristic_ratio: 0.0
-  downgrade_applied: false
-  completeness_critic: FILLED

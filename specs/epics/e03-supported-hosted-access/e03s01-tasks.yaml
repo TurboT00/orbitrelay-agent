@@ -1,0 +1,23 @@
+story_id: e03s01
+title: Run OrbitRelay with an xAI BYOK profile
+status: passing
+bcps: 3
+tasks:
+  - id: 1
+    description: Add xAI BYOK defaults and failing profile/config tests for XAI_API_KEY and preset metadata.
+    verify: "uv run python -m unittest tests.test_config tests.test_profiles -v"
+    risk: P1
+    security: high
+    status: passing
+  - id: 2
+    description: Wire xAI preset/env resolution into config and profile CLI without secret leakage.
+    verify: "uv run python -m unittest tests.test_config tests.test_profile_cli tests.test_cli -v"
+    risk: P1
+    security: high
+    status: passing
+  - id: 3
+    description: Prove an offline fake-client run can use an xAI api_key profile end-to-end.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent -v"
+    risk: P1
+    security: medium
+    status: passing

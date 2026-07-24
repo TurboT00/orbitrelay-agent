@@ -1,6 +1,12 @@
 # story: e01s01
 # story: e02s04
 # story: e02s05
+# story: e03s01
+# story: e03s02
+# story: e03s03
+# story: e03s04
+# story: e03s05
+# story: e03s06
 
 import argparse
 import getpass
@@ -12,18 +18,28 @@ from pathlib import Path
 from typing import TextIO
 
 from dotenv import dotenv_values
-from openai import OpenAI
+from openai import APIStatusError, OpenAI
 
 from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
+from .auth_cli import run_auth_cli
+from .codex_cli import run_codex_cli
 from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_cli import run_profile_cli
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
+from .supergrok_oauth import (
+    SuperGrokAuthService,
+    SuperGrokOAuthClient,
+    SuperGrokReauthRequired,
+    UrlLibTransport,
+)
 
 OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
+XAI_ENV_KEYS = ("XAI_API_KEY", "XAI_BASE_URL", "XAI_MODEL")
+TRANSPORT_ENV_KEYS = OPENAI_ENV_KEYS + XAI_ENV_KEYS
 DEFAULT_APPROVAL_TIMEOUT = 60.0
 MAX_APPROVAL_TIMEOUT = 300.0
 CONSEQUENTIAL_TOOL_NAMES = frozenset({"write_file", "run_python_file"})
@@ -77,14 +93,25 @@ def _api_config_from_profile(
     repository: ProfileRepository,
     credential_store: CredentialStore | None,
 ) -> ApiConfig:
-    if profile.auth_kind is not AuthKind.API_KEY:
-        raise ValueError(
-            f'Auth kind "{profile.auth_kind.value}" is not executable in P1'
+    if profile.auth_kind is AuthKind.API_KEY:
+        secret = ProfileService(
+            repository, credential_store_or_default(credential_store)
+        ).get_secret(profile)
+        return ApiConfig(profile.base_url, secret, profile.model)
+    if profile.auth_kind is AuthKind.SUBSCRIPTION_OAUTH:
+        service = SuperGrokAuthService(
+            repository,
+            credential_store,
+            SuperGrokOAuthClient(UrlLibTransport()),
         )
-    secret = ProfileService(
-        repository, credential_store_or_default(credential_store)
-    ).get_secret(profile)
-    return ApiConfig(profile.base_url, secret, profile.model)
+        try:
+            token = service.get_valid_access_token(profile.name)
+        except SuperGrokReauthRequired as exc:
+            raise ValueError(str(exc)) from exc
+        return ApiConfig(profile.base_url, token, profile.model)
+    raise ValueError(
+        f'Auth kind "{profile.auth_kind.value}" is not executable'
+    )
 
 
 def resolve_api_config(
@@ -132,6 +159,22 @@ def _resolved_config(
     return load_api_config(environment) if profile_config is None else profile_config
 
 
+def _provider_http_error_message(exc: APIStatusError) -> str:
+    status = getattr(exc, "status_code", None)
+    if status == 401:
+        return (
+            "Provider authentication failed (HTTP 401). "
+            "Check credentials or run: orbitrelay auth supergrok login"
+        )
+    if status == 403:
+        return (
+            "Provider entitlement/permission denied (HTTP 403). "
+            "For SuperGrok OAuth, try XAI_API_KEY BYOK fallback or verify "
+            "subscription tier."
+        )
+    return f"Provider request failed (HTTP {status})"
+
+
 def _invoke_agent(
     args: argparse.Namespace,
     api_config: ApiConfig,
@@ -141,16 +184,19 @@ def _invoke_agent(
     timeout = _approval_timeout(args.approval_timeout)
     approved_tools = _approved_tools(args)
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
-    return run_agent(
-        client,
-        args.user_prompt,
-        api_config.model,
-        working_directory=workspace,
-        verbose=args.verbose,
-        approval_session=_approval_session(
-            input_stream, ApprovalMode(args.approval_policy), timeout, approved_tools
-        ),
-    )
+    try:
+        return run_agent(
+            client,
+            args.user_prompt,
+            api_config.model,
+            working_directory=workspace,
+            verbose=args.verbose,
+            approval_session=_approval_session(
+                input_stream, ApprovalMode(args.approval_policy), timeout, approved_tools
+            ),
+        )
+    except APIStatusError as exc:
+        raise ValueError(_provider_http_error_message(exc)) from exc
 
 
 def _approval_timeout(value: str) -> float:
@@ -215,7 +261,7 @@ def _environment_source(
     process_environment: Mapping[str, str],
     dotenv_environment: Mapping[str, str],
 ) -> Mapping[str, str]:
-    if any(key in process_environment for key in OPENAI_ENV_KEYS):
+    if any(key in process_environment for key in TRANSPORT_ENV_KEYS):
         return process_environment
     return dotenv_environment
 
@@ -224,7 +270,7 @@ def _dotenv_environment() -> dict[str, str]:
     values = {
         key: value
         for key, value in dotenv_values(interpolate=False).items()
-        if isinstance(value, str) and key in OPENAI_ENV_KEYS
+        if isinstance(value, str) and key in TRANSPORT_ENV_KEYS
     }
     if any("${" in value for value in values.values()):
         raise ValueError("OPENAI_* dotenv interpolation is not supported")
@@ -243,6 +289,15 @@ def _dispatch_cli(
         return run_profile_cli(
             raw_argv[1:], repository, credential_store, secret_prompt, input_stream
         )
+    if raw_argv and raw_argv[0] == "auth":
+        return run_auth_cli(
+            raw_argv[1:],
+            repository,
+            credential_store,
+            input_stream=input_stream,
+        )
+    if raw_argv and raw_argv[0] == "codex":
+        return run_codex_cli(raw_argv[1:])
     return _run_agent_cli(
         parse_args(raw_argv),
         repository,

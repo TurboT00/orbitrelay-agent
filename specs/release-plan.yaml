@@ -1,12 +1,15 @@
 release:
   version: "0.4.0"
   codename: Supported Hosted Access
-  status: planned
+  status: pr_open
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.3.0"
   baseline_tag: v0.3.0
   handoff: specs/HANDOFF_LATEST.md
+  release_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
+  pr_draft: specs/archive/PR-0.4.0-supported-hosted-access.md
+  scope: specs/product/SCOPE_LATEST.yaml
 
 previous_release:
   version: "0.3.0"
@@ -22,11 +25,13 @@ epics:
   - id: e03
     title: Supported Hosted Access
     capsule_dir: epics/e03-supported-hosted-access
-    status: pending_discovery
+    status: done
+    wsjf: 3.6
+    bcps: 26
     note: >-
-      Next priority after P2. Deliver Codex CLI bridge and xAI BYOK without
-      invented OAuth. Epic capsule directory and stories do not exist yet;
-      create them during plan-release / slice-tasks after scope-work.
+      Codex CLI alternate runtime + xAI BYOK + SuperGrok/X Premium OAuth.
+      WSJF numerator includes +2 security boost for auth/credential boundaries.
+      Prior art and pinned contracts live in specs/product/SCOPE_LATEST.yaml.
 
 bugs:
   total: 0
