@@ -2,7 +2,7 @@ STORY KEY: e03s04
 TITLE:     Detect Codex CLI availability and version
 TYPE:      Story
 PARENT:    e03
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      S

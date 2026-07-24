@@ -1,7 +1,7 @@
 release:
   version: "0.4.0"
   codename: Supported Hosted Access
-  status: planning
+  status: in_progress
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.3.0"
@@ -23,7 +23,7 @@ epics:
   - id: e03
     title: Supported Hosted Access
     capsule_dir: epics/e03-supported-hosted-access
-    status: planned
+    status: done
     wsjf: 3.6
     bcps: 26
     note: >-

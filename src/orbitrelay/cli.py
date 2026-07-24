@@ -4,6 +4,9 @@
 # story: e03s01
 # story: e03s02
 # story: e03s03
+# story: e03s04
+# story: e03s05
+# story: e03s06
 
 import argparse
 import getpass
@@ -20,6 +23,7 @@ from openai import APIStatusError, OpenAI
 from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
 from .auth_cli import run_auth_cli
+from .codex_cli import run_codex_cli
 from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
@@ -292,6 +296,8 @@ def _dispatch_cli(
             credential_store,
             input_stream=input_stream,
         )
+    if raw_argv and raw_argv[0] == "codex":
+        return run_codex_cli(raw_argv[1:])
     return _run_agent_cli(
         parse_args(raw_argv),
         repository,

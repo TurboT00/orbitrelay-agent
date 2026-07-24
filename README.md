@@ -84,7 +84,8 @@ user; OrbitRelay rejects symlinked, foreign-owned, or group/world-writable profi
 storage at the application-directory boundary. Profile files never contain
 credentials.
 
-Create an API-key profile. OrbitRelay prompts without echoing the credential:
+Create an API-key profile. OrbitRelay prompts without echoing the credential.
+For xAI defaults, prefer `--preset xai` (see Supported hosted access above).
 
 ```bash
 orbitrelay profile create deepseek-work \
@@ -133,18 +134,71 @@ Linux. Atomic replacement protects metadata from torn writes, but P1 does not
 claim power-loss atomicity across the metadata file and OS keychain.
 
 OrbitRelay does not combine partial provider settings from the process
-environment and a project `.env`: if the process supplies any `OPENAI_*` setting,
-that mapping is validated as one source; otherwise the loaded `.env` mapping is
-used. This prevents a project file from pairing its endpoint with an inherited
-credential. OrbitRelay parses only `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and
-`OPENAI_MODEL` from `.env`; it never copies project-defined proxy, CA, or other
-transport variables into the process environment. Dotenv interpolation is
-disabled, and unresolved `${...}` placeholders in provider settings are rejected
-rather than expanded from inherited process secrets.
+environment and a project `.env`: if the process supplies any `OPENAI_*` or
+`XAI_*` transport setting, that mapping is validated as one source; otherwise the
+loaded `.env` mapping is used. This prevents a project file from pairing its
+endpoint with an inherited credential. OrbitRelay parses `OPENAI_API_KEY`,
+`OPENAI_BASE_URL`, `OPENAI_MODEL`, `XAI_API_KEY`, `XAI_BASE_URL`, and `XAI_MODEL`
+from `.env`; it never copies project-defined proxy, CA, or other transport
+variables into the process environment. Dotenv interpolation is disabled, and
+unresolved `${...}` placeholders in provider settings are rejected rather than
+expanded from inherited process secrets.
 
-P1 validates `api_key`, `external_first_party_cli`, `local_none`, and
-`local_service_bearer` contracts. Only `api_key` profiles are executable in this
-release. The other runtime adapters remain roadmap work.
+Validated auth kinds include `api_key`, `subscription_oauth`,
+`external_first_party_cli`, `local_none`, and `local_service_bearer`. Executable
+run paths today are `api_key` and SuperGrok `subscription_oauth`. Codex uses a
+separate CLI process boundary rather than the Chat Completions profile loop.
+
+### xAI BYOK
+
+Use an xAI API key (pay-as-you-go; **not** SuperGrok subscription quota):
+
+```bash
+export XAI_API_KEY=...
+# defaults: https://api.x.ai/v1 and grok-4.5
+uv run orbitrelay "inspect this project"
+```
+
+Or create a named profile:
+
+```bash
+uv run orbitrelay profile create xai-work --preset xai \
+  --capability tool_calling \
+  --capability assistant_message_passthrough
+uv run orbitrelay "inspect this project" --profile xai-work
+```
+
+### SuperGrok / X Premium OAuth
+
+Subscription usage is a separate track from `XAI_API_KEY`. Login uses xAI device
+code OAuth; tokens stay in the OS keyring (OrbitRelay never reads `~/.grok/auth.json`):
+
+```bash
+uv run orbitrelay auth supergrok login
+uv run orbitrelay auth supergrok status
+uv run orbitrelay "inspect this project" --profile supergrok
+uv run orbitrelay auth supergrok logout
+```
+
+If inference returns HTTP 403 after a successful login, the account may be
+entitlement-gated. Fall back to `XAI_API_KEY` BYOK or verify the subscription tier.
+
+### Codex CLI bridge
+
+Install the official `codex` CLI yourself (not bundled). OrbitRelay only invokes
+documented commands and never reads `CODEX_HOME/auth.json`:
+
+```bash
+uv run orbitrelay codex status
+uv run orbitrelay codex login
+# or: uv run orbitrelay codex login --device-auth
+uv run orbitrelay codex exec "summarize this repository" --workspace .
+uv run orbitrelay codex logout
+```
+
+`codex exec` is an **alternate runtime path**. Codex owns its own tool sandbox and
+approvals for that path; OrbitRelay local tool approvals still apply to the
+Chat Completions agent loop (`api_key` / SuperGrok profiles).
 
 ## Tool approval policies
 

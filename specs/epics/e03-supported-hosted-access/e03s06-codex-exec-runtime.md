@@ -2,7 +2,7 @@ STORY KEY: e03s06
 TITLE:     Run a Codex exec alternate runtime path
 TYPE:      Story
 PARENT:    e03
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      L

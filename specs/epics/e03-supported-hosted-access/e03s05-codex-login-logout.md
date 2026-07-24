@@ -2,7 +2,7 @@ STORY KEY: e03s05
 TITLE:     Delegate Codex login and logout to the official CLI
 TYPE:      Story
 PARENT:    e03
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      M

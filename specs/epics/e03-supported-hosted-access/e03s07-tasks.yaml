@@ -1,6 +1,6 @@
 story_id: e03s07
 title: Document and verify hosted-access offline
-status: todo
+status: passing
 bcps: 3
 tasks:
   - id: 1
@@ -8,16 +8,16 @@ tasks:
     verify: "rg -n 'Codex|XAI_API_KEY|SuperGrok|auth.json' README.md"
     risk: P2
     security: medium
-    status: todo
+    status: passing
   - id: 2
     description: Align roadmap/help text with pinned commands and billing distinction.
     verify: "rg -n 'Supported hosted access|codex exec|SuperGrok' docs/project-roadmap.md README.md"
     risk: P2
     security: low
-    status: todo
+    status: passing
   - id: 3
     description: Run full offline mechanical gate after hosted-access implementation.
     verify: "./scripts/check.sh"
     risk: P0
     security: high
-    status: todo
+    status: passing

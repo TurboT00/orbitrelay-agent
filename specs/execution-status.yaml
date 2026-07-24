@@ -8,14 +8,14 @@ development_status:
   e02s04: done
   e02s05: done
   e02s06: done
-  e03: planned
+  e03: done
   e03s01: done
   e03s02: done
   e03s03: done
-  e03s04: todo
-  e03s05: todo
-  e03s06: todo
-  e03s07: todo
+  e03s04: done
+  e03s05: done
+  e03s06: done
+  e03s07: done
 
 epics:
   e01:
@@ -27,7 +27,7 @@ epics:
     wsjf: 4.0
     total_bcps: 24
   e03:
-    status: planned
+    status: done
     title: Supported Hosted Access
     wsjf: 3.6
     total_bcps: 26
@@ -102,42 +102,42 @@ stories:
     risk_max: P0
     security_max: high
   e03s04:
-    status: todo
+    status: done
     title: Detect Codex CLI availability and version
     bcps: 2
     epic: e03
     tasks_total: 2
-    tasks_passing: 0
+    tasks_passing: 2
     tasks_failing: 0
     risk_max: P1
     security_max: medium
   e03s05:
-    status: todo
+    status: done
     title: Delegate Codex login and logout to the official CLI
     bcps: 3
     epic: e03
     tasks_total: 3
-    tasks_passing: 0
+    tasks_passing: 3
     tasks_failing: 0
     risk_max: P0
     security_max: high
   e03s06:
-    status: todo
+    status: done
     title: Run a Codex exec alternate runtime path
     bcps: 5
     epic: e03
     tasks_total: 5
-    tasks_passing: 0
+    tasks_passing: 5
     tasks_failing: 0
     risk_max: P0
     security_max: high
   e03s07:
-    status: todo
+    status: done
     title: Document and verify hosted-access offline
     bcps: 3
     epic: e03
     tasks_total: 3
-    tasks_passing: 0
+    tasks_passing: 3
     tasks_failing: 0
     risk_max: P1
     security_max: high

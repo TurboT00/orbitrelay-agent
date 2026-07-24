@@ -1,6 +1,6 @@
 story_id: e03s05
 title: Delegate Codex login and logout to the official CLI
-status: todo
+status: passing
 bcps: 3
 tasks:
   - id: 1
@@ -8,16 +8,16 @@ tasks:
     verify: "uv run python -m unittest tests.test_codex_bridge -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 2
     description: Implement stdio-inheriting subprocess bridge for login, device-auth login, status, and logout.
     verify: "uv run python -m unittest tests.test_codex_bridge tests.test_cli -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 3
     description: Ensure missing codex and non-zero exits fail closed without auth.json access.
     verify: "uv run python -m unittest tests.test_codex_bridge -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
