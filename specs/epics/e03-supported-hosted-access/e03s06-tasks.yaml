@@ -1,0 +1,35 @@
+story_id: e03s06
+title: Run a Codex exec alternate runtime path
+status: todo
+bcps: 5
+tasks:
+  - id: 1
+    description: Add failing Codex exec tests for argv shape, success JSONL/-o output, and auth failure.
+    verify: "uv run python -m unittest tests.test_codex_bridge -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 2
+    description: Implement exec runner with fixed argv, workspace --cd, --json, and final-message capture.
+    verify: "uv run python -m unittest tests.test_codex_bridge -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 3
+    description: Gate exec on detection + login status; never default to approval/sandbox bypass flags.
+    verify: "uv run python -m unittest tests.test_codex_bridge tests.test_cli -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 4
+    description: Surface version warnings without hard-blocking unknown versions.
+    verify: "uv run python -m unittest tests.test_codex_bridge -v"
+    risk: P2
+    security: low
+    status: todo
+  - id: 5
+    description: Document in runtime help that Codex owns tool side effects for this path.
+    verify: "uv run python -m orbitrelay --help >/tmp/or-help.txt && rg -n 'codex|Codex' /tmp/or-help.txt"
+    risk: P2
+    security: medium
+    status: todo

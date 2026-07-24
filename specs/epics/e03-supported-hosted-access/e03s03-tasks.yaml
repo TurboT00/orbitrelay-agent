@@ -1,0 +1,35 @@
+story_id: e03s03
+title: Run the agent loop on a SuperGrok OAuth session
+status: todo
+bcps: 5
+tasks:
+  - id: 1
+    description: Add failing tests for SuperGrok-executable profile resolution and missing-login/403 paths.
+    verify: "uv run python -m unittest tests.test_cli tests.test_supergrok_oauth -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 2
+    description: Implement transport adapter that supplies bearer auth to the agent loop without logging secrets.
+    verify: "uv run python -m unittest tests.test_agent tests.test_cli -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 3
+    description: Ensure approval policies still gate write/exec under SuperGrok-backed runs.
+    verify: "uv run python -m unittest tests.test_agent tests.test_approvals -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 4
+    description: Map 401/403/invalid_grant into stable user-facing errors with BYOK fallback guidance.
+    verify: "uv run python -m unittest tests.test_cli tests.test_supergrok_oauth -v"
+    risk: P1
+    security: high
+    status: todo
+  - id: 5
+    description: Regression: api_key profiles and approval suite still pass.
+    verify: "uv run python -m unittest tests.test_cli tests.test_agent tests.test_approvals tests.test_profiles -v"
+    risk: P0
+    security: high
+    status: todo

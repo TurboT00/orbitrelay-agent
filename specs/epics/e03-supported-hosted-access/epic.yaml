@@ -1,0 +1,58 @@
+id: e03
+title: Supported Hosted Access
+wsjf: 3.6
+total_bcps: 26
+status: planned
+scope: specs/product/SCOPE_LATEST.yaml
+release_target: "0.4.0"
+threat_model: specs/security/epics/e03/THREAT_MODEL.md
+stories:
+  - id: e03s01
+    title: Run OrbitRelay with an xAI BYOK profile
+    bcps: 3
+    status: todo
+    delta: ADDED
+    spec: e03s01-xai-byok-profile.md
+    tasks: e03s01-tasks.yaml
+  - id: e03s02
+    title: Sign in and out of SuperGrok subscription OAuth
+    bcps: 5
+    status: todo
+    delta: ADDED
+    spec: e03s02-supergrok-oauth-login.md
+    tasks: e03s02-tasks.yaml
+  - id: e03s03
+    title: Run the agent loop on a SuperGrok OAuth session
+    bcps: 5
+    status: todo
+    delta: ADDED
+    spec: e03s03-supergrok-agent-loop.md
+    tasks: e03s03-tasks.yaml
+  - id: e03s04
+    title: Detect Codex CLI availability and version
+    bcps: 2
+    status: todo
+    delta: ADDED
+    spec: e03s04-codex-detect-version.md
+    tasks: e03s04-tasks.yaml
+  - id: e03s05
+    title: Delegate Codex login and logout to the official CLI
+    bcps: 3
+    status: todo
+    delta: ADDED
+    spec: e03s05-codex-login-logout.md
+    tasks: e03s05-tasks.yaml
+  - id: e03s06
+    title: Run a Codex exec alternate runtime path
+    bcps: 5
+    status: todo
+    delta: ADDED
+    spec: e03s06-codex-exec-runtime.md
+    tasks: e03s06-tasks.yaml
+  - id: e03s07
+    title: Document and verify hosted-access offline
+    bcps: 3
+    status: todo
+    delta: ADDED
+    spec: e03s07-docs-offline-verification.md
+    tasks: e03s07-tasks.yaml

@@ -1,0 +1,35 @@
+story_id: e03s02
+title: Sign in and out of SuperGrok subscription OAuth
+status: todo
+bcps: 5
+tasks:
+  - id: 1
+    description: Add SuperGrok OAuth client contracts and failing fake-server login/status/logout tests.
+    verify: "uv run python -m unittest discover -s tests -p 'test_*oauth*.py' -v || uv run python -m unittest tests.test_supergrok_oauth -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 2
+    description: Implement device-code (and optional PKCE) exchange against injectable HTTP transport with pinned endpoints.
+    verify: "uv run python -m unittest tests.test_supergrok_oauth -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 3
+    description: Persist and delete OAuth secrets only through CredentialStore; keep profile metadata secret-free.
+    verify: "uv run python -m unittest tests.test_supergrok_oauth tests.test_credentials tests.test_profiles -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 4
+    description: Wire CLI login/status/logout commands with secret-free output and timeout/deny handling.
+    verify: "uv run python -m unittest tests.test_supergrok_oauth tests.test_cli -v"
+    risk: P0
+    security: high
+    status: todo
+  - id: 5
+    description: Cover refresh invalid_grant quarantine and ensure no foreign auth.json reads.
+    verify: "uv run python -m unittest tests.test_supergrok_oauth -v && rg -n 'auth\\.json|~/.grok|CODEX_HOME' src/orbitrelay | rg -v 'never|forbid|not read|documentation' || true"
+    risk: P0
+    security: high
+    status: todo

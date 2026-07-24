@@ -1,0 +1,17 @@
+story_id: e03s04
+title: Detect Codex CLI availability and version
+status: todo
+bcps: 2
+tasks:
+  - id: 1
+    description: Add Codex detector contracts and failing tests with fake PATH executables.
+    verify: "uv run python -m unittest tests.test_codex_bridge -v"
+    risk: P1
+    security: medium
+    status: todo
+  - id: 2
+    description: Implement PATH detection, version probe, and secret-free status output with install guidance.
+    verify: "uv run python -m unittest tests.test_codex_bridge tests.test_cli -v"
+    risk: P1
+    security: medium
+    status: todo
