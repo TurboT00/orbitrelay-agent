@@ -1,10 +1,10 @@
-active_flow: none
-active_epic_id: null
+active_flow: run_planning
+active_epic_id: e04
 active_story_id: null
 release:
   current_version: 0.4.0
-  target_version: null
-  next_target: null
+  target_version: 0.5.0
+  next_target: conversations-and-streaming
   last_completed_release: 0.4.0
   last_completed_tag: v0.4.0
   last_completed_pr: 3
@@ -31,47 +31,44 @@ verification:
   example_tests: 9
   evidence: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
 planning:
-  phase: plan
-  status: implementation-complete
+  phase: discover
+  status: scoped
   entry_skill: survey-context
-  next_skill: survey-context
+  next_skill: research-first
   scope_status: scoped
   scope_path: specs/product/SCOPE_LATEST.yaml
-  research_status: complete
-  release_plan: specs/release-plan.yaml
-  epic_capsule: specs/epics/e03-supported-hosted-access
   notes: >-
-    P3 discover→research→plan-release complete on clean main baseline 51ab7f8.
-    e03 capsule has seven stories with Gherkin AC and verify-bearing tasks.
-    Next: resolve remaining SuperGrok design questions if needed, then
-    plan-work/kickoff-branch/develop-tdd starting e03s01. No coding on main.
+    P4 Conversations and streaming scoped on clean main after v0.4.0. Locked:
+    full P4 in 0.5.0; per-user ~/.orbitrelay/sessions; 0700/0600 only; keep
+    until user deletes. Next: research-first then plan-release/slice-tasks.
 epic_cycle:
-  current_step: plan-work
-  next_skill: plan-work
+  current_step: research-first
+  next_skill: research-first
   story_bcps: null
   completed_steps:
     - survey-context
     - scope-work
-    - research-first
-    - plan-release
   audit_result: null
 handoff:
   last_step_completed: >-
-    P3 0.4.0 merged (PR #3) and tagged v0.4.0
-  document: specs/epics/e03-supported-hosted-access/epic.yaml
+    P4 scope-work complete; SCOPE_LATEST written for Conversations and streaming
+  document: specs/product/SCOPE_LATEST.yaml
   required_reading:
     - specs/product/SCOPE_LATEST.yaml
     - specs/release-plan.yaml
-    - specs/epics/e03-supported-hosted-access/epic.yaml
-    - specs/security/epics/e03/THREAT_MODEL.md
-    - specs/execution-status.yaml
+    - docs/project-roadmap.md
+    - specs/archive/RELEASE-0.4.0-supported-hosted-access.md
+    - src/orbitrelay/agent.py
+    - src/orbitrelay/approvals.py
+    - src/orbitrelay/cli.py
+    - src/orbitrelay/redaction.py
   open_decisions:
-    - Approve session storage and retention before conversation persistence (P4).
     - Approve certified Ollama models before claiming local tool support (P5).
-  next_skill: develop-tdd
+    - Exact event schema fields, stream sink CLI flags, and session file format (plan-work).
+  next_skill: research-first
   next_action: >-
-    P3 complete. Next roadmap item is P4 Conversations and streaming when ready.
-    Start with survey-context; do not begin without user direction.
+    research-first for event/stream/session prior art, then plan-release for e04.
+    Do not implement before stories are sliced.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -101,7 +98,11 @@ decisions:
   p3_supergrok_oauth_client: >-
     Accept shared Grok CLI OAuth client_id as consumer-session compatibility
     (not OrbitRelay-owned app registration); document truthfully.
-  next_user_capability: Supported hosted access — Codex CLI bridge + xAI BYOK + SuperGrok OAuth.
+  next_user_capability: Conversations and streaming (event model, streaming, local sessions).
+  p4_ship_shape: Full P4 in 0.5.0 (events + streaming + sessions + budgeting + summaries).
+  p4_session_storage: Per-user OrbitRelay home sessions directory (ORBITRELAY_HOME/sessions).
+  p4_session_protection: Filesystem permissions only (0700/0600); no app-level encryption in P4.
+  p4_session_retention: Keep until user deletes; list/show/delete; no auto-purge.
   local_models: Start with Ollama loopback after capability profiles, approvals, and hosted-access foundations exist.
   remote_push: Do not push without an explicit user request.
   approval_batching: Validate and authorize the full model tool-call batch before executing approved calls in original order.
@@ -116,6 +117,11 @@ preferences:
   - Keep GitHub optional until cross-machine development makes CI valuable.
   - Start P3 from discover/scope, not from implementation commits.
 metrics:
+  p4_scope_completed_at: "2026-07-24T17:35:22Z"
+
+  p4_survey_started_at: "2026-07-24T16:53:22Z"
+  baseline_check_after_p3: passed
+
   release_0_4_0_completed_at: "2026-07-24T10:06:02Z"
   handoff_written_at: "2026-07-23T23:32:31Z"
   story_start: "2026-07-24T00:11:40Z"

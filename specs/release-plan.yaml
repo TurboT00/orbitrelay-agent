@@ -1,40 +1,33 @@
 release:
-  version: "0.4.0"
-  codename: Supported Hosted Access
-  status: released
+  version: "0.5.0"
+  codename: Conversations and Streaming
+  status: planned
   semantic_release: true
   bump_hint: minor
-  baseline_version: "0.3.0"
-  baseline_tag: v0.3.0
+  baseline_version: "0.4.0"
+  baseline_tag: v0.4.0
   handoff: specs/HANDOFF_LATEST.md
-  release_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
-  released_tag: v0.4.0
-  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.4.0
-  merge_commit: a983f944be785d3cbfa5b32dda00eeb7dad3411a
-  pr_draft: specs/archive/PR-0.4.0-supported-hosted-access.md
   scope: specs/product/SCOPE_LATEST.yaml
 
 previous_release:
-  version: "0.3.0"
-  codename: Tool Approval Policies
+  version: "0.4.0"
+  codename: Supported Hosted Access
   status: completed
-  tag: v0.3.0
-  pr_number: 2
-  merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
-  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.3.0
-  notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
+  tag: v0.4.0
+  pr_number: 3
+  merge_commit: a983f944be785d3cbfa5b32dda00eeb7dad3411a
+  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.4.0
+  notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
 
 epics:
-  - id: e03
-    title: Supported Hosted Access
-    capsule_dir: epics/e03-supported-hosted-access
-    status: done
-    wsjf: 3.6
-    bcps: 26
+  - id: e04
+    title: Conversations and Streaming
+    capsule_dir: epics/e04-conversations-and-streaming
+    status: pending_discovery
     note: >-
-      Codex CLI alternate runtime + xAI BYOK + SuperGrok/X Premium OAuth.
-      WSJF numerator includes +2 security boost for auth/credential boundaries.
-      Prior art and pinned contracts live in specs/product/SCOPE_LATEST.yaml.
+      Next priority after P3. Event model first, then streaming, per-user
+      sessions (0700/0600, keep-until-delete), context budgeting, run summaries.
+      Epic capsule and stories to be created during plan-release after research.
 
 bugs:
   total: 0

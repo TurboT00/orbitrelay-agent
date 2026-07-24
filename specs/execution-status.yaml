@@ -9,6 +9,7 @@ development_status:
   e02s05: done
   e02s06: done
   e03: done
+  e04: pending
   e03s01: done
   e03s02: done
   e03s03: done
@@ -28,6 +29,11 @@ epics:
     total_bcps: 24
   e03:
     status: done
+  e04:
+    status: pending
+    title: Conversations and Streaming
+    note: >-
+      Next roadmap epic (P4). Scoped; not sliced yet.
     title: Supported Hosted Access
     wsjf: 3.6
     total_bcps: 26

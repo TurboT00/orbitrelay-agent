@@ -36,8 +36,7 @@ locked_decisions:
       context budgeting, and run summaries. Stories may still be sequenced inside
       the epic.
   - id: event_model_first
-    decision: >-
-      One shared event model is designed before streaming and session persistence
+    decision: >-\n      One shared event model is designed before streaming and session persistence
       features are layered on it.
   - id: session_storage_location
     decision: >-
