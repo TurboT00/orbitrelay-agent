@@ -10,7 +10,7 @@ stories:
   - id: e04s01
     title: Emit a correlated run event model
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s01-run-event-model.md
     tasks: e04s01-tasks.yaml

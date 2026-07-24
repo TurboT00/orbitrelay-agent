@@ -17,7 +17,7 @@ development_status:
   e03s06: done
   e03s07: done
   e04: planned
-  e04s01: todo
+  e04s01: done
   e04s02: todo
   e04s03: todo
   e04s04: todo
@@ -105,11 +105,12 @@ stories:
     title: Document and verify hosted-access offline
     epic: e03
   e04s01:
-    status: todo
+    status: done
     title: Emit a correlated run event model
     bcps: 5
     epic: e04
     tasks_total: 5
+    tasks_passing: 5
     risk_max: P0
     security_max: high
   e04s02:

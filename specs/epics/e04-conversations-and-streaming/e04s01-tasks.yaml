@@ -1,6 +1,6 @@
 story_id: e04s01
 title: Emit a correlated run event model
-status: todo
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -8,28 +8,28 @@ tasks:
     verify: "uv run python -m unittest tests.test_events -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 2
     description: Emit events from the agent loop for model/tool/approval/usage/error/completion.
     verify: "uv run python -m unittest tests.test_events tests.test_agent -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 3
     description: Ensure event serialization uses redaction and stable ordering.
     verify: "uv run python -m unittest tests.test_events tests.test_redaction -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
   - id: 4
     description: Keep non-event CLI behavior backward compatible when no sink is attached.
     verify: "uv run python -m unittest tests.test_cli tests.test_agent -v"
     risk: P1
     security: medium
-    status: todo
+    status: passing
   - id: 5
     description: Regression: approvals and tool correlation still pass.
     verify: "uv run python -m unittest tests.test_agent tests.test_approvals -v"
     risk: P0
     security: high
-    status: todo
+    status: passing
