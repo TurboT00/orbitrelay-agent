@@ -9,7 +9,7 @@ development_status:
   e02s05: done
   e02s06: done
   e03: planned
-  e03s01: todo
+  e03s01: done
   e03s02: todo
   e03s03: todo
   e03s04: todo
@@ -72,12 +72,12 @@ stories:
     bcps: 3
     epic: e02
   e03s01:
-    status: todo
+    status: done
     title: Run OrbitRelay with an xAI BYOK profile
     bcps: 3
     epic: e03
     tasks_total: 3
-    tasks_passing: 0
+    tasks_passing: 3
     tasks_failing: 0
     risk_max: P1
     security_max: high

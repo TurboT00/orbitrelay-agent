@@ -2,7 +2,7 @@ STORY KEY: e03s01
 TITLE:     Run OrbitRelay with an xAI BYOK profile
 TYPE:      Story
 PARENT:    e03
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      S

@@ -10,7 +10,7 @@ stories:
   - id: e03s01
     title: Run OrbitRelay with an xAI BYOK profile
     bcps: 3
-    status: todo
+    status: done
     delta: ADDED
     spec: e03s01-xai-byok-profile.md
     tasks: e03s01-tasks.yaml

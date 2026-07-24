@@ -1,4 +1,5 @@
 # story: e01s01
+# story: e03s01
 
 import argparse
 import json
@@ -7,6 +8,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, TextIO
 
+from .config import XAI_DEFAULT_BASE_URL, XAI_DEFAULT_MODEL
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderCapability, ProviderProfile
@@ -23,10 +25,15 @@ class ProfileCommandContext:
 
 def _configure_create_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("name")
-    parser.add_argument("--base-url", required=True)
-    parser.add_argument("--model", required=True)
     parser.add_argument(
-        "--auth-kind", required=True, choices=[kind.value for kind in AuthKind]
+        "--preset",
+        choices=("xai",),
+        help="Apply provider defaults (xai sets api.x.ai / grok-4.5 / api_key)",
+    )
+    parser.add_argument("--base-url")
+    parser.add_argument("--model")
+    parser.add_argument(
+        "--auth-kind", choices=[kind.value for kind in AuthKind]
     )
     parser.add_argument(
         "--capability",
@@ -58,7 +65,34 @@ def parse_profile_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _apply_create_defaults(args: argparse.Namespace) -> argparse.Namespace:
+    if args.preset == "xai":
+        if args.base_url is None:
+            args.base_url = XAI_DEFAULT_BASE_URL
+        if args.model is None:
+            args.model = XAI_DEFAULT_MODEL
+        if args.auth_kind is None:
+            args.auth_kind = AuthKind.API_KEY.value
+    missing = [
+        flag
+        for flag, value in (
+            ("--base-url", args.base_url),
+            ("--model", args.model),
+            ("--auth-kind", args.auth_kind),
+        )
+        if value is None
+    ]
+    if missing:
+        raise ValueError(
+            "profile create requires "
+            + ", ".join(missing)
+            + " (or --preset xai)"
+        )
+    return args
+
+
 def _profile_from_args(args: argparse.Namespace) -> ProviderProfile:
+    args = _apply_create_defaults(args)
     return ProviderProfile.create(
         name=args.name,
         base_url=args.base_url,

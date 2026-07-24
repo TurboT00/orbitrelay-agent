@@ -1,6 +1,7 @@
 # story: e01s01
 # story: e02s04
 # story: e02s05
+# story: e03s01
 
 import argparse
 import getpass
@@ -24,6 +25,8 @@ from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
 
 OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
+XAI_ENV_KEYS = ("XAI_API_KEY", "XAI_BASE_URL", "XAI_MODEL")
+TRANSPORT_ENV_KEYS = OPENAI_ENV_KEYS + XAI_ENV_KEYS
 DEFAULT_APPROVAL_TIMEOUT = 60.0
 MAX_APPROVAL_TIMEOUT = 300.0
 CONSEQUENTIAL_TOOL_NAMES = frozenset({"write_file", "run_python_file"})
@@ -215,7 +218,7 @@ def _environment_source(
     process_environment: Mapping[str, str],
     dotenv_environment: Mapping[str, str],
 ) -> Mapping[str, str]:
-    if any(key in process_environment for key in OPENAI_ENV_KEYS):
+    if any(key in process_environment for key in TRANSPORT_ENV_KEYS):
         return process_environment
     return dotenv_environment
 
@@ -224,7 +227,7 @@ def _dotenv_environment() -> dict[str, str]:
     values = {
         key: value
         for key, value in dotenv_values(interpolate=False).items()
-        if isinstance(value, str) and key in OPENAI_ENV_KEYS
+        if isinstance(value, str) and key in TRANSPORT_ENV_KEYS
     }
     if any("${" in value for value in values.values()):
         raise ValueError("OPENAI_* dotenv interpolation is not supported")

@@ -1,4 +1,5 @@
 # story: e01s01
+# story: e03s01
 
 import json
 import tempfile
@@ -8,6 +9,7 @@ from io import StringIO
 from pathlib import Path
 
 from orbitrelay import cli
+from orbitrelay.config import XAI_DEFAULT_BASE_URL, XAI_DEFAULT_MODEL
 from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.profile_store import ProfileRepository
 
@@ -180,6 +182,46 @@ class ProfileCliTests(unittest.TestCase):
                 ],
                 stdin=StringIO("must-not-be-ignored\n"),
             )
+
+    def test_xai_preset_creates_api_key_profile_with_defaults(self):
+        output = self.run_cli(
+            ["profile", "create", "xai-work", "--preset", "xai", *CAPABILITY_ARGS]
+        )
+
+        self.assertEqual(output, 'Created profile "xai-work".\n')
+        profile = self.repository.get("xai-work")
+        self.assertEqual(profile.base_url, XAI_DEFAULT_BASE_URL)
+        self.assertEqual(profile.model, XAI_DEFAULT_MODEL)
+        self.assertEqual(profile.auth_kind.value, "api_key")
+        self.assertEqual(
+            self.credentials.values,
+            {self.repository.credential_key("xai-work"): "prompt-secret"},
+        )
+        metadata = self.path.read_text()
+        self.assertNotIn("prompt-secret", metadata)
+        self.assertIn(XAI_DEFAULT_BASE_URL, metadata)
+        self.assertIn(XAI_DEFAULT_MODEL, metadata)
+
+    def test_xai_preset_allows_explicit_overrides(self):
+        self.run_cli(
+            [
+                "profile",
+                "create",
+                "xai-custom",
+                "--preset",
+                "xai",
+                "--base-url",
+                "https://xai.example.test/v1",
+                "--model",
+                "grok-custom",
+                *CAPABILITY_ARGS,
+            ]
+        )
+
+        profile = self.repository.get("xai-custom")
+        self.assertEqual(profile.base_url, "https://xai.example.test/v1")
+        self.assertEqual(profile.model, "grok-custom")
+        self.assertEqual(profile.auth_kind.value, "api_key")
 
 
 if __name__ == "__main__":

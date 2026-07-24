@@ -16,7 +16,12 @@ from unittest.mock import ANY, Mock, patch
 
 from orbitrelay import cli
 from orbitrelay.approvals import ApprovalRequest
-from orbitrelay.config import DEFAULT_BASE_URL, DEFAULT_MODEL
+from orbitrelay.config import (
+    DEFAULT_BASE_URL,
+    DEFAULT_MODEL,
+    XAI_DEFAULT_BASE_URL,
+    XAI_DEFAULT_MODEL,
+)
 from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.profile_store import ProfileNotFoundError, ProfileRepository
 from orbitrelay.profiles import (
@@ -357,7 +362,9 @@ class CliTests(unittest.TestCase):
                 patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI") as openai,
             ):
-                with self.assertRaisesRegex(ValueError, "OPENAI_API_KEY is required"):
+                with self.assertRaisesRegex(
+                    ValueError, "OPENAI_API_KEY or XAI_API_KEY is required"
+                ):
                     cli.main(
                         ["inspect"],
                         profile_repository=ProfileRepository(
@@ -605,6 +612,41 @@ class CliTests(unittest.TestCase):
             api_key="dotenv-key", base_url=DEFAULT_BASE_URL
         )
 
+    def test_uses_xai_api_key_with_xai_defaults(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            with (
+                patch.dict(os.environ, {"XAI_API_KEY": "xai-secret"}, clear=True),
+                patch("orbitrelay.cli.OpenAI") as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done") as run_agent,
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(["inspect"], profile_repository=repository)
+
+        openai.assert_called_once_with(
+            api_key="xai-secret", base_url=XAI_DEFAULT_BASE_URL
+        )
+        self.assertEqual(run_agent.call_args.args[2], XAI_DEFAULT_MODEL)
+
+    def test_uses_dotenv_xai_api_key_when_process_has_no_transport_settings(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repository = ProfileRepository(Path(directory) / "profiles.json")
+            with (
+                patch.dict(os.environ, {}, clear=True),
+                patch(
+                    "orbitrelay.cli.dotenv_values",
+                    return_value={"XAI_API_KEY": "dotenv-xai-key"},
+                ),
+                patch("orbitrelay.cli.OpenAI") as openai,
+                patch("orbitrelay.cli.run_agent", return_value="done"),
+                redirect_stdout(StringIO()),
+            ):
+                cli.main(["inspect"], profile_repository=repository)
+
+        openai.assert_called_once_with(
+            api_key="dotenv-xai-key", base_url=XAI_DEFAULT_BASE_URL
+        )
+
     def test_partial_process_source_does_not_merge_dotenv_api_key(self):
         with tempfile.TemporaryDirectory() as directory:
             repository = ProfileRepository(Path(directory) / "profiles.json")
@@ -616,7 +658,9 @@ class CliTests(unittest.TestCase):
                 ),
                 patch("orbitrelay.cli.OpenAI") as openai,
             ):
-                with self.assertRaisesRegex(ValueError, "OPENAI_API_KEY is required"):
+                with self.assertRaisesRegex(
+                    ValueError, "OPENAI_API_KEY or XAI_API_KEY is required"
+                ):
                     cli.main(["inspect"], profile_repository=repository)
 
         openai.assert_not_called()
