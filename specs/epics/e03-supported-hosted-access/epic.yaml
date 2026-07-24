@@ -24,7 +24,7 @@ stories:
   - id: e03s03
     title: Run the agent loop on a SuperGrok OAuth session
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e03s03-supergrok-agent-loop.md
     tasks: e03s03-tasks.yaml

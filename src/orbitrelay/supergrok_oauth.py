@@ -344,30 +344,47 @@ class SuperGrokAuthService:
         if self._output is not None:
             print(message, file=self._output)
 
-    def _credential_key(self) -> str:
-        return self._repository.credential_key(SUPERGROK_PROFILE_NAME)
+    def _credential_key(self, profile_name: str = SUPERGROK_PROFILE_NAME) -> str:
+        return self._repository.credential_key(profile_name)
 
-    def _load_bundle(self) -> SuperGrokTokenBundle | None:
+    def _load_bundle(
+        self, profile_name: str = SUPERGROK_PROFILE_NAME
+    ) -> SuperGrokTokenBundle | None:
         try:
-            secret = self._store.get_secret(self._credential_key())
+            secret = self._store.get_secret(self._credential_key(profile_name))
         except CredentialNotFoundError:
             return None
         return SuperGrokTokenBundle.from_json(secret)
 
-    def _save_bundle(self, bundle: SuperGrokTokenBundle) -> None:
-        profile = supergrok_profile()
+    def _save_bundle(
+        self,
+        bundle: SuperGrokTokenBundle,
+        *,
+        profile_name: str = SUPERGROK_PROFILE_NAME,
+    ) -> None:
+        profile = (
+            supergrok_profile()
+            if profile_name == SUPERGROK_PROFILE_NAME
+            else ProviderProfile.create(
+                name=profile_name,
+                base_url=XAI_DEFAULT_BASE_URL,
+                model=XAI_DEFAULT_MODEL,
+                auth_kind=AuthKind.SUBSCRIPTION_OAUTH,
+                capabilities=REQUIRED_CAPABILITIES,
+            )
+        )
         secret = bundle.to_json()
         try:
-            existing = self._repository.get(SUPERGROK_PROFILE_NAME)
+            existing = self._repository.get(profile_name)
         except ProfileNotFoundError:
             self._service.create(profile, secret=secret)
             return
         if existing.auth_kind is not AuthKind.SUBSCRIPTION_OAUTH:
             raise SuperGrokOAuthError(
-                f'Profile "{SUPERGROK_PROFILE_NAME}" exists with auth kind '
+                f'Profile "{profile_name}" exists with auth kind '
                 f'"{existing.auth_kind.value}"'
             )
-        self._store.set_secret(self._credential_key(), secret)
+        self._store.set_secret(self._credential_key(profile_name), secret)
         if (
             existing.base_url != profile.base_url
             or existing.model != profile.model
@@ -400,32 +417,39 @@ class SuperGrokAuthService:
             self._sleeper(interval)
         raise SuperGrokOAuthError("SuperGrok device authorization timed out")
 
-    def status(self) -> SuperGrokAuthStatus:
-        bundle = self._load_bundle()
+    def status(
+        self, profile_name: str = SUPERGROK_PROFILE_NAME
+    ) -> SuperGrokAuthStatus:
+        bundle = self._load_bundle(profile_name)
         if bundle is None:
-            return SuperGrokAuthStatus(authenticated=False)
+            return SuperGrokAuthStatus(authenticated=False, profile_name=profile_name)
         return SuperGrokAuthStatus(
             authenticated=True,
+            profile_name=profile_name,
             expires_at=bundle.expires_at,
             quarantined=bundle.quarantined,
         )
 
-    def logout(self) -> SuperGrokAuthStatus:
+    def logout(
+        self, profile_name: str = SUPERGROK_PROFILE_NAME
+    ) -> SuperGrokAuthStatus:
         try:
-            existing = self._repository.get(SUPERGROK_PROFILE_NAME)
+            existing = self._repository.get(profile_name)
         except ProfileNotFoundError:
-            return SuperGrokAuthStatus(authenticated=False)
+            return SuperGrokAuthStatus(authenticated=False, profile_name=profile_name)
         if existing.auth_kind is AuthKind.SUBSCRIPTION_OAUTH:
-            self._service.delete(SUPERGROK_PROFILE_NAME)
+            self._service.delete(profile_name)
         else:
             raise SuperGrokOAuthError(
-                f'Profile "{SUPERGROK_PROFILE_NAME}" is not a SuperGrok OAuth profile'
+                f'Profile "{profile_name}" is not a SuperGrok OAuth profile'
             )
         self._emit("SuperGrok OAuth logged out.")
-        return SuperGrokAuthStatus(authenticated=False)
+        return SuperGrokAuthStatus(authenticated=False, profile_name=profile_name)
 
-    def get_valid_access_token(self) -> str:
-        bundle = self._load_bundle()
+    def get_valid_access_token(
+        self, profile_name: str = SUPERGROK_PROFILE_NAME
+    ) -> str:
+        bundle = self._load_bundle(profile_name)
         if bundle is None:
             raise SuperGrokReauthRequired("SuperGrok OAuth login required")
         if bundle.quarantined:
@@ -439,8 +463,9 @@ class SuperGrokAuthService:
             refreshed = self._client.refresh(bundle.refresh_token, now=now)
         except SuperGrokReauthRequired:
             self._store.set_secret(
-                self._credential_key(), bundle.with_quarantine().to_json()
+                self._credential_key(profile_name),
+                bundle.with_quarantine().to_json(),
             )
             raise
-        self._save_bundle(refreshed)
+        self._save_bundle(refreshed, profile_name=profile_name)
         return refreshed.access_token

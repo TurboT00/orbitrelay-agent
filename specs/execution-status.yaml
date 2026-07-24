@@ -11,7 +11,7 @@ development_status:
   e03: planned
   e03s01: done
   e03s02: done
-  e03s03: todo
+  e03s03: done
   e03s04: todo
   e03s05: todo
   e03s06: todo
@@ -92,12 +92,12 @@ stories:
     risk_max: P0
     security_max: high
   e03s03:
-    status: todo
+    status: done
     title: Run the agent loop on a SuperGrok OAuth session
     bcps: 5
     epic: e03
     tasks_total: 5
-    tasks_passing: 0
+    tasks_passing: 5
     tasks_failing: 0
     risk_max: P0
     security_max: high
