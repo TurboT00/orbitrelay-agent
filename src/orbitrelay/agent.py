@@ -2,10 +2,11 @@
 # story: e02s06
 # story: e04s01
 # story: e04s02
+# story: e04s03
 
 import json
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator, Sequence
 from typing import Any, TextIO
 
 from .approval_format import format_approval_record
@@ -144,8 +145,11 @@ def run_agent(
     approval_session: ApprovalSession | None = None,
     audit_stream: TextIO | None = None,
     event_collector: EventCollector | None = None,
+    initial_messages: Sequence[Any] | None = None,
+    on_messages_update: Callable[[list[Any]], None] | None = None,
 ) -> str:
     collector = event_collector
+    messages = _starting_messages(user_prompt, initial_messages)
     if collector is not None:
         collector.emit(
             EventType.RUN_STARTED,
@@ -153,17 +157,20 @@ def run_agent(
             workspace=working_directory,
             stream=stream,
         )
+    if on_messages_update is not None:
+        on_messages_update(list(messages))
     try:
         final_text = _run_response_loop(
             client,
             model,
-            _initial_messages(user_prompt),
+            messages,
             working_directory,
             verbose,
             stream,
             approval_session or ApprovalSession(),
             sys.stderr if audit_stream is None else audit_stream,
             collector,
+            on_messages_update,
         )
     except Exception as exc:
         if collector is not None:
@@ -181,6 +188,12 @@ def run_agent(
             content=final_text,
         )
         collector.emit(EventType.RUN_COMPLETED, status="completed")
+    if on_messages_update is not None:
+        # Persist final assistant message into conversation history.
+        final_messages = list(messages)
+        if not final_messages or final_messages[-1].get("role") != "assistant":
+            final_messages.append({"role": "assistant", "content": final_text})
+        on_messages_update(final_messages)
     return final_text
 
 
@@ -189,6 +202,16 @@ def _initial_messages(user_prompt: str) -> list[Any]:
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
+
+
+def _starting_messages(
+    user_prompt: str, initial_messages: Sequence[Any] | None
+) -> list[Any]:
+    if initial_messages is None:
+        return _initial_messages(user_prompt)
+    history = [message for message in initial_messages]
+    history.append({"role": "user", "content": user_prompt})
+    return history
 
 
 def _create_model_response(
@@ -227,6 +250,7 @@ def _run_response_loop(
     approval_session: ApprovalSession,
     audit_stream: TextIO,
     event_collector: EventCollector | None,
+    on_messages_update: Callable[[list[Any]], None] | None = None,
 ) -> str:
     context = (
         working_directory,
@@ -234,6 +258,7 @@ def _run_response_loop(
         approval_session,
         audit_stream,
         event_collector,
+        on_messages_update,
     )
     for response_number in range(1, MAX_MODEL_RESPONSES + 1):
         response = _create_model_response(
@@ -254,9 +279,16 @@ def _process_response(
     response: Any,
     response_number: int,
     messages: list[Any],
-    context: tuple[str, bool, ApprovalSession, TextIO, EventCollector | None],
+    context: tuple[
+        str,
+        bool,
+        ApprovalSession,
+        TextIO,
+        EventCollector | None,
+        Callable[[list[Any]], None] | None,
+    ],
 ) -> str | None:
-    _workspace, verbose, _session, _audit, collector = context
+    _workspace, verbose, _session, _audit, collector, on_messages_update = context
     if verbose:
         _print_usage(response_number, response)
     _emit_usage(collector, response_number, response)
@@ -265,6 +297,8 @@ def _process_response(
     if not tool_calls:
         return _final_text(message)
     messages.extend(_tool_round_messages(message, tool_calls, response_number, context))
+    if on_messages_update is not None:
+        on_messages_update(list(messages))
     return None
 
 
@@ -289,9 +323,16 @@ def _tool_round_messages(
     message: Any,
     tool_calls: Any,
     response_number: int,
-    context: tuple[str, bool, ApprovalSession, TextIO, EventCollector | None],
+    context: tuple[
+        str,
+        bool,
+        ApprovalSession,
+        TextIO,
+        EventCollector | None,
+        Callable[[list[Any]], None] | None,
+    ],
 ) -> list[dict[str, Any]]:
-    workspace, verbose, session, audit_stream, collector = context
+    workspace, verbose, session, audit_stream, collector, _on_messages_update = context
     if response_number == MAX_MODEL_RESPONSES:
         raise TurnLimitError(
             f"Model requested more tools after the {MAX_MODEL_RESPONSES}-response "

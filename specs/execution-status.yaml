@@ -19,8 +19,8 @@ development_status:
   e04: planned
   e04s01: done
   e04s02: done
-  e04s03: todo
-  e04s04: todo
+  e04s03: done
+  e04s04: done
   e04s05: todo
   e04s06: todo
   e04s07: todo
@@ -123,19 +123,21 @@ stories:
     risk_max: P0
     security_max: high
   e04s03:
-    status: todo
+    status: done
     title: Persist and resume local sessions
     bcps: 5
     epic: e04
     tasks_total: 5
+    tasks_passing: 5
     risk_max: P0
     security_max: high
   e04s04:
-    status: todo
+    status: done
     title: List show and delete sessions
     bcps: 3
     epic: e04
     tasks_total: 3
+    tasks_passing: 3
     risk_max: P1
     security_max: high
   e04s05:

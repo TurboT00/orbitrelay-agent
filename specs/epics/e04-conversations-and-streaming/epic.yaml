@@ -24,14 +24,14 @@ stories:
   - id: e04s03
     title: Persist and resume local sessions
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s03-persist-resume-sessions.md
     tasks: e04s03-tasks.yaml
   - id: e04s04
     title: List show and delete sessions
     bcps: 3
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s04-session-lifecycle-cli.md
     tasks: e04s04-tasks.yaml
