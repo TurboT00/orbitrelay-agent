@@ -1,29 +1,27 @@
-active_flow: run_planning
-active_epic_id: e03
+active_flow: none
+active_epic_id: null
 active_story_id: null
 release:
   current_version: 0.4.0
-  target_version: 0.4.0
-  next_target: supported-hosted-access
-  last_completed_release: 0.3.0
-  last_completed_tag: v0.3.0
-  last_completed_pr: 2
-  last_completed_merge_commit: 3d1cc4f99a5cf8e5be08d4b99f18aa59cbf01fd6
-  last_completed_notes: specs/archive/RELEASE-0.3.0-tool-approval-policies.md
-  pending_release_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
-  pending_pr_draft: specs/archive/PR-0.4.0-supported-hosted-access.md
+  target_version: null
+  next_target: null
+  last_completed_release: 0.4.0
+  last_completed_tag: v0.4.0
+  last_completed_pr: 3
+  last_completed_merge_commit: a983f944be785d3cbfa5b32dda00eeb7dad3411a
+  last_completed_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
   pr_number: 3
   pr_url: https://github.com/TurboT00/orbitrelay-agent/pull/3
-  pr_state: open
-  merged: false
+  pr_state: merged
+  merged: true
   ci_verified: false
   ci_status: not_configured
 git:
-  branch: feat/e03-supported-hosted-access
-  base_hash: 1456e4e
+  branch: main
+  base_hash: a983f94
   handoff_ref: HEAD
   remote: origin/main
-  push_requested: true
+  push_requested: false
 working_tree:
   expected_after_handoff: clean
 verification:
@@ -36,7 +34,7 @@ planning:
   phase: plan
   status: implementation-complete
   entry_skill: survey-context
-  next_skill: release-branch
+  next_skill: survey-context
   scope_status: scoped
   scope_path: specs/product/SCOPE_LATEST.yaml
   research_status: complete
@@ -59,7 +57,7 @@ epic_cycle:
   audit_result: null
 handoff:
   last_step_completed: >-
-    P3 0.4.0 implementation complete; release notes + PR draft ready
+    P3 0.4.0 merged (PR #3) and tagged v0.4.0
   document: specs/epics/e03-supported-hosted-access/epic.yaml
   required_reading:
     - specs/product/SCOPE_LATEST.yaml
@@ -72,7 +70,8 @@ handoff:
     - Approve certified Ollama models before claiming local tool support (P5).
   next_skill: develop-tdd
   next_action: >-
-    Review and merge PR #3; then tag v0.4.0 after merge if desired.
+    P3 complete. Next roadmap item is P4 Conversations and streaming when ready.
+    Start with survey-context; do not begin without user direction.
 decisions:
   credential_store: Use the native OS credential store behind a replaceable contract; never fall back to plaintext secrets.
   profile_metadata: Store named profile metadata per-user only in P1; do not write profiles into repositories.
@@ -110,12 +109,14 @@ decisions:
   approval_preapproved: Require a per-tool allowlist for pre-approved automation; never infer blanket approval.
   approval_audit: Keep decision records run-local and emit sanitized events to stderr only in verbose mode.
   p2_status: Completed and released as 0.3.0.
+  p3_status: Completed and released as 0.4.0.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.
   - Keep GitHub optional until cross-machine development makes CI valuable.
   - Start P3 from discover/scope, not from implementation commits.
 metrics:
+  release_0_4_0_completed_at: "2026-07-24T10:06:02Z"
   handoff_written_at: "2026-07-23T23:32:31Z"
   story_start: "2026-07-24T00:11:40Z"
   survey_context_completed_at: "2026-07-24T00:11:40Z"

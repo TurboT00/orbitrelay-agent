@@ -1,13 +1,16 @@
 release:
   version: "0.4.0"
   codename: Supported Hosted Access
-  status: pr_open
+  status: released
   semantic_release: true
   bump_hint: minor
   baseline_version: "0.3.0"
   baseline_tag: v0.3.0
   handoff: specs/HANDOFF_LATEST.md
   release_notes: specs/archive/RELEASE-0.4.0-supported-hosted-access.md
+  released_tag: v0.4.0
+  release_url: https://github.com/TurboT00/orbitrelay-agent/releases/tag/v0.4.0
+  merge_commit: a983f944be785d3cbfa5b32dda00eeb7dad3411a
   pr_draft: specs/archive/PR-0.4.0-supported-hosted-access.md
   scope: specs/product/SCOPE_LATEST.yaml
 
