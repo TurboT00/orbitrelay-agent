@@ -22,7 +22,7 @@ development_status:
   e04s03: done
   e04s04: done
   e04s05: done
-  e04s06: todo
+  e04s06: done
   e04s07: todo
 
 epics:
@@ -150,11 +150,12 @@ stories:
     risk_max: P0
     security_max: high
   e04s06:
-    status: todo
+    status: done
     title: Emit structured run summaries
     bcps: 3
     epic: e04
     tasks_total: 3
+    tasks_passing: 3
     risk_max: P1
     security_max: medium
   e04s07:

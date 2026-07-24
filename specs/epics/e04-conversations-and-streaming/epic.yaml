@@ -45,7 +45,7 @@ stories:
   - id: e04s06
     title: Emit structured run summaries
     bcps: 3
-    status: todo
+    status: done
     delta: ADDED
     spec: e04s06-run-summaries.md
     tasks: e04s06-tasks.yaml

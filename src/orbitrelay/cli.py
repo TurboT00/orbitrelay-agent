@@ -9,6 +9,7 @@
 # story: e03s06
 # story: e04s02
 # story: e04s03
+# story: e04s06
 
 import argparse
 import getpass
@@ -27,6 +28,7 @@ from .approvals import ApprovalMode, ApprovalSession
 from .auth_cli import run_auth_cli
 from .codex_cli import run_codex_cli
 from .events import EventCollector, EventType, RunEvent
+from .run_summary import format_run_summary, summarize_run
 from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
@@ -260,8 +262,13 @@ def _invoke_agent(
         args, workspace=workspace, model=api_config.model, environment=env
     )
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
-    collector = EventCollector(live_sink=_stream_live_sink if stream else None)
-    if store is not None and session_id is not None:
+    need_collector = stream or store is not None or bool(args.verbose)
+    collector = (
+        EventCollector(live_sink=_stream_live_sink if stream else None)
+        if need_collector
+        else None
+    )
+    if store is not None and session_id is not None and collector is not None:
         store.bind_collector(session_id, collector)
 
     def on_messages_update(messages: list) -> None:
@@ -275,7 +282,7 @@ def _invoke_agent(
             input_stream, ApprovalMode(args.approval_policy), timeout, approved_tools
         ),
     }
-    if stream or store is not None:
+    if collector is not None:
         run_kwargs["event_collector"] = collector
     if stream:
         run_kwargs["stream"] = True
@@ -294,6 +301,12 @@ def _invoke_agent(
         raise ValueError(_provider_http_error_message(exc)) from exc
     if stream:
         print(file=sys.stderr)
+    if args.verbose and collector is not None:
+        print(
+            format_run_summary(summarize_run(collector.events)),
+            file=sys.stderr,
+            flush=True,
+        )
     return final_text
 
 

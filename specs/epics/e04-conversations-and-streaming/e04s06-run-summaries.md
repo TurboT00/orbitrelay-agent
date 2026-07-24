@@ -2,7 +2,7 @@ STORY KEY: e04s06
 TITLE:     Emit structured run summaries
 TYPE:      Story
 PARENT:    e04
-STATUS:    Todo
+STATUS:    Done
 AUTHOR:    OrbitRelay team           DATE: 2026-07-24
 MATURITY:  3
 SIZE:      S
