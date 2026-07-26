@@ -11,7 +11,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, Protocol, TextIO
 
-from .config import XAI_DEFAULT_BASE_URL, XAI_DEFAULT_MODEL
+from .config import XAI_DEFAULT_MODEL, XAI_URL
 from .credentials import (
     CredentialNotFoundError,
     CredentialStore,
@@ -24,7 +24,6 @@ from .profiles import (
     AuthKind,
     ProviderProfile,
 )
-
 
 SUPERGROK_PROFILE_NAME = "supergrok"
 XAI_OAUTH_ISSUER = "https://auth.x.ai"
@@ -217,9 +216,7 @@ class SuperGrokOAuthClient:
             form={"client_id": self._client_id, "scope": self._scope},
         )
         if status != 200:
-            raise SuperGrokOAuthError(
-                f"Device code request failed with HTTP {status}"
-            )
+            raise SuperGrokOAuthError(f"Device code request failed with HTTP {status}")
         try:
             device_code = str(payload["device_code"])
             user_code = str(payload["user_code"])
@@ -265,7 +262,9 @@ class SuperGrokOAuthClient:
             f"Device token exchange failed: {error or f'HTTP {status}'}"
         )
 
-    def refresh(self, refresh_token: str, *, now: float | None = None) -> SuperGrokTokenBundle:
+    def refresh(
+        self, refresh_token: str, *, now: float | None = None
+    ) -> SuperGrokTokenBundle:
         status, payload = self._transport.request(
             "POST",
             self._token_url,
@@ -294,7 +293,9 @@ class SuperGrokOAuthClient:
     ) -> SuperGrokTokenBundle:
         try:
             access_token = str(payload["access_token"])
-            refresh_token = str(payload.get("refresh_token") or previous_refresh_token or "")
+            refresh_token = str(
+                payload.get("refresh_token") or previous_refresh_token or ""
+            )
             expires_in = float(payload.get("expires_in", 3600))
             token_type = str(payload.get("token_type", "Bearer"))
             scope = str(payload.get("scope", self._scope))
@@ -314,7 +315,7 @@ class SuperGrokOAuthClient:
 def supergrok_profile() -> ProviderProfile:
     return ProviderProfile.create(
         name=SUPERGROK_PROFILE_NAME,
-        base_url=XAI_DEFAULT_BASE_URL,
+        base_url=XAI_URL,
         model=XAI_DEFAULT_MODEL,
         auth_kind=AuthKind.SUBSCRIPTION_OAUTH,
         capabilities=REQUIRED_CAPABILITIES,
@@ -367,7 +368,7 @@ class SuperGrokAuthService:
             if profile_name == SUPERGROK_PROFILE_NAME
             else ProviderProfile.create(
                 name=profile_name,
-                base_url=XAI_DEFAULT_BASE_URL,
+                base_url=XAI_URL,
                 model=XAI_DEFAULT_MODEL,
                 auth_kind=AuthKind.SUBSCRIPTION_OAUTH,
                 capabilities=REQUIRED_CAPABILITIES,
@@ -417,9 +418,7 @@ class SuperGrokAuthService:
             self._sleeper(interval)
         raise SuperGrokOAuthError("SuperGrok device authorization timed out")
 
-    def status(
-        self, profile_name: str = SUPERGROK_PROFILE_NAME
-    ) -> SuperGrokAuthStatus:
+    def status(self, profile_name: str = SUPERGROK_PROFILE_NAME) -> SuperGrokAuthStatus:
         bundle = self._load_bundle(profile_name)
         if bundle is None:
             return SuperGrokAuthStatus(authenticated=False, profile_name=profile_name)
@@ -430,9 +429,7 @@ class SuperGrokAuthService:
             quarantined=bundle.quarantined,
         )
 
-    def logout(
-        self, profile_name: str = SUPERGROK_PROFILE_NAME
-    ) -> SuperGrokAuthStatus:
+    def logout(self, profile_name: str = SUPERGROK_PROFILE_NAME) -> SuperGrokAuthStatus:
         try:
             existing = self._repository.get(profile_name)
         except ProfileNotFoundError:
@@ -446,16 +443,12 @@ class SuperGrokAuthService:
         self._emit("SuperGrok OAuth logged out.")
         return SuperGrokAuthStatus(authenticated=False, profile_name=profile_name)
 
-    def get_valid_access_token(
-        self, profile_name: str = SUPERGROK_PROFILE_NAME
-    ) -> str:
+    def get_valid_access_token(self, profile_name: str = SUPERGROK_PROFILE_NAME) -> str:
         bundle = self._load_bundle(profile_name)
         if bundle is None:
             raise SuperGrokReauthRequired("SuperGrok OAuth login required")
         if bundle.quarantined:
-            raise SuperGrokReauthRequired(
-                "SuperGrok OAuth re-authentication required"
-            )
+            raise SuperGrokReauthRequired("SuperGrok OAuth re-authentication required")
         now = self._clock()
         if bundle.expires_at - REFRESH_SKEW_SECONDS > now:
             return bundle.access_token

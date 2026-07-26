@@ -392,21 +392,18 @@ def _tool_round_messages(
                 tool=record.tool_name,
                 phase="executing",
             )
-    results = _tool_result_messages(
-        validated, prepared, decisions, verbose, collector
-    )
+    results = _tool_result_messages(validated, prepared, decisions, verbose, collector)
     return [_serialize_assistant_message(message), *results]
 
 
-def _emit_approval_records(
-    records: tuple[Any, ...], audit_stream: TextIO
-) -> None:
+def _emit_approval_records(records: tuple[Any, ...], audit_stream: TextIO) -> None:
     for record in records:
         print(format_approval_record(record), file=audit_stream, flush=True)
 
 
 def _prepare_calls(
-    validated_calls: list[ValidatedToolCall], working_directory: str,
+    validated_calls: list[ValidatedToolCall],
+    working_directory: str,
 ) -> list[PreparedToolResult]:
     return [
         prepare_tool(call_id, name, arguments, working_directory)
@@ -415,7 +412,8 @@ def _prepare_calls(
 
 
 def _authorize_calls(
-    prepared_calls: list[PreparedToolResult], approval_session: ApprovalSession,
+    prepared_calls: list[PreparedToolResult],
+    approval_session: ApprovalSession,
 ) -> Iterator[ApprovalDecision]:
     requests = tuple(
         prepared.approval_request
@@ -436,8 +434,10 @@ def _tool_result_messages(
     for (call_id, name, _arguments), prepared in zip(
         validated_calls, prepared_calls, strict=True
     ):
-        result = prepared if isinstance(prepared, str) else _execute_authorized_call(
-            prepared, next(decisions), verbose
+        result = (
+            prepared
+            if isinstance(prepared, str)
+            else _execute_authorized_call(prepared, next(decisions), verbose)
         )
         if collector is not None:
             # Do not include raw tool payload content in events (may be large/sensitive).

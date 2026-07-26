@@ -8,7 +8,7 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, TextIO
 
-from .config import XAI_DEFAULT_BASE_URL, XAI_DEFAULT_MODEL
+from .config import XAI_DEFAULT_MODEL, XAI_URL
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderCapability, ProviderProfile
@@ -32,9 +32,7 @@ def _configure_create_parser(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--base-url")
     parser.add_argument("--model")
-    parser.add_argument(
-        "--auth-kind", choices=[kind.value for kind in AuthKind]
-    )
+    parser.add_argument("--auth-kind", choices=[kind.value for kind in AuthKind])
     parser.add_argument(
         "--capability",
         action="append",
@@ -68,7 +66,7 @@ def parse_profile_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
 def _apply_create_defaults(args: argparse.Namespace) -> argparse.Namespace:
     if args.preset == "xai":
         if args.base_url is None:
-            args.base_url = XAI_DEFAULT_BASE_URL
+            args.base_url = XAI_URL
         if args.model is None:
             args.model = XAI_DEFAULT_MODEL
         if args.auth_kind is None:
@@ -84,9 +82,7 @@ def _apply_create_defaults(args: argparse.Namespace) -> argparse.Namespace:
     ]
     if missing:
         raise ValueError(
-            "profile create requires "
-            + ", ".join(missing)
-            + " (or --preset xai)"
+            "profile create requires " + ", ".join(missing) + " (or --preset xai)"
         )
     return args
 
@@ -125,9 +121,7 @@ def _create_profile(args: argparse.Namespace, context: ProfileCommandContext) ->
     return 0
 
 
-def _list_profiles(
-    _args: argparse.Namespace, context: ProfileCommandContext
-) -> int:
+def _list_profiles(_args: argparse.Namespace, context: ProfileCommandContext) -> int:
     profiles = context.repository.list_profiles()
     if not profiles:
         print("No profiles configured.")

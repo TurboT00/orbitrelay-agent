@@ -27,14 +27,13 @@ from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
 from .auth_cli import run_auth_cli
 from .codex_cli import run_codex_cli
-from .events import EventCollector, EventType, RunEvent
-from .run_summary import format_run_summary, summarize_run
-from .terminal_authorizer import TerminalAuthorizer
 from .config import ApiConfig, load_api_config
 from .credentials import CredentialStore, ProfileService, credential_store_or_default
+from .events import EventCollector, EventType, RunEvent
 from .profile_cli import run_profile_cli
 from .profile_store import ProfileRepository, default_profile_path
 from .profiles import AuthKind, ProviderProfile
+from .run_summary import format_run_summary, summarize_run
 from .session_cli import run_session_cli
 from .sessions import (
     SessionCorruptionError,
@@ -48,17 +47,19 @@ from .supergrok_oauth import (
     SuperGrokReauthRequired,
     UrlLibTransport,
 )
+from .terminal_authorizer import TerminalAuthorizer
 
-OPENAI_ENV_KEYS = ("OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL")
-XAI_ENV_KEYS = ("XAI_API_KEY", "XAI_BASE_URL", "XAI_MODEL")
-TRANSPORT_ENV_KEYS = OPENAI_ENV_KEYS + XAI_ENV_KEYS
+DEEPSEEK_ENV_KEYS = ("DEEPSEEK_API_KEY", "DEEPSEEK_URL", "DEEPSEEK_MODEL")
+GEMINI_ENV_KEYS = ("GEMINI_API_KEY", "GEMINI_URL", "GEMINI_MODEL")
+XAI_ENV_KEYS = ("XAI_API_KEY", "XAI_URL", "XAI_MODEL")
+TRANSPORT_ENV_KEYS = DEEPSEEK_ENV_KEYS + GEMINI_ENV_KEYS + XAI_ENV_KEYS
 DEFAULT_APPROVAL_TIMEOUT = 60.0
 MAX_APPROVAL_TIMEOUT = 300.0
 CONSEQUENTIAL_TOOL_NAMES = frozenset({"write_file", "run_python_file"})
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="OrbitRelay coding agent")
+    parser = argparse.ArgumentParser(description="OrbitRelay personal assistant")
     parser.add_argument("user_prompt", help="User prompt")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument(
@@ -136,9 +137,7 @@ def _api_config_from_profile(
         except SuperGrokReauthRequired as exc:
             raise ValueError(str(exc)) from exc
         return ApiConfig(profile.base_url, token, profile.model)
-    raise ValueError(
-        f'Auth kind "{profile.auth_kind.value}" is not executable'
-    )
+    raise ValueError(f'Auth kind "{profile.auth_kind.value}" is not executable')
 
 
 def resolve_api_config(
@@ -314,9 +313,13 @@ def _approval_timeout(value: str) -> float:
     try:
         timeout = float(value)
     except ValueError as exc:
-        raise ValueError("approval timeout must be a positive number of seconds") from exc
+        raise ValueError(
+            "approval timeout must be a positive number of seconds"
+        ) from exc
     if not math.isfinite(timeout) or not 0 < timeout <= MAX_APPROVAL_TIMEOUT:
-        raise ValueError("approval timeout must be greater than 0 and at most 300 seconds")
+        raise ValueError(
+            "approval timeout must be greater than 0 and at most 300 seconds"
+        )
     return timeout
 
 
@@ -333,7 +336,9 @@ def _approved_tools(args: argparse.Namespace) -> frozenset[str]:
         raise ValueError("approve tool names must not be duplicated")
     invalid = set(tools) - CONSEQUENTIAL_TOOL_NAMES
     if invalid:
-        raise ValueError(f"approve tool must be consequential and known: {sorted(invalid)!r}")
+        raise ValueError(
+            f"approve tool must be consequential and known: {sorted(invalid)!r}"
+        )
     return frozenset(tools)
 
 
@@ -429,10 +434,14 @@ def main(
     input_stream: TextIO | None = None,
 ) -> int:
     process_environment = dict(os.environ)
-    repository = profile_repository or ProfileRepository(default_profile_path(process_environment))
+    repository = profile_repository or ProfileRepository(
+        default_profile_path(process_environment)
+    )
     raw_argv = list(sys.argv[1:] if argv is None else argv)
     environment = _environment_source(process_environment, _dotenv_environment())
-    return _dispatch_cli(raw_argv, repository, credential_store, secret_prompt, input_stream, environment)
+    return _dispatch_cli(
+        raw_argv, repository, credential_store, secret_prompt, input_stream, environment
+    )
 
 
 if __name__ == "__main__":
