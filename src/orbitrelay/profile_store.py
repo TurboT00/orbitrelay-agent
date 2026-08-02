@@ -119,7 +119,7 @@ def _decode_state(raw: object, version: int) -> _ProfileState:
     record = cast(dict[str, object], raw)
     if set(record) != {"version", "selected", "profiles"}:
         raise ProfileStorageError("Profile metadata contains invalid fields")
-    if record["version"] != version:
+    if record["version"] not in {1, version}:
         raise ProfileStorageError(
             f"Unsupported profile metadata version: {record['version']!r}"
         )
@@ -182,7 +182,7 @@ def _write_json_atomically(path: Path, value: dict[str, object]) -> None:
 class ProfileRepository:
     """Owns versioned, secret-free profile metadata in one per-user file."""
 
-    VERSION = 1
+    VERSION = 2
 
     def __init__(self, path: Path | str):
         self.path = Path(path)
@@ -254,6 +254,24 @@ class ProfileRepository:
 
     def selected_name(self) -> str | None:
         return self._read().selected
+
+    def migrate(self) -> bool:
+        """Rewrite supported legacy metadata at the current schema version.
+
+        The profile name is deliberately retained, so the derived native-keyring
+        credential key remains unchanged. Migration happens under the same
+        lock and atomic-write path as all other repository updates.
+        """
+
+        with self.transaction():
+            if not self.path.exists():
+                return False
+            raw = _load_json(self.path)
+            if not isinstance(raw, dict) or raw.get("version") == self.VERSION:
+                return False
+            state = _decode_state(raw, self.VERSION)
+            self._write(state)
+            return True
 
     def delete(self, name: str) -> ProviderProfile:
         with self.transaction():

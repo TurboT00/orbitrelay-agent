@@ -1,6 +1,8 @@
 # Python-generated files
 __pycache__/
 *.py[oc]
+/.mypy_cache/
+/.ruff_cache/
 build/
 dist/
 wheels/
@@ -16,3 +18,9 @@ wheels/
 
 # Local tool scratch output
 examples/**/tmp/
+
+# Local project review and manual test records
+/docs/manual-test-plan-2026-07-29.md
+/docs/manual-test-runbook-macos.md
+/docs/project-review-2026-07-29.md
+/docs/remediation-plan-2026-07-29.md

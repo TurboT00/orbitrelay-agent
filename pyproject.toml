@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "orbitrelay-agent"
 version = "0.5.0"
-description = "A coding agent for configurable model endpoints"
+description = "A general-purpose personal assistant for configurable model endpoints"
 readme = "README.md"
 requires-python = ">=3.14"
 license = "MIT"
 license-files = ["LICENSE"]
-keywords = ["ai", "agent", "coding-agent", "llm"]
+keywords = ["ai", "assistant", "personal-assistant", "llm"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",

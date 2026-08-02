@@ -1,1 +1,1 @@
-"""OrbitRelay Agent package."""
+"""OrbitRelay personal assistant package."""

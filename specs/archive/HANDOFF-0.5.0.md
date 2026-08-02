@@ -47,8 +47,8 @@ Recommended first skills: `survey-context` → `scope-work`.
 ## Locked decisions (do not reopen without user direction)
 
 - Native OS credential store only
-- Codex = official CLI process boundary only; never read auth.json
-- SuperGrok OAuth + xAI BYOK both supported
+- Codex = official CLI process boundary only; never read auth.json or store Codex credentials
+- Grok is API-key-only; unavailable subscription paths are not emulated
 - Approvals batch-first, fail-closed, run-local
 - Sessions per-user under OrbitRelay home; 0700/0600; keep-until-delete; no app-level encryption in P4
 

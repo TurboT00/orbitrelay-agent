@@ -1,10 +1,11 @@
 # story: e02s02
 
 import json
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from inspect import signature
-from typing import Any
+from typing import Any, TextIO
 
 from orbitrelay.approval_format import format_prepared_call
 from orbitrelay.approvals import ApprovalRequest, ToolCategory
@@ -239,11 +240,19 @@ def _execution_arguments(value: Any) -> list[str] | None:
 def execute_prepared_tool(
     prepared: PreparedToolCall,
     verbose: bool = False,
+    *,
+    emit_progress: bool = True,
+    output_stream: TextIO | None = None,
 ) -> str:
-    if verbose:
-        print(f"Calling function: {format_prepared_call(prepared.approval_request)}")
-    else:
-        print(f" - Calling function: {prepared.name}")
+    if emit_progress:
+        stream = sys.stdout if output_stream is None else output_stream
+        if verbose:
+            print(
+                f"Calling function: {format_prepared_call(prepared.approval_request)}",
+                file=stream,
+            )
+        else:
+            print(f" - Calling function: {prepared.name}", file=stream)
 
     arguments = dict(prepared._arguments)
     try:

@@ -252,36 +252,39 @@ class SessionStore:
         directory = self._require_session_dir(session_id)
         path = directory / MESSAGES_NAME
         _validate_path(path)
+        messages: list[dict[str, Any]] = []
         try:
-            text = path.read_text(encoding="utf-8")
+            with path.open(encoding="utf-8") as stream:
+                for line_number, line in enumerate(stream, start=1):
+                    if not line.strip():
+                        continue
+                    try:
+                        payload = json.loads(line)
+                    except json.JSONDecodeError as exc:
+                        raise SessionCorruptionError(
+                            f"session messages line {line_number} is not valid JSON"
+                        ) from exc
+                    if not isinstance(payload, dict):
+                        raise SessionCorruptionError(
+                            f"session messages line {line_number} must be an object"
+                        )
+                    messages.append(payload)
         except OSError as exc:
             raise SessionError(f'Could not read session messages: "{path}"') from exc
-        messages: list[dict[str, Any]] = []
-        for line_number, line in enumerate(text.splitlines(), start=1):
-            if not line.strip():
-                continue
-            try:
-                payload = json.loads(line)
-            except json.JSONDecodeError as exc:
-                raise SessionCorruptionError(
-                    f"session messages line {line_number} is not valid JSON"
-                ) from exc
-            if not isinstance(payload, dict):
-                raise SessionCorruptionError(
-                    f"session messages line {line_number} must be an object"
-                )
-            messages.append(payload)
         return messages
 
     def replace_messages(
         self, session_id: str, messages: Sequence[Mapping[str, Any]]
     ) -> None:
         directory = self._require_session_dir(session_id)
-        redacted = [redact_secrets(dict(message)) for message in messages]
         body = "".join(
-            json.dumps(message, sort_keys=True, separators=(",", ":")) + "\n"
-            for message in redacted
-            if isinstance(message, dict)
+            json.dumps(
+                redact_secrets(dict(message)),
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+            for message in messages
         )
         _write_text_secure(directory / MESSAGES_NAME, body)
         metadata = self._read_metadata(directory)

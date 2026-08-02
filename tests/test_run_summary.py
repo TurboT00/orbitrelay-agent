@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -15,8 +14,11 @@ from unittest.mock import Mock, patch
 from orbitrelay import cli
 from orbitrelay.agent import run_agent
 from orbitrelay.approvals import ApprovalDecision, ApprovalSession
+from orbitrelay.connection_service import ConnectionService
+from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.events import EventCollector, EventType
 from orbitrelay.profile_store import ProfileRepository
+from orbitrelay.providers import ProviderId
 from orbitrelay.run_summary import format_run_summary, summarize_run
 
 
@@ -57,6 +59,23 @@ def _tool_call(call_id, name, arguments):
         type="function",
         function=SimpleNamespace(name=name, arguments=arguments),
     )
+
+
+class _CredentialStore:
+    def __init__(self):
+        self.values = {}
+
+    def set_secret(self, key, secret):
+        self.values[key] = secret
+
+    def get_secret(self, key):
+        try:
+            return self.values[key]
+        except KeyError as exc:
+            raise CredentialNotFoundError(key) from exc
+
+    def delete_secret(self, key):
+        self.values.pop(key, None)
 
 
 class RunSummaryTests(unittest.TestCase):
@@ -173,21 +192,24 @@ class RunSummaryTests(unittest.TestCase):
         stdout = StringIO()
         stderr = StringIO()
         with tempfile.TemporaryDirectory() as workspace:
+            repository = ProfileRepository(Path(workspace) / "profiles.json")
+            credentials = _CredentialStore()
+            ConnectionService(repository, credentials).connect_api_key(
+                ProviderId.OPENAI, "secret"
+            )
             with (
-                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
-                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI", return_value=client),
                 redirect_stdout(stdout),
                 redirect_stderr(stderr),
             ):
                 code = cli.main(
                     ["hi", "--verbose", "--workspace", workspace],
-                    profile_repository=ProfileRepository(
-                        Path(workspace) / "profiles.json"
-                    ),
+                    profile_repository=repository,
+                    credential_store=credentials,
                 )
         self.assertEqual(code, 0)
-        self.assertTrue(stdout.getvalue().strip().endswith("hello"))
+        self.assertEqual(stdout.getvalue(), "hello\n")
+        self.assertIn("Response 1:", stderr.getvalue())
         self.assertIn("Run summary:", stderr.getvalue())
         self.assertIn("status=completed", stderr.getvalue())
         self.assertNotIn("secret", stderr.getvalue())
@@ -196,9 +218,12 @@ class RunSummaryTests(unittest.TestCase):
         out = StringIO()
         err = StringIO()
         with tempfile.TemporaryDirectory() as workspace:
+            repository = ProfileRepository(Path(workspace) / "profiles.json")
+            credentials = _CredentialStore()
+            ConnectionService(repository, credentials).connect_api_key(
+                ProviderId.OPENAI, "secret"
+            )
             with (
-                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
-                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI", return_value=Mock()),
                 patch("orbitrelay.cli.run_agent", return_value="final") as run_agent,
                 redirect_stdout(out),
@@ -206,13 +231,45 @@ class RunSummaryTests(unittest.TestCase):
             ):
                 cli.main(
                     ["hi", "--workspace", workspace],
-                    profile_repository=ProfileRepository(
-                        Path(workspace) / "profiles.json"
-                    ),
+                    profile_repository=repository,
+                    credential_store=credentials,
                 )
         self.assertEqual(out.getvalue(), "final\n")
         self.assertNotIn("Run summary:", err.getvalue())
         self.assertNotIn("event_collector", run_agent.call_args.kwargs)
+
+    def test_cli_tool_round_keeps_stdout_final_only(self) -> None:
+        client = Mock()
+        client.chat.completions.create.side_effect = [
+            _response(
+                _assistant_message(
+                    tool_calls=[_tool_call("call-1", "get_files_info", "{}")]
+                )
+            ),
+            _response(_assistant_message(content="done")),
+        ]
+        stdout = StringIO()
+        stderr = StringIO()
+        with tempfile.TemporaryDirectory() as workspace:
+            repository = ProfileRepository(Path(workspace) / "profiles.json")
+            credentials = _CredentialStore()
+            ConnectionService(repository, credentials).connect_api_key(
+                ProviderId.OPENAI, "secret"
+            )
+            with (
+                patch("orbitrelay.cli.OpenAI", return_value=client),
+                redirect_stdout(stdout),
+                redirect_stderr(stderr),
+            ):
+                code = cli.main(
+                    ["inspect", "--workspace", workspace],
+                    profile_repository=repository,
+                    credential_store=credentials,
+                )
+
+        self.assertEqual(code, 0)
+        self.assertEqual(stdout.getvalue(), "done\n")
+        self.assertEqual(stderr.getvalue(), "")
 
 
 if __name__ == "__main__":

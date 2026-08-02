@@ -44,7 +44,7 @@ def _enum_value(
     enum_type: type[EnumValue], value: object, field: str
 ) -> EnumValue:
     try:
-        return enum_type(value)
+        return enum_type(cast(str, value))
     except (TypeError, ValueError) as exc:
         raise ProfileValidationError(f"Unknown {field}: {value!r}") from exc
 

@@ -20,19 +20,22 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import TextIO
 
-from dotenv import dotenv_values
 from openai import APIStatusError, OpenAI
 
 from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
-from .auth_cli import run_auth_cli
 from .codex_cli import run_codex_cli
-from .config import ApiConfig, load_api_config
-from .credentials import CredentialStore, ProfileService, credential_store_or_default
+from .config import ApiConfig
+from .connection_service import (
+    CodexCliConnection,
+    ConnectionError,
+    ConnectionService,
+    OpenAICompatibleConnection,
+)
+from .credentials import CredentialStore
 from .events import EventCollector, EventType, RunEvent
-from .profile_cli import run_profile_cli
+from .provider_cli import run_provider_cli
 from .profile_store import ProfileRepository, default_profile_path
-from .profiles import AuthKind, ProviderProfile
 from .run_summary import format_run_summary, summarize_run
 from .session_cli import run_session_cli
 from .sessions import (
@@ -41,18 +44,8 @@ from .sessions import (
     SessionNotFoundError,
     SessionStore,
 )
-from .supergrok_oauth import (
-    SuperGrokAuthService,
-    SuperGrokOAuthClient,
-    SuperGrokReauthRequired,
-    UrlLibTransport,
-)
 from .terminal_authorizer import TerminalAuthorizer
 
-DEEPSEEK_ENV_KEYS = ("DEEPSEEK_API_KEY", "DEEPSEEK_URL", "DEEPSEEK_MODEL")
-GEMINI_ENV_KEYS = ("GEMINI_API_KEY", "GEMINI_URL", "GEMINI_MODEL")
-XAI_ENV_KEYS = ("XAI_API_KEY", "XAI_URL", "XAI_MODEL")
-TRANSPORT_ENV_KEYS = DEEPSEEK_ENV_KEYS + GEMINI_ENV_KEYS + XAI_ENV_KEYS
 DEFAULT_APPROVAL_TIMEOUT = 60.0
 MAX_APPROVAL_TIMEOUT = 300.0
 CONSEQUENTIAL_TOOL_NAMES = frozenset({"write_file", "run_python_file"})
@@ -67,7 +60,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Stream model token deltas and tool progress to stderr",
     )
-    parser.add_argument("--profile", help="Named provider profile for this run")
+    parser.add_argument(
+        "--provider",
+        help="Connected provider for this run (default: selected provider)",
+    )
     parser.add_argument(
         "--workspace",
         help="Workspace directory (default: current directory)",
@@ -116,87 +112,17 @@ def resolve_workspace(value: str | None) -> str:
     return str(workspace)
 
 
-def _api_config_from_profile(
-    profile: ProviderProfile,
-    repository: ProfileRepository,
-    credential_store: CredentialStore | None,
-) -> ApiConfig:
-    if profile.auth_kind is AuthKind.API_KEY:
-        secret = ProfileService(
-            repository, credential_store_or_default(credential_store)
-        ).get_secret(profile)
-        return ApiConfig(profile.base_url, secret, profile.model)
-    if profile.auth_kind is AuthKind.SUBSCRIPTION_OAUTH:
-        service = SuperGrokAuthService(
-            repository,
-            credential_store,
-            SuperGrokOAuthClient(UrlLibTransport()),
-        )
-        try:
-            token = service.get_valid_access_token(profile.name)
-        except SuperGrokReauthRequired as exc:
-            raise ValueError(str(exc)) from exc
-        return ApiConfig(profile.base_url, token, profile.model)
-    raise ValueError(f'Auth kind "{profile.auth_kind.value}" is not executable')
-
-
-def resolve_api_config(
-    profile_name: str | None,
-    *,
-    repository: ProfileRepository,
-    credential_store: CredentialStore | None,
-) -> ApiConfig | None:
-    selected_name = (
-        profile_name if profile_name is not None else repository.selected_name()
-    )
-    if selected_name is None:
-        return None
-    return _api_config_from_profile(
-        repository.get(selected_name), repository, credential_store
-    )
-
-
-def _repository_for_run(
-    requested_name: str | None, repository: ProfileRepository | None
-) -> tuple[ProfileRepository, bool]:
-    if repository is not None:
-        return repository, True
-    profile_path = default_profile_path()
-    use_profiles = requested_name is not None or profile_path.exists()
-    return ProfileRepository(profile_path), use_profiles
-
-
-def _resolved_config(
-    args: argparse.Namespace,
-    repository: ProfileRepository | None,
-    credential_store: CredentialStore | None,
-    environment: Mapping[str, str],
-) -> ApiConfig:
-    profile_repository, use_profiles = _repository_for_run(args.profile, repository)
-    profile_config = (
-        resolve_api_config(
-            args.profile,
-            repository=profile_repository,
-            credential_store=credential_store,
-        )
-        if use_profiles
-        else None
-    )
-    return load_api_config(environment) if profile_config is None else profile_config
-
-
 def _provider_http_error_message(exc: APIStatusError) -> str:
     status = getattr(exc, "status_code", None)
     if status == 401:
         return (
             "Provider authentication failed (HTTP 401). "
-            "Check credentials or run: orbitrelay auth supergrok login"
+            "Check credentials with: orbitrelay provider status"
         )
     if status == 403:
         return (
             "Provider entitlement/permission denied (HTTP 403). "
-            "For SuperGrok OAuth, try XAI_API_KEY BYOK fallback or verify "
-            "subscription tier."
+            "Verify the connected provider account or API key."
         )
     return f"Provider request failed (HTTP {status})"
 
@@ -219,7 +145,7 @@ def _prepare_session(
     workspace: str,
     model: str,
     environment: Mapping[str, str],
-) -> tuple[str | None, list | None, object | None]:
+) -> tuple[str | None, list | None, SessionStore | None]:
     session_id = getattr(args, "session", None)
     new_session = bool(getattr(args, "new_session", False))
     if session_id is None and not new_session:
@@ -363,34 +289,20 @@ def _approval_session(
 
 def _run_agent_cli(
     args: argparse.Namespace,
-    repository: ProfileRepository | None,
+    repository: ProfileRepository,
     credential_store: CredentialStore | None,
     environment: Mapping[str, str],
     input_stream: TextIO | None,
 ) -> int:
-    config = _resolved_config(args, repository, credential_store, environment)
+    resolved = ConnectionService(repository, credential_store).resolve(args.provider)
+    if isinstance(resolved, CodexCliConnection):
+        raise ConnectionError(
+            "Codex uses its official execution boundary; run: orbitrelay codex exec <prompt>"
+        )
+    assert isinstance(resolved, OpenAICompatibleConnection)
+    config = resolved.config
     print(_invoke_agent(args, config, input_stream, environment))
     return 0
-
-
-def _environment_source(
-    process_environment: Mapping[str, str],
-    dotenv_environment: Mapping[str, str],
-) -> Mapping[str, str]:
-    if any(key in process_environment for key in TRANSPORT_ENV_KEYS):
-        return process_environment
-    return dotenv_environment
-
-
-def _dotenv_environment() -> dict[str, str]:
-    values = {
-        key: value
-        for key, value in dotenv_values(interpolate=False).items()
-        if isinstance(value, str) and key in TRANSPORT_ENV_KEYS
-    }
-    if any("${" in value for value in values.values()):
-        raise ValueError("OPENAI_* dotenv interpolation is not supported")
-    return values
 
 
 def _dispatch_cli(
@@ -401,16 +313,20 @@ def _dispatch_cli(
     input_stream: TextIO | None,
     environment: Mapping[str, str],
 ) -> int:
-    if raw_argv and raw_argv[0] == "profile":
-        return run_profile_cli(
-            raw_argv[1:], repository, credential_store, secret_prompt, input_stream
+    if raw_argv and raw_argv[0] in {"profile", "auth"}:
+        print(
+            'The legacy "profile" and "auth" commands were replaced by '
+            '"orbitrelay provider". Run: orbitrelay provider --help',
+            file=sys.stderr,
         )
-    if raw_argv and raw_argv[0] == "auth":
-        return run_auth_cli(
+        return 2
+    if raw_argv and raw_argv[0] == "provider":
+        return run_provider_cli(
             raw_argv[1:],
             repository,
             credential_store,
-            input_stream=input_stream,
+            secret_prompt,
+            environment=environment,
         )
     if raw_argv and raw_argv[0] == "codex":
         return run_codex_cli(raw_argv[1:])
@@ -438,9 +354,13 @@ def main(
         default_profile_path(process_environment)
     )
     raw_argv = list(sys.argv[1:] if argv is None else argv)
-    environment = _environment_source(process_environment, _dotenv_environment())
     return _dispatch_cli(
-        raw_argv, repository, credential_store, secret_prompt, input_stream, environment
+        raw_argv,
+        repository,
+        credential_store,
+        secret_prompt,
+        input_stream,
+        process_environment,
     )
 
 

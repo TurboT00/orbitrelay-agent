@@ -157,6 +157,30 @@ class EventModelTests(unittest.TestCase):
             )
         self.assertEqual(result, "plain")
 
+    def test_plain_text_tool_error_is_reported_as_an_error_event(self):
+        client = Mock()
+        client.chat.completions.create.side_effect = [
+            _response(
+                _assistant_message(
+                    tool_calls=[_tool_call("call-1", "unknown_tool", "{}")]
+                )
+            ),
+            _response(_assistant_message(content="done")),
+        ]
+        collector = EventCollector()
+
+        with tempfile.TemporaryDirectory() as workspace:
+            run_agent(
+                client,
+                "try an unknown tool",
+                "test-model",
+                working_directory=workspace,
+                event_collector=collector,
+            )
+
+        result_event = collector.of_type(EventType.TOOL_RESULT)[0]
+        self.assertEqual(result_event.data["status"], "error")
+
 
 if __name__ == "__main__":
     unittest.main()

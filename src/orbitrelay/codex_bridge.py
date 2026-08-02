@@ -44,18 +44,18 @@ class CodexInstallation:
 
     def status_lines(self) -> tuple[str, ...]:
         if not self.available:
-            lines = [
+            lines: tuple[str, ...] = (
                 "Codex CLI: unavailable",
                 CODEX_INSTALL_GUIDANCE,
-            ]
+            )
             if self.warning:
                 lines = (*lines, f"Warning: {self.warning}")
             return lines
-        lines = [
+        lines = (
             "Codex CLI: available",
             f"Path: {self.path}",
             f"Version: {self.version or 'unknown'}",
-        ]
+        )
         if self.warning:
             lines = (*lines, f"Warning: {self.warning}")
         return lines
@@ -225,7 +225,7 @@ class CodexBridge:
 
 
 def _final_message_from_jsonl(stdout: str) -> str:
-    messages: list[str] = []
+    final_message = ""
     for line in stdout.splitlines():
         line = line.strip()
         if not line:
@@ -239,5 +239,5 @@ def _final_message_from_jsonl(stdout: str) -> str:
         item = event.get("item")
         if event.get("type") == "item.completed" and isinstance(item, dict):
             if item.get("type") == "agent_message" and isinstance(item.get("text"), str):
-                messages.append(item["text"])
-    return messages[-1] if messages else ""
+                final_message = item["text"]
+    return final_message

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Mapping
 from types import SimpleNamespace
 from typing import Any
 
@@ -24,6 +24,47 @@ def _delta_content(delta: Any) -> str | None:
     return None
 
 
+def _object_fields(value: Any) -> dict[str, Any]:
+    if isinstance(value, Mapping):
+        fields = dict(value)
+    else:
+        try:
+            fields = dict(vars(value))
+        except TypeError:
+            fields = {}
+        if not fields:
+            model_dump = getattr(value, "model_dump", None)
+            if callable(model_dump):
+                dumped = model_dump(exclude_none=True)
+                fields = dict(dumped) if isinstance(dumped, Mapping) else {}
+    model_extra = getattr(value, "model_extra", None)
+    if isinstance(model_extra, Mapping):
+        fields.update(model_extra)
+    return fields
+
+
+def _merge_delta_value(field: str, current: Any, incoming: Any) -> Any:
+    if current is None or field == "role":
+        return incoming
+    if isinstance(current, str) and isinstance(incoming, str):
+        return current + incoming
+    if isinstance(current, list) and isinstance(incoming, list):
+        return [*current, *incoming]
+    if isinstance(current, Mapping) and isinstance(incoming, Mapping):
+        merged = dict(current)
+        for key, value in incoming.items():
+            merged[key] = _merge_delta_value(str(key), merged.get(key), value)
+        return merged
+    return incoming
+
+
+def _merge_extension_delta(fields: dict[str, Any], delta: Any) -> None:
+    for field, value in _object_fields(delta).items():
+        if field in {"content", "tool_calls"} or value is None:
+            continue
+        fields[field] = _merge_delta_value(field, fields.get(field), value)
+
+
 def _merge_tool_call_delta(
     buckets: dict[int, dict[str, Any]], tool_call: Any
 ) -> None:
@@ -35,7 +76,7 @@ def _merge_tool_call_delta(
         {
             "id": "",
             "type": "function",
-            "function": {"name": "", "arguments": ""},
+            "function": {"name_parts": [], "argument_parts": []},
         },
     )
     call_id = _field(tool_call, "id")
@@ -49,16 +90,16 @@ def _merge_tool_call_delta(
         return
     name = _field(function, "name")
     if isinstance(name, str) and name:
-        bucket["function"]["name"] = bucket["function"]["name"] + name
+        bucket["function"]["name_parts"].append(name)
     arguments = _field(function, "arguments")
     if isinstance(arguments, str) and arguments:
-        bucket["function"]["arguments"] = bucket["function"]["arguments"] + arguments
+        bucket["function"]["argument_parts"].append(arguments)
 
 
 def _tool_call_object(bucket: dict[str, Any]) -> Any:
     function = SimpleNamespace(
-        name=bucket["function"]["name"],
-        arguments=bucket["function"]["arguments"],
+        name="".join(bucket["function"]["name_parts"]),
+        arguments="".join(bucket["function"]["argument_parts"]),
     )
     tool_call = SimpleNamespace(
         id=bucket["id"],
@@ -83,16 +124,21 @@ def _tool_call_object(bucket: dict[str, Any]) -> Any:
     return tool_call
 
 
-def _assistant_message(content: str | None, tool_calls: list[Any]) -> Any:
-    message = SimpleNamespace(
-        role="assistant",
-        content=content,
-        tool_calls=tool_calls,
-    )
+def _assistant_message(
+    content: str | None,
+    tool_calls: list[Any],
+    extension_fields: Mapping[str, Any],
+) -> Any:
+    payload: dict[str, Any] = dict(extension_fields)
+    payload.setdefault("role", "assistant")
+    payload["content"] = content
+    payload["tool_calls"] = tool_calls
+    message = SimpleNamespace(**payload)
 
     def model_dump(exclude_none: bool = True) -> dict[str, Any]:
-        payload: dict[str, Any] = {
-            "role": "assistant",
+        serialized: dict[str, Any] = {
+            **extension_fields,
+            "role": getattr(message, "role", "assistant"),
             "content": content,
             "tool_calls": [
                 call.model_dump(exclude_none=True)
@@ -104,8 +150,10 @@ def _assistant_message(content: str | None, tool_calls: list[Any]) -> Any:
             else None,
         }
         if exclude_none:
-            return {key: value for key, value in payload.items() if value is not None}
-        return payload
+            return {
+                key: value for key, value in serialized.items() if value is not None
+            }
+        return serialized
 
     message.model_dump = model_dump  # type: ignore[attr-defined]
     return message
@@ -120,6 +168,7 @@ def assemble_chat_completion(
     """Normalize a Chat Completions stream into one response-shaped object."""
     content_parts: list[str] = []
     tool_buckets: dict[int, dict[str, Any]] = {}
+    extension_fields: dict[str, Any] = {}
     usage: Any = None
 
     for chunk in stream:
@@ -132,6 +181,7 @@ def assemble_chat_completion(
         delta = _field(choices[0], "delta")
         if delta is None:
             continue
+        _merge_extension_delta(extension_fields, delta)
         text = _delta_content(delta)
         if text is not None:
             content_parts.append(text)
@@ -149,7 +199,7 @@ def assemble_chat_completion(
     assembled_calls = [
         _tool_call_object(tool_buckets[index]) for index in sorted(tool_buckets)
     ]
-    message = _assistant_message(content, assembled_calls)
+    message = _assistant_message(content, assembled_calls, extension_fields)
     return SimpleNamespace(
         choices=[SimpleNamespace(message=message)],
         usage=usage,

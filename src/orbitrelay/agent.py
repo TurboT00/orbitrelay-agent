@@ -99,10 +99,10 @@ def _tool_call_parts(tool_call: Any) -> tuple[Any, Any, Any, Any, Any]:
     )
 
 
-def _print_usage(response_number: int, response: Any) -> None:
+def _print_usage(response_number: int, response: Any, stream: TextIO) -> None:
     usage = _field(response, "usage")
     if usage is None:
-        print(f"Response {response_number}: usage unavailable")
+        print(f"Response {response_number}: usage unavailable", file=stream)
         return
 
     prompt_tokens = _field(usage, "prompt_tokens")
@@ -110,7 +110,8 @@ def _print_usage(response_number: int, response: Any) -> None:
     print(
         f"Response {response_number}: "
         f"prompt tokens={prompt_tokens if prompt_tokens is not None else 'unknown'}, "
-        f"completion tokens={completion_tokens if completion_tokens is not None else 'unknown'}"
+        f"completion tokens={completion_tokens if completion_tokens is not None else 'unknown'}",
+        file=stream,
     )
 
 
@@ -300,9 +301,9 @@ def _process_response(
         Callable[[list[Any]], None] | None,
     ],
 ) -> str | None:
-    _workspace, verbose, _session, _audit, collector, on_messages_update = context
+    _workspace, verbose, _session, audit_stream, collector, on_messages_update = context
     if verbose:
-        _print_usage(response_number, response)
+        _print_usage(response_number, response, audit_stream)
     _emit_usage(collector, response_number, response)
     message = _response_message(response)
     tool_calls = _field(message, "tool_calls") or []
@@ -392,7 +393,14 @@ def _tool_round_messages(
                 tool=record.tool_name,
                 phase="executing",
             )
-    results = _tool_result_messages(validated, prepared, decisions, verbose, collector)
+    results = _tool_result_messages(
+        validated,
+        prepared,
+        decisions,
+        verbose,
+        collector,
+        audit_stream,
+    )
     return [_serialize_assistant_message(message), *results]
 
 
@@ -429,6 +437,7 @@ def _tool_result_messages(
     decisions: Iterator[ApprovalDecision],
     verbose: bool,
     collector: EventCollector | None = None,
+    audit_stream: TextIO | None = None,
 ) -> list[dict[str, str]]:
     messages = []
     for (call_id, name, _arguments), prepared in zip(
@@ -437,7 +446,12 @@ def _tool_result_messages(
         result = (
             prepared
             if isinstance(prepared, str)
-            else _execute_authorized_call(prepared, next(decisions), verbose)
+            else _execute_authorized_call(
+                prepared,
+                next(decisions),
+                verbose,
+                sys.stderr if audit_stream is None else audit_stream,
+            )
         )
         if collector is not None:
             # Do not include raw tool payload content in events (may be large/sensitive).
@@ -453,6 +467,8 @@ def _tool_result_messages(
 
 
 def _looks_like_tool_error(result: str) -> bool:
+    if result.lstrip().startswith("Error:"):
+        return True
     try:
         payload = json.loads(result)
     except json.JSONDecodeError:
@@ -464,9 +480,15 @@ def _execute_authorized_call(
     prepared: PreparedToolCall,
     decision: ApprovalDecision,
     verbose: bool,
+    audit_stream: TextIO,
 ) -> str:
     if decision.approved:
-        return execute_prepared_tool(prepared, verbose)
+        return execute_prepared_tool(
+            prepared,
+            verbose,
+            emit_progress=verbose,
+            output_stream=audit_stream,
+        )
 
     request = prepared.approval_request
     return json.dumps(

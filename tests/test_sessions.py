@@ -16,8 +16,11 @@ from unittest.mock import Mock, patch
 
 from orbitrelay import cli
 from orbitrelay.agent import run_agent
+from orbitrelay.connection_service import ConnectionService
+from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.events import EventCollector, EventType
 from orbitrelay.profile_store import ProfileRepository
+from orbitrelay.providers import ProviderId
 from orbitrelay.sessions import (
     SessionCorruptionError,
     SessionError,
@@ -47,6 +50,23 @@ def _assistant_message(content=None, tool_calls=None):
 
 def _response(message, usage=None):
     return SimpleNamespace(choices=[SimpleNamespace(message=message)], usage=usage)
+
+
+class _CredentialStore:
+    def __init__(self):
+        self.values = {}
+
+    def set_secret(self, key, secret):
+        self.values[key] = secret
+
+    def get_secret(self, key):
+        try:
+            return self.values[key]
+        except KeyError as exc:
+            raise CredentialNotFoundError(key) from exc
+
+    def delete_secret(self, key):
+        self.values.pop(key, None)
 
 
 class SessionStoreTests(unittest.TestCase):
@@ -139,12 +159,14 @@ class SessionStoreTests(unittest.TestCase):
         ]
         stdout = StringIO()
         stderr = StringIO()
-        env = {"OPENAI_API_KEY": "secret", "ORBITRELAY_HOME": str(home)}
         with tempfile.TemporaryDirectory() as workspace:
             repository = ProfileRepository(Path(workspace) / "profiles.json")
+            credentials = _CredentialStore()
+            ConnectionService(repository, credentials).connect_api_key(
+                ProviderId.OPENAI, "secret"
+            )
             with (
-                patch.dict(os.environ, env, clear=True),
-                patch("orbitrelay.cli.dotenv_values", return_value={}),
+                patch.dict(os.environ, {"ORBITRELAY_HOME": str(home)}, clear=True),
                 patch("orbitrelay.cli.OpenAI", return_value=client),
                 redirect_stdout(stdout),
                 redirect_stderr(stderr),
@@ -158,6 +180,7 @@ class SessionStoreTests(unittest.TestCase):
                         workspace,
                     ],
                     profile_repository=repository,
+                    credential_store=credentials,
                 )
                 self.assertEqual(code, 0)
                 code = cli.main(
@@ -169,6 +192,7 @@ class SessionStoreTests(unittest.TestCase):
                         workspace,
                     ],
                     profile_repository=repository,
+                    credential_store=credentials,
                 )
                 self.assertEqual(code, 0)
 
@@ -201,21 +225,24 @@ class SessionStoreTests(unittest.TestCase):
         store.create(session_id="bad")
         (home / "sessions" / "bad" / "messages.jsonl").write_text("{bad\n", encoding="utf-8")
         with tempfile.TemporaryDirectory() as workspace:
+            repository = ProfileRepository(Path(workspace) / "profiles.json")
+            credentials = _CredentialStore()
+            ConnectionService(repository, credentials).connect_api_key(
+                ProviderId.OPENAI, "secret"
+            )
             with (
                 patch.dict(
                     os.environ,
-                    {"OPENAI_API_KEY": "secret", "ORBITRELAY_HOME": str(home)},
+                    {"ORBITRELAY_HOME": str(home)},
                     clear=True,
                 ),
-                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI") as openai,
             ):
                 with self.assertRaisesRegex(ValueError, "not valid JSON|corrupt|invalid"):
                     cli.main(
                         ["resume", "--session", "bad", "--workspace", workspace],
-                        profile_repository=ProfileRepository(
-                            Path(workspace) / "profiles.json"
-                        ),
+                        profile_repository=repository,
+                        credential_store=credentials,
                     )
         openai.assert_not_called()
 

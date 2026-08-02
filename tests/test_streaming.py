@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -15,8 +14,11 @@ from unittest.mock import Mock, patch
 from orbitrelay import cli
 from orbitrelay.agent import run_agent
 from orbitrelay.approvals import ApprovalDecision, ApprovalSession
+from orbitrelay.connection_service import ConnectionService
+from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.events import EventCollector, EventType
 from orbitrelay.profile_store import ProfileRepository
+from orbitrelay.providers import ProviderId
 from orbitrelay.streaming import assemble_chat_completion
 
 
@@ -30,8 +32,12 @@ class RecordingAuthorizer:
         return tuple(self.decisions)
 
 
-def _chunk(content=None, tool_calls=None, usage=None):
-    delta = SimpleNamespace(content=content, tool_calls=tool_calls or [])
+def _chunk(content=None, tool_calls=None, usage=None, **delta_fields):
+    delta = SimpleNamespace(
+        content=content,
+        tool_calls=tool_calls or [],
+        **delta_fields,
+    )
     choice = SimpleNamespace(delta=delta)
     return SimpleNamespace(choices=[choice], usage=usage)
 
@@ -44,6 +50,23 @@ def _tool_delta(index, call_id=None, name=None, arguments=None):
         type="function",
         function=function,
     )
+
+
+class _CredentialStore:
+    def __init__(self):
+        self.values = {}
+
+    def set_secret(self, key, secret):
+        self.values[key] = secret
+
+    def get_secret(self, key):
+        try:
+            return self.values[key]
+        except KeyError as exc:
+            raise CredentialNotFoundError(key) from exc
+
+    def delete_secret(self, key):
+        self.values.pop(key, None)
 
 
 class StreamingTests(unittest.TestCase):
@@ -88,6 +111,54 @@ class StreamingTests(unittest.TestCase):
             tool_calls[0].function.arguments,
             '{"file_path":"a.txt","content":"x"}',
         )
+
+    def test_assemble_preserves_streamed_provider_extension_fields(self):
+        response = assemble_chat_completion(
+            [
+                _chunk(reasoning_content="reasoning ", provider_state={"a": "x"}),
+                _chunk(reasoning_content="continued", provider_state={"b": "y"}),
+            ]
+        )
+
+        message = response.choices[0].message
+        self.assertEqual(message.reasoning_content, "reasoning continued")
+        self.assertEqual(message.provider_state, {"a": "x", "b": "y"})
+        self.assertEqual(
+            message.model_dump()["reasoning_content"],
+            "reasoning continued",
+        )
+
+    def test_streamed_tool_round_replays_provider_extension_fields(self):
+        client = Mock()
+        client.chat.completions.create.side_effect = [
+            [
+                _chunk(
+                    reasoning_content="required-replay",
+                    tool_calls=[
+                        _tool_delta(
+                            0,
+                            call_id="call-1",
+                            name="get_files_info",
+                            arguments="{}",
+                        )
+                    ],
+                )
+            ],
+            [_chunk(content="done")],
+        ]
+
+        with tempfile.TemporaryDirectory() as workspace:
+            result = run_agent(
+                client,
+                "inspect",
+                "model",
+                working_directory=workspace,
+                stream=True,
+            )
+
+        self.assertEqual(result, "done")
+        replayed = client.chat.completions.create.call_args_list[1].kwargs["messages"]
+        self.assertEqual(replayed[2]["reasoning_content"], "required-replay")
 
     def test_run_agent_stream_emits_deltas_before_completion(self):
         client = Mock()
@@ -171,18 +242,20 @@ class StreamingTests(unittest.TestCase):
         stdout = StringIO()
         stderr = StringIO()
         with tempfile.TemporaryDirectory() as workspace:
+            repository = ProfileRepository(Path(workspace) / "profiles.json")
+            credentials = _CredentialStore()
+            ConnectionService(repository, credentials).connect_api_key(
+                ProviderId.OPENAI, "secret"
+            )
             with (
-                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
-                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI", return_value=fake_client),
                 redirect_stdout(stdout),
                 redirect_stderr(stderr),
             ):
                 code = cli.main(
                     ["hello", "--stream", "--workspace", workspace],
-                    profile_repository=ProfileRepository(
-                        Path(workspace) / "profiles.json"
-                    ),
+                    profile_repository=repository,
+                    credential_store=credentials,
                 )
         self.assertEqual(code, 0)
         self.assertEqual(stdout.getvalue(), "Hi!\n")
@@ -190,18 +263,20 @@ class StreamingTests(unittest.TestCase):
 
     def test_cli_default_is_non_stream(self):
         with tempfile.TemporaryDirectory() as workspace:
+            repository = ProfileRepository(Path(workspace) / "profiles.json")
+            credentials = _CredentialStore()
+            ConnectionService(repository, credentials).connect_api_key(
+                ProviderId.OPENAI, "secret"
+            )
             with (
-                patch.dict(os.environ, {"OPENAI_API_KEY": "secret"}, clear=True),
-                patch("orbitrelay.cli.dotenv_values", return_value={}),
                 patch("orbitrelay.cli.OpenAI", return_value=Mock()),
                 patch("orbitrelay.cli.run_agent", return_value="final") as run_agent,
                 redirect_stdout(StringIO()),
             ):
                 cli.main(
                     ["hello", "--workspace", workspace],
-                    profile_repository=ProfileRepository(
-                        Path(workspace) / "profiles.json"
-                    ),
+                    profile_repository=repository,
+                    credential_store=credentials,
                 )
         self.assertNotIn("stream", run_agent.call_args.kwargs)
         self.assertNotIn("event_collector", run_agent.call_args.kwargs)
