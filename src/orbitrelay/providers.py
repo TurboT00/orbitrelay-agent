@@ -47,9 +47,6 @@ class ProviderDefinition:
     capabilities: frozenset[str]
     authentication: tuple[AuthAvailability, ...]
     documentation_url: str
-    legacy_api_key_env: str | None = None
-    legacy_model_env: str | None = None
-    legacy_base_url_envs: tuple[str, ...] = ()
 
     def auth(self, method: AuthMethod | str) -> AuthAvailability:
         requested = AuthMethod(method)
@@ -76,9 +73,6 @@ def _api_key_only(
     base_url: str,
     default_model: str,
     documentation_url: str,
-    api_key_env: str,
-    model_env: str,
-    *base_url_envs: str,
 ) -> ProviderDefinition:
     return ProviderDefinition(
         identifier=identifier,
@@ -96,9 +90,6 @@ def _api_key_only(
             ),
         ),
         documentation_url=documentation_url,
-        legacy_api_key_env=api_key_env,
-        legacy_model_env=model_env,
-        legacy_base_url_envs=base_url_envs,
     )
 
 
@@ -119,9 +110,6 @@ _PROVIDERS: Final[tuple[ProviderDefinition, ...]] = (
             ),
         ),
         documentation_url="https://platform.openai.com/docs/api-reference/authentication",
-        legacy_api_key_env="OPENAI_API_KEY",
-        legacy_model_env="OPENAI_MODEL",
-        legacy_base_url_envs=("OPENAI_URL", "OPENAI_BASE_URL"),
     ),
     ProviderDefinition(
         identifier=ProviderId.CODEX,
@@ -156,9 +144,6 @@ _PROVIDERS: Final[tuple[ProviderDefinition, ...]] = (
             ),
         ),
         documentation_url="https://ai.google.dev/gemini-api/docs/api-key",
-        legacy_api_key_env="GEMINI_API_KEY",
-        legacy_model_env="GEMINI_MODEL",
-        legacy_base_url_envs=("GEMINI_URL", "GEMINI_BASE_URL"),
     ),
     _api_key_only(
         ProviderId.GROK,
@@ -166,10 +151,6 @@ _PROVIDERS: Final[tuple[ProviderDefinition, ...]] = (
         "https://api.x.ai/v1",
         "grok-4.5",
         "https://docs.x.ai/developers/quickstart",
-        "XAI_API_KEY",
-        "XAI_MODEL",
-        "XAI_URL",
-        "XAI_BASE_URL",
     ),
     _api_key_only(
         ProviderId.DEEPSEEK,
@@ -177,10 +158,6 @@ _PROVIDERS: Final[tuple[ProviderDefinition, ...]] = (
         "https://api.deepseek.com",
         "deepseek-v4-flash",
         "https://api-docs.deepseek.com/",
-        "DEEPSEEK_API_KEY",
-        "DEEPSEEK_MODEL",
-        "DEEPSEEK_URL",
-        "DEEPSEEK_BASE_URL",
     ),
 )
 

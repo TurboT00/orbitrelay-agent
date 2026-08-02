@@ -44,7 +44,6 @@ class ProviderCliTests(unittest.TestCase):
         self,
         argv: list[str],
         secret: str = "test-key",
-        environment: dict[str, str] | None = None,
     ) -> int:
         return run_provider_cli(
             argv,
@@ -52,8 +51,6 @@ class ProviderCliTests(unittest.TestCase):
             self.store,
             lambda _prompt: secret,
             output=self.output,
-            environment=environment,
-            dotenv_environment={},
         )
 
     def test_connects_an_api_key_provider_and_selects_it(self) -> None:
@@ -95,31 +92,6 @@ class ProviderCliTests(unittest.TestCase):
             ConnectionService(self.repository, self.store).profile_for_provider(
                 ProviderId.CODEX
             )
-
-    def test_imports_exactly_one_provider_from_environment(self) -> None:
-        self.assertEqual(
-            self.execute(
-                ["import-env", "--provider", "gemini"],
-                environment={"GEMINI_API_KEY": "gemini-key", "GEMINI_MODEL": "gemini-test"},
-            ),
-            0,
-        )
-
-        self.assertEqual(self.repository.selected_name(), "gemini")
-        self.assertIn('Imported and selected provider "gemini".', self.output.getvalue())
-        self.assertNotIn("gemini-key", self.output.getvalue())
-
-    def test_import_rejects_more_than_one_api_key(self) -> None:
-        self.assertEqual(
-            self.execute(
-                ["import-env", "--provider", "openai"],
-                environment={"OPENAI_API_KEY": "openai-key", "XAI_API_KEY": "grok-key"},
-            ),
-            1,
-        )
-        self.assertIn("ambiguous", self.output.getvalue())
-        self.assertEqual(self.store.values, {})
-
 
 if __name__ == "__main__":
     unittest.main()
