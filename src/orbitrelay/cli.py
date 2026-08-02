@@ -326,7 +326,6 @@ def _dispatch_cli(
             repository,
             credential_store,
             secret_prompt,
-            environment=environment,
         )
     if raw_argv and raw_argv[0] == "codex":
         return run_codex_cli(raw_argv[1:])
