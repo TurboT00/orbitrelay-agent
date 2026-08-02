@@ -10,7 +10,7 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 175
+  project_tests: 174
   example_tests: 9
 planning:
   phase: sustain
@@ -41,11 +41,9 @@ decisions:
     and personal-service integrations. These are not current capabilities.
   credential_store: Use the native OS credential store; never fall back to plaintext secrets.
   provider_connections: >-
-    Resolve one selected catalog-backed connection per run. Runtime never reads
-    provider environment variables or .env files.
-  provider_import: >-
-    Import one provider API key explicitly from environment or .env, rejecting
-    ambiguity, interpolation, and endpoint overrides.
+    Resolve one selected catalog-backed connection per run. API keys enter only
+    through a hidden prompt and are stored in the native credential store;
+    environment variables and .env files are never credential sources.
   codex_boundary: >-
     Delegate Codex sign-in and execution to the official CLI. Never read, write,
     or store Codex credentials.

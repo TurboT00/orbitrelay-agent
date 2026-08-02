@@ -41,8 +41,9 @@ remains subject to private manual evidence.
 Codex delegates subscription sign-in and execution to the installed official
 Codex CLI.
 
-Environment values and `.env` files are import-only migration inputs. Secrets
-stay in the native credential store; connection metadata is secret-free.
+API keys enter only through the hidden provider connection prompt and stay in
+the native credential store. Environment variables and `.env` files are not
+credential sources; connection metadata is secret-free.
 
 ## Product direction
 

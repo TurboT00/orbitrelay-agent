@@ -60,7 +60,8 @@ orbitrelay --help
 
 OrbitRelay resolves exactly one stored provider connection for an agent run.
 `--provider NAME` is a one-run override; without it, the selected connection is
-used. Normal runs do not read provider environment variables or `.env` files.
+used. Provider credentials are never read from environment variables or `.env`
+files.
 
 ```bash
 orbitrelay provider list
@@ -71,10 +72,9 @@ orbitrelay provider connect deepseek --method api_key
 orbitrelay "inspect this project" --provider deepseek
 ```
 
-`provider import-env --provider NAME` is available only to migrate one legacy
-API key from the environment or `.env`. It rejects multiple provider keys,
-interpolation, and endpoint overrides, then stores the imported key in the
-native credential service. The sample `.env.example` is therefore import-only.
+`provider connect ... --method api_key` prompts without echoing the credential
+and writes it directly to the operating system credential store. Environment-
+based credential import is intentionally unsupported.
 
 ### Available connection methods
 

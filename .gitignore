@@ -10,7 +10,7 @@ wheels/
 .DS_Store
 .pi-subagents/
 
-# API keys and credentials
+# Unsupported local credential files (defense in depth)
 .env
 
 # Virtual environments

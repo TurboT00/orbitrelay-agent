@@ -23,8 +23,7 @@ arguments rather than treating documentation examples as a compatibility API.
 ## Provider connections
 
 `providers.py` is the provider catalog. It defines identifiers, endpoint and
-model defaults, execution routes, supported authentication methods, and legacy
-environment-variable mappings.
+model defaults, execution routes, and supported authentication methods.
 
 `ConnectionService` resolves only the selected stored connection, or a one-run
 `--provider` override. Runtime configuration never falls back to provider
@@ -32,7 +31,7 @@ environment variables or `.env` files.
 
 API-key providers use the OpenAI-compatible execution route. Their secrets are
 stored by the native credential service; `profiles.json` contains metadata only.
-`provider import-env` is an explicit migration path for one provider.
+The hidden `provider connect` prompt is the only API-key entry path.
 
 Codex is a separate route. OrbitRelay stores credential-free connection metadata
 and calls the installed official Codex CLI. It never reads, writes, or reuses

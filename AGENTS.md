@@ -46,7 +46,7 @@ consent, authentication, retention, and platform decisions.
 - `cli.py` dispatches `provider`, `codex`, and `session` subcommands; otherwise
   it resolves a connection and starts an agent run.
 - `providers.py` is the single provider catalog: identifiers, endpoint/model
-  defaults, execution routes, auth availability, and legacy environment names.
+  defaults, execution routes, and auth availability.
 - `connection_service.py` is the resolution boundary between stored profile
   metadata, the credential store, and an executable provider connection.
 - `profiles.py`, `profile_store.py`, and `credentials.py` define and persist
@@ -84,9 +84,9 @@ CLI -> CodexBridge -> official `codex` CLI
 - Never write provider secrets to `profiles.json`, sessions, events, summaries,
   logs, exceptions, fixtures, screenshots, or documentation.
 - Normal agent runs resolve exactly one stored connection. They do not read API
-  keys, endpoints, or models from the process environment or `.env`.
-  `provider import-env` is the only migration path and must remain explicit,
-  single-provider, non-interpolating, and endpoint-override-free.
+  keys, endpoints, or models from the process environment or `.env`. API keys
+  enter only through the hidden `provider connect` prompt and go directly to
+  the native credential store.
 - Codex authentication belongs entirely to the official CLI. OrbitRelay stores
   only credential-free connection metadata and delegates login/logout/exec.
 - Tool paths are fixed to the selected workspace. Reject absolute escapes,
@@ -161,7 +161,7 @@ network/cache access on a clean machine.
 
 `scripts/check.sh` is not currently a complete quality gate: it does not run
 Ruff, mypy, coverage, dependency auditing, or security scanning. Do not describe
-it as proving those checks. The current project suite contains 175 tests and the
+it as proving those checks. The current project suite contains 174 tests and the
 calculator example contains 9 tests.
 
 ## Known baseline and scope controls
