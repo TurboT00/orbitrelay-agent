@@ -9,7 +9,7 @@ from unittest.mock import patch
 from orbitrelay.connection_service import ConnectionError, ConnectionService
 from orbitrelay.credentials import CredentialNotFoundError
 from orbitrelay.profile_store import ProfileRepository
-from orbitrelay.provider_cli import run_provider_cli
+from orbitrelay.provider_cli import parse_provider_args, run_provider_cli
 from orbitrelay.providers import ProviderId
 
 
@@ -67,6 +67,12 @@ class ProviderCliTests(unittest.TestCase):
 
         for provider in ("openai", "codex", "gemini", "grok", "deepseek"):
             self.assertIn(provider, self.output.getvalue())
+
+    def test_environment_import_command_is_not_available(self) -> None:
+        with self.assertRaises(SystemExit) as raised:
+            parse_provider_args(["import-env", "--provider", "openai"])
+
+        self.assertEqual(raised.exception.code, 2)
 
     def test_rejects_unsupported_grok_subscription(self) -> None:
         self.assertEqual(self.execute(["connect", "grok", "--method", "subscription"]), 1)
