@@ -161,7 +161,7 @@ network/cache access on a clean machine.
 
 `scripts/check.sh` is not currently a complete quality gate: it does not run
 Ruff, mypy, coverage, dependency auditing, or security scanning. Do not describe
-it as proving those checks. The current project suite contains 174 tests and the
+it as proving those checks. The current project suite contains 175 tests and the
 calculator example contains 9 tests.
 
 ## Known baseline and scope controls

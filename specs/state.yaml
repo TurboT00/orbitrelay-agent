@@ -10,7 +10,7 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 174
+  project_tests: 175
   example_tests: 9
 planning:
   phase: sustain
