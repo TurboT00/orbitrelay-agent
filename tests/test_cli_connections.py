@@ -96,6 +96,19 @@ class CliConnectionTests(unittest.TestCase):
         )
         self.assertEqual(self.repository.selected_name(), "openai")
 
+    def test_dispatches_provider_commands_without_environment_credentials(self) -> None:
+        output = io.StringIO()
+
+        with patch("sys.stdout", output):
+            result = cli.main(
+                ["provider", "list"],
+                profile_repository=self.repository,
+                credential_store=self.store,
+            )
+
+        self.assertEqual(result, 0)
+        self.assertIn("openai: api_key", output.getvalue())
+
     def test_legacy_provider_commands_are_deprecation_aliases(self) -> None:
         error = io.StringIO()
 
