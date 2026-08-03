@@ -1,0 +1,29 @@
+id: e10
+title: Release Evidence and Readiness
+wsjf: 3.6
+total_bcps: 15
+status: todo
+scope: specs/product/SCOPE_LATEST.yaml
+release_target: "TBD"
+stories:
+  - id: e10s01
+    title: Record the authorized macOS readiness evidence
+    bcps: 5
+    status: todo
+    delta: MODIFIED
+    spec: e10s01-authorized-macos-evidence.md
+    tasks: e10s01-tasks.yaml
+  - id: e10s02
+    title: Re-audit the stabilization candidate
+    bcps: 5
+    status: todo
+    delta: ADDED
+    spec: e10s02-candidate-reaudit.md
+    tasks: e10s02-tasks.yaml
+  - id: e10s03
+    title: Produce a reproducible standalone release candidate
+    bcps: 5
+    status: todo
+    delta: ADDED
+    spec: e10s03-standalone-release-candidate.md
+    tasks: e10s03-tasks.yaml

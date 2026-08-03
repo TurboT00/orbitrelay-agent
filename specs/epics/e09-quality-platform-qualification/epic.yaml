@@ -1,0 +1,37 @@
+id: e09
+title: Quality and Platform Qualification
+wsjf: 4.2
+total_bcps: 24
+status: todo
+scope: specs/product/SCOPE_LATEST.yaml
+release_target: "TBD"
+stories:
+  - id: e09s01
+    title: Run lint and typing as terminal release gates
+    bcps: 5
+    status: todo
+    delta: MODIFIED
+    spec: e09s01-lint-type-gates.md
+    tasks: e09s01-tasks.yaml
+  - id: e09s02
+    title: Enforce coverage dependency and security policy
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e09s02-risk-quality-policy.md
+    tasks: e09s02-tasks.yaml
+  - id: e09s03
+    title: Install and run OrbitRelay on Python 3.12 through 3.14
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e09s03-macos-python-matrix.md
+    tasks: e09s03-tasks.yaml
+  - id: e09s04
+    title: Publish truthful platform and installation support
+    bcps: 3
+    status: todo
+    delta: MODIFIED
+    spec: e09s04-platform-support-claims.md
+    tasks: e09s04-tasks.yaml
+

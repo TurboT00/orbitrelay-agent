@@ -1,0 +1,38 @@
+story_id: e05s02
+title: Identify a reproducible stabilization candidate
+spec: e05s02-release-identity.md
+type: fix
+context: infra
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Add failing contracts for one consistent package, module, and CLI release identity.
+    verify: "uv run python -m unittest tests.test_release_identity -v"
+    risk: P1
+    security: low
+    status: failing
+    allure:
+      severity: high
+      categories: ["Release Identity", "unit"]
+  - id: 2
+    description: Select the post-0.5.0 identifier from the revalidated compatibility impact and expose it without changing provider behavior.
+    verify: "uv run python -m unittest tests.test_release_identity tests.test_cli_connections -v"
+    risk: P0
+    security: medium
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Release Identity", "CLI", "Security Review"]
+  - id: 3
+    description: Prove a clean checkout builds an artifact whose installed command reports the selected identity.
+    verify: "./scripts/check.sh"
+    risk: P0
+    security: medium
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Release Identity", "packaging", "Security Review"]

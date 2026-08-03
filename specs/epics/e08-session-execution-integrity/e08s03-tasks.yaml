@@ -1,0 +1,39 @@
+story_id: e08s03
+title: Inspect and delete corrupt sessions explicitly
+spec: e08s03-corrupt-session-lifecycle.md
+type: fix
+context: domain
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Add contracts for malformed metadata, truncated messages and events, permission failures, symlinks, and active-session deletion.
+    verify: "uv run python -m unittest tests.test_sessions tests.test_session_concurrency -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session Lifecycle", "corruption", "Security Review"]
+  - id: 2
+    description: Keep corrupt sessions visible in list and show output with secret-free diagnostic state.
+    verify: "uv run python -m unittest tests.test_sessions tests.test_cli_errors -v"
+    risk: P1
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: high
+      categories: ["Session Lifecycle", "CLI", "Security Review"]
+  - id: 3
+    description: Delete inactive corrupt sessions explicitly and make delete-all report partial failures with a nonzero result.
+    verify: "uv run python -m unittest tests.test_sessions tests.test_session_concurrency -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session Lifecycle", "deletion", "Security Review"]

@@ -13,25 +13,43 @@ verification:
   project_tests: 175
   example_tests: 9
 planning:
-  phase: sustain
-  status: readiness_review_required
-  entry_skill: null
-  next_skill: null
+  phase: plan
+  status: stabilization_planned
+  entry_skill: kickoff-branch
+  next_skill: kickoff-branch
+  epic_ids: [e05, e06, e07, e08, e09, e10]
+  story_count: 24
+  total_bcps: 151
+  implementation_plan: specs/IMPLEMENTATION_PLAN_LATEST.md
+  task_count: 72
+  impact:
+    report: specs/IMPACT_LATEST.md
+    risk: high
   next_action: >-
-    Complete the private readiness review and required manual evidence before
-    approving remediation or beginning P5.
+    Obtain explicit approval for the detailed implementation plan, preserve or
+    commit the planning-only changes, then run kickoff-branch and implement only
+    e05s01 with develop-tdd. Do not begin P5.
 handoff:
   required_reading:
     - README.md
     - docs/project-roadmap.md
     - docs/architecture.md
     - specs/state.yaml
+    - specs/product/SCOPE_LATEST.yaml
+    - specs/release-plan.yaml
+    - specs/execution-status.yaml
+    - specs/IMPACT_LATEST.md
+    - specs/IMPLEMENTATION_PLAN_LATEST.md
   open_decisions:
+    - Select the post-0.5.0 stabilization release identifier after scope is approved.
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
-    No remediation is approved for execution. Resolve or explicitly accept the
-    remaining major concerns before P5 planning.
+    The High-impact stabilization initiative has 24 detailed story plans and 72
+    failing task-ledger entries. After explicit plan approval and a clean
+    kickoff branch, implement e05s01 first and review its rebaselined finding
+    disposition before any later story. Keep P5 blocked.
+  next_skill: kickoff-branch
 decisions:
   product_identity: >-
     OrbitRelay is a general-purpose, text-first personal assistant. Coding and
@@ -55,6 +73,32 @@ decisions:
   session_boundary: >-
     Sessions are per-user local data with restrictive permissions, no app-level
     encryption, and keep-until-delete retention.
+  workspace_read_privacy: >-
+    Ordinary reads remain automatic. Sensitive paths fail closed under
+    built-in rules, .gitignore, and deny-only .orbitrelayignore rules. Exact
+    exceptions last one process; private keys and credential stores cannot be
+    overridden. Sensitive turns are ephemeral unless separately persisted.
+  workspace_privacy_catalog: >-
+    Use the conservative path catalog in specs/IMPLEMENTATION_PLAN_LATEST.md.
+    Git negation affects only Git-derived sensitivity. Exact-file and subtree
+    exceptions make in-scope non-absolute-deny entries readable and discoverable
+    for one process; absolute-deny entries remain omitted and unreadable.
+  provider_status: >-
+    Report structured offline facts and conservative local readiness. Use a
+    separate explicit live verification command and retain only sanitized
+    historical evidence.
+  session_concurrency: >-
+    One process owns a session for the complete run. Conflicts fail before a
+    provider request unless a bounded wait is explicit. Persist only complete
+    replay-safe groups with durable atomic replacement.
+  python_support_target: >-
+    Qualify Python 3.12 through 3.14 on macOS as a stabilization release gate.
+    Linux is preview until qualified; Windows remains deferred. Keep current
+    package metadata until the matrix passes.
+  codex_disconnect: >-
+    Provider disconnect removes OrbitRelay metadata only. Delegated logout is
+    separate, with an explicit logout-first --disconnect combination. Never
+    inspect Codex credentials or auto-select another provider.
   remote_push: Do not push without an explicit user request.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.

@@ -1,0 +1,39 @@
+story_id: e09s02
+title: Enforce coverage dependency and security policy
+spec: e09s02-risk-quality-policy.md
+type: feat
+context: infra
+risk: P0
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Define risk-based coverage thresholds and dependency and source-security policies with reproducible tool versions.
+    verify: "uv run python -m unittest tests.test_quality_gate -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Quality Policy", "policy", "Security Review"]
+  - id: 2
+    description: Add the agreed coverage, dependency-audit, and security-scan checks to the official local gate with actionable failure output.
+    verify: "./scripts/check.sh"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Quality Policy", "release check", "Security Review"]
+  - id: 3
+    description: Add controlled regressions proving each new gate fails independently and cannot be skipped by a passing unit suite.
+    verify: "uv run python -m unittest tests.test_quality_gate -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Quality Policy", "fail closed", "Security Review"]

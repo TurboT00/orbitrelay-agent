@@ -1,0 +1,39 @@
+story_id: e06s02
+title: Apply workspace privacy rules to discovery
+spec: e06s02-private-workspace-discovery.md
+type: fix
+context: domain
+risk: P0
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Add complete approved catalog and precedence contracts for built-ins, Git ignore negation, deny-only OrbitRelay patterns, authorized exact/subtree scope, and ordinary project dotfiles.
+    verify: "uv run python -m unittest tests.test_workspace_privacy -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "policy", "Security Review"]
+  - id: 2
+    description: Return ordinary directory entries while replacing protected names and sizes with an aggregate omitted count.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_tools -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "discovery", "Security Review"]
+  - id: 3
+    description: Preserve traversal and symlink confinement while applying the same privacy result to direct reads and nested discovery.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_sandbox tests.test_tools -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "sandbox", "Security Review"]

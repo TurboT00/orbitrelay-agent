@@ -1,0 +1,38 @@
+story_id: e09s04
+title: Publish truthful platform and installation support
+spec: e09s04-platform-support-claims.md
+type: fix
+context: infra
+risk: P1
+status: failing
+bcps: 3
+tasks:
+  - id: 1
+    description: Add consistency checks across package classifiers, README installation guidance, roadmap status, and active project state.
+    verify: "uv run python -m unittest tests.test_release_identity -v"
+    risk: P1
+    security: low
+    status: failing
+    allure:
+      severity: high
+      categories: ["Platform Claims", "consistency"]
+  - id: 2
+    description: Document macOS as qualified, Linux as preview, and Windows as deferred without overstating credential-backend evidence.
+    verify: "uv run python -m unittest tests.test_release_identity -v"
+    risk: P1
+    security: medium
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: high
+      categories: ["Platform Claims", "documentation", "Security Review"]
+  - id: 3
+    description: Verify clean macOS installation and first-run guidance against the selected Python floor and package artifact.
+    verify: "./scripts/check-python-matrix.sh"
+    risk: P1
+    security: medium
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: high
+      categories: ["Platform Claims", "installation", "Security Review"]

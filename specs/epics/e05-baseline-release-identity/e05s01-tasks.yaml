@@ -1,0 +1,39 @@
+story_id: e05s01
+title: Publish a current finding disposition
+spec: e05s01-current-finding-disposition.md
+type: fix
+context: infra
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Add an executable contract that requires every July finding to have a current evidence-backed disposition.
+    verify: "uv run python -m unittest tests.test_release_baseline -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Release Baseline", "unit", "Security Review"]
+  - id: 2
+    description: Revalidate historical findings against current source, tests, dependencies, and release behavior without treating stale evidence as current.
+    verify: "uv run python -m unittest tests.test_release_baseline -v && ./scripts/check.sh"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Release Baseline", "integration", "Security Review"]
+  - id: 3
+    description: Publish fixed, open, accepted, and deferred outcomes plus the required pre-implementation MT evidence subset and authorization state, with no secret-bearing evidence.
+    verify: "uv run python -m unittest tests.test_release_baseline tests.test_redaction -v"
+    risk: P1
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: high
+      categories: ["Release Baseline", "redaction", "Security Review"]

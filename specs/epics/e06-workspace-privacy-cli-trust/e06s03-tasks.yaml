@@ -1,0 +1,39 @@
+story_id: e06s03
+title: Authorize an exact sensitive read for one run
+spec: e06s03-one-run-read-exception.md
+type: feat
+context: domain
+risk: P0
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Add CLI contracts for exact file and explicit subtree read/discovery authorization, invalid paths, and omitted non-overridable material.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_cli_connections -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "CLI", "Security Review"]
+  - id: 2
+    description: Apply user-declared authorization only to the current process without permitting model-triggered approval or broader path access.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_agent tests.test_approvals -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "authorization", "Security Review"]
+  - id: 3
+    description: Keep authorized sensitive turns ephemeral by default and prove a later process or ordinary resume cannot replay them.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_sessions -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "sessions", "Security Review"]

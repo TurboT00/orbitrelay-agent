@@ -1,0 +1,39 @@
+story_id: e08s02
+title: Recover from interruption at a replay-safe checkpoint
+spec: e08s02-replay-safe-checkpoints.md
+type: fix
+context: domain
+risk: P0
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Add interruption contracts at user, assistant, partial tool-batch, complete tool-batch, and final-answer boundaries.
+    verify: "uv run python -m unittest tests.test_session_transactions -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session Transactions", "fault injection", "Security Review"]
+  - id: 2
+    description: Persist complete replay-safe groups with unique temporary files, durable synchronization, and atomic replacement.
+    verify: "uv run python -m unittest tests.test_session_transactions tests.test_sessions tests.test_context_budget -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session Transactions", "durability", "Security Review"]
+  - id: 3
+    description: Resume from the last valid checkpoint without orphaning, reordering, or duplicating tool-call identifiers.
+    verify: "uv run python -m unittest tests.test_session_transactions tests.test_agent tests.test_context_budget -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session Transactions", "replay", "Security Review"]

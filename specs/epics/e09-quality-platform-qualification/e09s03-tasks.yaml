@@ -1,0 +1,39 @@
+story_id: e09s03
+title: Install and run OrbitRelay on Python 3.12 through 3.14
+spec: e09s03-macos-python-matrix.md
+type: feat
+context: infra
+risk: P0
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Add contracts and a disposable candidate-manifest and lock procedure across Python 3.12, 3.13, and 3.14 without changing tracked Python 3.14 metadata.
+    verify: "uv run python -m unittest tests.test_python_matrix -v"
+    risk: P0
+    security: medium
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Python Matrix", "lock", "Security Review"]
+  - id: 2
+    description: Run the complete automated tests, examples, quality checks, build, and isolated command smoke against the disposable 3.12-floor candidate on every macOS minor.
+    verify: "./scripts/check-python-matrix.sh --candidate-floor 3.12 --automated-only"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Python Matrix", "macOS", "Security Review"]
+  - id: 3
+    description: Validate separately authorized per-minor credential evidence, then apply the proven candidate metadata and lock and reject unsupported drift.
+    verify: "uv run python -m unittest tests.test_release_identity tests.test_python_matrix -v && ./scripts/check-python-matrix.sh --evidence-file docs/manual-test-results-stabilization.md --require-credential-evidence"
+    risk: P0
+    security: medium
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Python Matrix", "metadata", "Security Review"]

@@ -1,0 +1,44 @@
+id: e06
+title: Workspace Privacy and CLI Trust
+wsjf: 6.0
+total_bcps: 34
+status: todo
+scope: specs/product/SCOPE_LATEST.yaml
+release_target: "TBD"
+stories:
+  - id: e06s01
+    title: Block protected workspace content before disclosure
+    bcps: 5
+    status: todo
+    delta: MODIFIED
+    spec: e06s01-block-protected-content.md
+    tasks: e06s01-tasks.yaml
+  - id: e06s02
+    title: Apply workspace privacy rules to discovery
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e06s02-private-workspace-discovery.md
+    tasks: e06s02-tasks.yaml
+  - id: e06s03
+    title: Authorize an exact sensitive read for one run
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e06s03-one-run-read-exception.md
+    tasks: e06s03-tasks.yaml
+  - id: e06s04
+    title: Resume an explicitly persisted sensitive session safely
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e06s04-sensitive-session-resume.md
+    tasks: e06s04-tasks.yaml
+  - id: e06s05
+    title: Receive expected CLI failures without traceback leakage
+    bcps: 5
+    status: todo
+    delta: MODIFIED
+    spec: e06s05-cli-failure-streams.md
+    tasks: e06s05-tasks.yaml
+

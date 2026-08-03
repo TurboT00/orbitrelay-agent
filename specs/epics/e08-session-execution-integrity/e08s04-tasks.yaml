@@ -1,0 +1,39 @@
+story_id: e08s04
+title: Bound resumable history without splitting tool pairs
+spec: e08s04-bounded-session-history.md
+type: fix
+context: domain
+risk: P0
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Add long-session contracts for bounded message and event segments, replay memory, complete tool pairs, current system instructions, and backward-compatible history.
+    verify: "uv run python -m unittest tests.test_sessions tests.test_events tests.test_context_budget -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session History", "limits", "Security Review"]
+  - id: 2
+    description: Bound segment and replay memory without deleting durable history or orphaning provider extension fields and correlated tool results.
+    verify: "uv run python -m unittest tests.test_sessions tests.test_events tests.test_context_budget tests.test_streaming -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session History", "replay", "Security Review"]
+  - id: 3
+    description: Migrate safe older forms with current system instructions or reject unsafe forms deterministically before provider access.
+    verify: "uv run python -m unittest tests.test_sessions tests.test_context_budget tests.test_cli_errors -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Session History", "migration", "Security Review"]

@@ -1,0 +1,39 @@
+story_id: e10s03
+title: Produce a reproducible standalone release candidate
+spec: e10s03-standalone-release-candidate.md
+type: feat
+context: infra
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Align package identity, operator documentation, architecture guarantees, roadmap status, and active state with the audited candidate.
+    verify: "uv run python -m unittest tests.test_release_identity tests.test_release_evidence -v"
+    risk: P0
+    security: medium
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Release Candidate", "identity", "Security Review"]
+  - id: 2
+    description: Run the complete release and Python matrix gates from a clean checkout and retain secret-free artifact evidence.
+    verify: "./scripts/check.sh && ./scripts/check-python-matrix.sh"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Release Candidate", "matrix", "Security Review"]
+  - id: 3
+    description: Prove the installed wheel reports the selected identity and contains no untracked, private-review, or credential-bearing material.
+    verify: "uv run python -m unittest tests.test_release_identity tests.test_release_evidence -v && ./scripts/check.sh"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Release Candidate", "packaging", "Security Review"]

@@ -1,0 +1,192 @@
+initiative: post-0.5.0-stabilization
+roadmap_priority: stabilization
+status: scoped
+target_version: null
+codename: Trustworthy Stabilization
+release_intent: standalone_post_0_5_0
+predecessor: conversations-and-streaming (released as 0.5.0)
+
+core_value: >-
+  Make OrbitRelay safe, truthful, recoverable, and reproducibly releasable on
+  its current hosted-provider feature set before adding another capability.
+
+summary: >-
+  This initiative stabilizes the post-0.5.0 product rather than expanding it.
+  It revalidates the dated July review against current main, closes every
+  confirmed release-blocking concern, and includes only the medium-severity
+  correctness work required to deliver the approved workspace privacy,
+  provider status, session concurrency, Python support, and Codex ownership
+  contracts.
+
+  The user experience remains a general-purpose, text-first CLI assistant.
+  Ordinary workspace use stays low-friction, while sensitive reads fail closed;
+  provider state becomes truthful without routine network access; sessions
+  become transactionally safe; and release claims become reproducible through
+  an enforceable quality and compatibility gate.
+
+  The result is a standalone post-0.5.0 stabilization release. Local models,
+  new interaction surfaces, and unrelated cleanup remain outside this scope.
+  Passing this initiative removes readiness blockers but does not itself approve
+  or implement P5.
+
+in_scope:
+  - id: e05
+    outcome: >-
+      Establish an authoritative current baseline by revalidating every July
+      review finding, recording fixed, open, accepted, and deferred outcomes,
+      and selecting a truthful identity for the standalone stabilization
+      release.
+  - id: e06
+    outcome: >-
+      Enforce the approved workspace-read privacy contract and make expected CLI
+      failures concise and stream-correct, so ordinary use remains practical
+      while protected content cannot enter provider requests or local history
+      without the required authority.
+  - id: e07
+    outcome: >-
+      Make provider and Codex lifecycle reporting truthful and recoverable,
+      including structured offline readiness, explicit verification evidence,
+      transactional setup, and the approved separation between OrbitRelay
+      metadata and official Codex authentication.
+  - id: e08
+    outcome: >-
+      Make sessions and coupled local execution paths diagnosable,
+      transactionally safe, replay-correct, and resource-bounded under crashes,
+      corrupt data, concurrent processes, denied tools, and large outputs.
+  - id: e09
+    outcome: >-
+      Establish a reproducible release gate covering tests, lint, typing,
+      risk-based coverage, dependency and security policy, package construction,
+      and the approved macOS Python 3.12 through 3.14 compatibility claim.
+  - id: e10
+    outcome: >-
+      Complete the authorized manual evidence, re-audit the candidate, align
+      product and architecture records with shipped behavior, and produce a
+      standalone release candidate with no unresolved critical or unaccepted
+      major concern.
+
+out_of_scope:
+  - item: P5 local-model or Ollama support
+    reason: >-
+      Deferred until the stabilization release passes its exit criteria and a
+      separate local-model scope selects and qualifies a model contract.
+  - item: Voice, device actions, personal-service integrations, GUI, or web UI
+    reason: >-
+      These are future product capabilities with unresolved consent, platform,
+      authentication, and retention requirements.
+  - item: Gemini OAuth or new provider subscription methods
+    reason: >-
+      External authentication contracts require separate documented probes and
+      scope; current supported routes remain unchanged.
+  - item: Qualified Linux or native Windows support
+    reason: >-
+      macOS is the selected stabilization matrix. Linux remains preview until
+      Ubuntu and Arch evidence exists; Windows remains deferred.
+  - item: App-level session encryption, cloud sync, multi-device sessions, or
+      automatic retention expiry
+    reason: >-
+      The approved local-state contract remains restrictive filesystem
+      permissions with keep-until-delete retention. Broader storage policy is a
+      separate product decision.
+  - item: Persistent sensitive-read exceptions or override of private-key and
+      credential-store protections
+    reason: >-
+      Explicitly excluded by D-01; exceptions are one-process-only and absolute
+      credential-material denies cannot be weakened.
+  - item: Every historical medium or minor review concern
+    reason: >-
+      Include only findings still confirmed and required by a release blocker or
+      approved decision. Record unrelated debt for later prioritization rather
+      than expanding this initiative.
+  - item: Architecture deepening without a demonstrated forcing function
+    reason: >-
+      Refactoring is included only when required to deliver an accepted outcome;
+      cosmetic splitting and speculative redesign are deferred.
+  - item: Mandatory hosted CI or repository publication workflow
+    reason: >-
+      The release gate must be reproducible locally. GitHub remains optional
+      until cross-machine development creates a separate need.
+  - item: Unapproved paid or live-provider test coverage
+    reason: >-
+      Live and credential-bearing tests require explicit authorization,
+      disposable state, and sanitized evidence; offline substitutes remain the
+      default.
+
+constraints:
+  product:
+    - Preserve OrbitRelay as a general-purpose, text-first personal assistant.
+    - Preserve the current CLI and hosted-provider feature boundary unless an
+      approved stabilization outcome requires a deliberate compatibility change.
+    - Keep P5 and later roadmap capabilities blocked throughout this initiative.
+    - Select the release identifier after scope, impact, and compatibility
+      evidence clarify the semantic version change.
+  security:
+    - Provider secrets remain only in the native credential store and must never
+      enter metadata, sessions, events, logs, exceptions, fixtures, or evidence.
+    - Codex credentials remain exclusively owned by the official CLI.
+    - Tool paths remain confined to the selected workspace and consequential
+      operations continue to fail closed.
+    - Sensitive-read policy is enforced before content or protected names reach
+      a provider request, event, summary, or persisted session.
+    - Pre-approval cannot bypass argument, path, workspace, symlink, privacy, or
+      private-key validation.
+  technical:
+    - Preserve complete assistant tool-call/result groups in replay,
+      persistence, context budgeting, and crash recovery.
+    - Preserve provider-required assistant extension fields across tool rounds.
+    - Final answers remain on stdout; prompts, progress, diagnostics, summaries,
+      and errors remain on stderr.
+    - Automated tests remain offline with injected clients, credential stores,
+      clocks, runners, streams, and temporary homes/workspaces.
+    - Keep package metadata at Python 3.14 until the complete macOS 3.12 through
+      3.14 matrix passes.
+  delivery:
+    - This file defines outcomes and boundaries, not CLI syntax, schemas,
+      libraries, file formats, or module designs.
+    - No implementation begins until slice-tasks and plan-work complete and the
+      resulting plan is explicitly approved.
+    - Rebaseline findings before assigning implementation work; do not execute
+      stale remediation items only because they appear in the July draft.
+    - Run live, credential-bearing, publishing, push, and release operations only
+      after separate explicit authorization.
+
+success_criteria:
+  - Every July finding has a current evidence-backed disposition at the selected
+    release baseline; no confirmed critical concern is open.
+  - Every confirmed major concern is fixed, explicitly accepted, or deferred
+    with rationale, owner, and effect on release readiness.
+  - Ordinary workspace reads remain automatic while all D-01 sensitive-path,
+    directory-discovery, exception-lifetime, private-key, and session-persistence
+    rules pass automated tests and MT-11.
+  - Provider status distinguishes configuration, selection, credential or login
+    state, local readiness, and historical verification without exposing secrets
+    or requiring network access.
+  - Failed provider and Codex lifecycle operations preserve prior state, and
+    disconnect/logout behavior matches D-05 and MT-08.
+  - Same-session concurrent processes cannot silently corrupt or overwrite
+    history; replay-safe checkpoints, corrupt-session handling, and deletion
+    behavior pass process-level tests and MT-12/MT-13.
+  - Coupled tool, event, context, output-bound, and crash-safety findings required
+    by the release blockers have regression tests and observable failure states.
+  - One documented local command enforces the agreed test, Ruff, mypy, coverage,
+    dependency, security, build, and isolated-wheel gates and fails on regression.
+  - Python 3.12, 3.13, and 3.14 each pass the complete macOS release matrix before
+    package metadata or classifiers claim the lower floor.
+  - Authorized manual evidence and a release re-audit support the candidate; the
+    README, architecture, roadmap, package version, and active state match shipped
+    behavior.
+  - A clean checkout can reproduce the standalone stabilization release candidate
+    without live credentials or untracked build artifacts.
+
+references:
+  - specs/state.yaml
+  - AGENTS.md
+  - README.md
+  - docs/architecture.md
+  - docs/project-roadmap.md
+  - docs/project-review-2026-07-29.md (local internal evidence)
+  - docs/remediation-plan-2026-07-29.md (local internal decision record)
+  - docs/manual-test-plan-2026-07-29.md (local internal evidence plan)
+  - specs/archive/IMPACT-provider-connections.md
+  - specs/archive/REFACTOR-2026-07-provider-connections.md
+  - specs/archive/TRACEABILITY-0.5.0.md

@@ -1,0 +1,39 @@
+story_id: e06s01
+title: Block protected workspace content before disclosure
+spec: e06s01-block-protected-content.md
+type: fix
+context: domain
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Add table-driven direct-read regressions for every approved conservative sensitive-path family and non-overridable private-key and credential-store family.
+    verify: "uv run python -m unittest tests.test_workspace_privacy -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "unit", "Security Review"]
+  - id: 2
+    description: Enforce the privacy decision before protected bytes enter a tool result or provider request under every approval policy.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_agent tests.test_approvals -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "agent", "Security Review"]
+  - id: 3
+    description: Prove denied content and names never enter events, summaries, errors, or persisted session messages.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_events tests.test_run_summary tests.test_sessions -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Workspace Privacy", "redaction", "Security Review"]

@@ -1,0 +1,39 @@
+story_id: e10s02
+title: Re-audit the stabilization candidate
+spec: e10s02-candidate-reaudit.md
+type: fix
+context: infra
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Re-run the current finding oracle against the exact candidate revision and link every result to automated or authorized manual evidence.
+    verify: "uv run python -m unittest tests.test_release_baseline tests.test_release_evidence -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Candidate Audit", "evidence", "Security Review"]
+  - id: 2
+    description: Confirm no critical concern is open and every major concern is fixed, explicitly accepted, or deferred with release rationale.
+    verify: "uv run python -m unittest tests.test_release_baseline -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Candidate Audit", "release blocker", "Security Review"]
+  - id: 3
+    description: Produce a secret-free readiness verdict that distinguishes automated proof, manual evidence, waivers, residual risk, and independent code and security review.
+    verify: "uv run python -m unittest tests.test_release_baseline tests.test_redaction -v && uv run python scripts/validate_release_evidence.py --record docs/manual-test-results-stabilization.md --revision \"$(git rev-parse HEAD)\" --required-set stabilization --require-review"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Candidate Audit", "verdict", "Security Review"]

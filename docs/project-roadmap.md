@@ -6,8 +6,9 @@
 
 ## Current baseline
 
-OrbitRelay is a general-purpose, text-first personal assistant for macOS and
-Linux.
+OrbitRelay is a general-purpose, text-first personal assistant. macOS is the
+qualified platform. Linux is currently preview/unverified, and native Windows
+support remains deferred.
 
 Its current interface is a CLI with stored hosted-provider connections,
 workspace-confined tools, explicit approval controls, streaming output, and
@@ -21,8 +22,16 @@ Use the [architecture guide](architecture.md) for implementation boundaries and
 the [README](../README.md) for installation and operation.
 
 An internal readiness review found no confirmed critical issue but identified
-major concerns that still block P5. Remediation planning and required manual
-evidence remain under private review and are not approved for execution.
+major concerns that still block P5. Decisions for workspace privacy, provider
+status, session concurrency, the Python floor, and Codex disconnect ownership
+were approved as a private planning baseline on 2026-08-02. A standalone
+post-0.5.0 stabilization scope now covers current release blockers and their
+coupled correctness work. It is sliced into 24 vertical stories across epics e05
+through e10. A full impact assessment rates the cross-epic blast radius High and
+records shared-module, migration, test, and sequencing constraints. Detailed
+plans now define 72 failing tasks across the 24 stories. After explicit plan
+approval, the next implementation step is e05s01 rebaselining on a clean feature
+branch. No later remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities
 

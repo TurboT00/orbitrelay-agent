@@ -1,0 +1,84 @@
+release:
+  version: "TBD"
+  codename: Trustworthy Stabilization
+  status: planning
+  semantic_release: false
+  bump_hint: major
+  baseline_version: "0.5.0"
+  baseline_tag: v0.5.0
+  scope: specs/product/SCOPE_LATEST.yaml
+  note: >-
+    The version is intentionally selected by e05 after the current baseline is
+    revalidated. The major hint records post-0.5.0 breaking provider commits;
+    it is not an approved release number.
+
+previous_release:
+  version: "0.5.0"
+  codename: Conversations and Streaming
+  status: released
+  tag: v0.5.0
+
+epics:
+  - id: e05
+    title: Baseline and Release Identity
+    capsule_dir: epics/e05-baseline-release-identity
+    status: todo
+    wsjf: 6.8
+    bcps: 10
+    note: >-
+      Revalidates dated findings and establishes the release identity required
+      before implementation and release claims can be trusted.
+  - id: e06
+    title: Workspace Privacy and CLI Trust
+    capsule_dir: epics/e06-workspace-privacy-cli-trust
+    status: todo
+    wsjf: 6.0
+    bcps: 34
+    note: >-
+      Highest product-security priority. Score includes the +2 security boost
+      for preventing hosted disclosure of protected workspace content.
+  - id: e07
+    title: Provider and Codex Lifecycle
+    capsule_dir: epics/e07-provider-codex-lifecycle
+    status: todo
+    wsjf: 4.8
+    bcps: 26
+    note: >-
+      Makes provider readiness and delegated Codex ownership truthful without
+      routine network access or credential exposure.
+  - id: e08
+    title: Session and Execution Integrity
+    capsule_dir: epics/e08-session-execution-integrity
+    status: todo
+    wsjf: 4.6
+    bcps: 42
+    note: >-
+      Score includes the +2 security boost for session confidentiality,
+      concurrent-process integrity, and bounded local execution.
+  - id: e09
+    title: Quality and Platform Qualification
+    capsule_dir: epics/e09-quality-platform-qualification
+    status: todo
+    wsjf: 4.2
+    bcps: 24
+    note: >-
+      Turns currently separate checks into one reproducible release gate and
+      qualifies the approved macOS Python support range.
+  - id: e10
+    title: Release Evidence and Readiness
+    capsule_dir: epics/e10-release-evidence-readiness
+    status: todo
+    wsjf: 3.6
+    bcps: 15
+    note: >-
+      Produces the standalone candidate and closes evidence after e05 through
+      e09. Its lower ordering reflects those dependencies.
+
+bugs:
+  total: 0
+  fixed: 0
+  deferred: 0
+  wontfix: 0
+  open: 0
+  registry: null
+

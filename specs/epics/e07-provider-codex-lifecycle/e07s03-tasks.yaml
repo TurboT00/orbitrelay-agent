@@ -1,0 +1,39 @@
+story_id: e07s03
+title: Inspect delegated Codex readiness without account leakage
+spec: e07s03-codex-readiness.md
+type: fix
+context: domain
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Add delegated readiness contracts for missing CLI, authenticated, not-authenticated, and unknown outcomes.
+    verify: "uv run python -m unittest tests.test_codex_bridge tests.test_provider_cli -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Codex Readiness", "fixtures", "Security Review"]
+  - id: 2
+    description: Normalize official installation and login checks without reading credentials or relaying raw account output.
+    verify: "uv run python -m unittest tests.test_codex_bridge tests.test_provider_cli tests.test_redaction -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Codex Readiness", "redaction", "Security Review"]
+  - id: 3
+    description: Present configured, selected, authentication, and local-readiness facts consistently beside API providers.
+    verify: "uv run python -m unittest tests.test_provider_cli tests.test_cli_connections -v"
+    risk: P1
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: high
+      categories: ["Codex Readiness", "CLI", "Security Review"]

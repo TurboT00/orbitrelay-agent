@@ -1,0 +1,36 @@
+id: e07
+title: Provider and Codex Lifecycle
+wsjf: 4.8
+total_bcps: 26
+status: todo
+scope: specs/product/SCOPE_LATEST.yaml
+release_target: "TBD"
+stories:
+  - id: e07s01
+    title: Inspect API-provider readiness offline
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e07s01-offline-provider-readiness.md
+    tasks: e07s01-tasks.yaml
+  - id: e07s02
+    title: Verify a provider explicitly without retaining probe content
+    bcps: 5
+    status: todo
+    delta: ADDED
+    spec: e07s02-explicit-provider-verification.md
+    tasks: e07s02-tasks.yaml
+  - id: e07s03
+    title: Inspect delegated Codex readiness without account leakage
+    bcps: 5
+    status: todo
+    delta: MODIFIED
+    spec: e07s03-codex-readiness.md
+    tasks: e07s03-tasks.yaml
+  - id: e07s04
+    title: Disconnect and log out of Codex with explicit ownership
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e07s04-codex-disconnect-ownership.md
+    tasks: e07s04-tasks.yaml

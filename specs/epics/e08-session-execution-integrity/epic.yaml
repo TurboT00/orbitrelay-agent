@@ -1,0 +1,51 @@
+id: e08
+title: Session and Execution Integrity
+wsjf: 4.6
+total_bcps: 42
+status: todo
+scope: specs/product/SCOPE_LATEST.yaml
+release_target: "TBD"
+stories:
+  - id: e08s01
+    title: Prevent concurrent ownership of one active session
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e08s01-exclusive-session-owner.md
+    tasks: e08s01-tasks.yaml
+  - id: e08s02
+    title: Recover from interruption at a replay-safe checkpoint
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e08s02-replay-safe-checkpoints.md
+    tasks: e08s02-tasks.yaml
+  - id: e08s03
+    title: Inspect and delete corrupt sessions explicitly
+    bcps: 5
+    status: todo
+    delta: MODIFIED
+    spec: e08s03-corrupt-session-lifecycle.md
+    tasks: e08s03-tasks.yaml
+  - id: e08s04
+    title: Bound resumable history without splitting tool pairs
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e08s04-bounded-session-history.md
+    tasks: e08s04-tasks.yaml
+  - id: e08s05
+    title: Bound local tool and Codex process output
+    bcps: 5
+    status: todo
+    delta: MODIFIED
+    spec: e08s05-bounded-process-output.md
+    tasks: e08s05-tasks.yaml
+  - id: e08s06
+    title: Receive truthful crash-safe local tool outcomes
+    bcps: 8
+    status: todo
+    delta: MODIFIED
+    spec: e08s06-crash-safe-tool-outcomes.md
+    tasks: e08s06-tasks.yaml
+

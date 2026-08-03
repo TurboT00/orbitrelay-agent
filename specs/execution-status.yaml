@@ -1,0 +1,70 @@
+development_status:
+  e05: todo
+  e05s01: todo
+  e05s02: todo
+  e06: todo
+  e06s01: todo
+  e06s02: todo
+  e06s03: todo
+  e06s04: todo
+  e06s05: todo
+  e07: todo
+  e07s01: todo
+  e07s02: todo
+  e07s03: todo
+  e07s04: todo
+  e08: todo
+  e08s01: todo
+  e08s02: todo
+  e08s03: todo
+  e08s04: todo
+  e08s05: todo
+  e08s06: todo
+  e09: todo
+  e09s01: todo
+  e09s02: todo
+  e09s03: todo
+  e09s04: todo
+  e10: todo
+  e10s01: todo
+  e10s02: todo
+  e10s03: todo
+
+epics:
+  e05:
+    status: todo
+    title: Baseline and Release Identity
+    wsjf: 6.8
+    total_bcps: 10
+    capsule_dir: specs/epics/e05-baseline-release-identity
+  e06:
+    status: todo
+    title: Workspace Privacy and CLI Trust
+    wsjf: 6.0
+    total_bcps: 34
+    capsule_dir: specs/epics/e06-workspace-privacy-cli-trust
+  e07:
+    status: todo
+    title: Provider and Codex Lifecycle
+    wsjf: 4.8
+    total_bcps: 26
+    capsule_dir: specs/epics/e07-provider-codex-lifecycle
+  e08:
+    status: todo
+    title: Session and Execution Integrity
+    wsjf: 4.6
+    total_bcps: 42
+    capsule_dir: specs/epics/e08-session-execution-integrity
+  e09:
+    status: todo
+    title: Quality and Platform Qualification
+    wsjf: 4.2
+    total_bcps: 24
+    capsule_dir: specs/epics/e09-quality-platform-qualification
+  e10:
+    status: todo
+    title: Release Evidence and Readiness
+    wsjf: 3.6
+    total_bcps: 15
+    capsule_dir: specs/epics/e10-release-evidence-readiness
+

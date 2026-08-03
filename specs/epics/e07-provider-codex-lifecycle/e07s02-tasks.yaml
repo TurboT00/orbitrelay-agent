@@ -1,0 +1,39 @@
+story_id: e07s02
+title: Verify a provider explicitly without retaining probe content
+spec: e07s02-explicit-provider-verification.md
+type: feat
+context: domain
+risk: P0
+status: failing
+bcps: 5
+tasks:
+  - id: 1
+    description: Add offline fake-provider contracts for explicit verification success, failure, timeout, and unavailable credentials.
+    verify: "uv run python -m unittest tests.test_provider_verification -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Provider Verification", "offline fake", "Security Review"]
+  - id: 2
+    description: Run a minimal live probe only from the explicit verification command and keep ordinary status network-free.
+    verify: "uv run python -m unittest tests.test_provider_verification tests.test_provider_cli -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Provider Verification", "explicit live boundary", "Security Review"]
+  - id: 3
+    description: Retain only sanitized historical timestamp, outcome, route, and model evidence and label it as historical.
+    verify: "uv run python -m unittest tests.test_provider_verification tests.test_profiles tests.test_redaction -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Provider Verification", "persistence", "Security Review"]

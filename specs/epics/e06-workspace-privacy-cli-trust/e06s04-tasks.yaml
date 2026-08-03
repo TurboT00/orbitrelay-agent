@@ -1,0 +1,39 @@
+story_id: e06s04
+title: Resume an explicitly persisted sensitive session safely
+spec: e06s04-sensitive-session-resume.md
+type: feat
+context: domain
+risk: P0
+status: failing
+bcps: 8
+tasks:
+  - id: 1
+    description: Add contracts for separate sensitive-session persistence consent and secret-free sensitivity metadata.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_sessions -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Sensitive Sessions", "consent", "Security Review"]
+  - id: 2
+    description: Persist complete replay-safe sensitive turns only after the separate opt-in and mark the session for gated resume.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_sessions tests.test_context_budget -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Sensitive Sessions", "persistence", "Security Review"]
+  - id: 3
+    description: Require renewed exact authorization before sensitive history is loaded or sent on every resume and fail closed otherwise.
+    verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_sessions tests.test_agent -v"
+    risk: P0
+    security: high
+    status: failing
+    security_acceptance: "no new security findings in affected paths"
+    allure:
+      severity: critical
+      categories: ["Sensitive Sessions", "resume", "Security Review"]
