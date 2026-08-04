@@ -2,14 +2,14 @@ id: e08
 title: Session and Execution Integrity
 wsjf: 4.6
 total_bcps: 42
-status: todo
+status: in_progress
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.6.0"
 stories:
   - id: e08s01
     title: Prevent concurrent ownership of one active session
     bcps: 8
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e08s01-exclusive-session-owner.md
     tasks: e08s01-tasks.yaml

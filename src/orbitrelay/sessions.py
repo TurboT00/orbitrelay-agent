@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import re
@@ -10,6 +11,7 @@ import stat
 import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -21,6 +23,8 @@ SESSION_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 METADATA_NAME = "metadata.json"
 MESSAGES_NAME = "messages.jsonl"
 EVENTS_NAME = "events.jsonl"
+LOCK_NAME = "session.lock"
+ACTIVE_NAME = "active.json"
 
 
 class SessionError(RuntimeError):
@@ -33,6 +37,11 @@ class SessionNotFoundError(SessionError):
 
 class SessionCorruptionError(SessionError):
     pass
+
+
+class SessionBusyError(SessionError):
+    """Another process already owns the session lease."""
+
 
 
 def default_sessions_root(environ: Mapping[str, str] | None = None) -> Path:
@@ -160,6 +169,38 @@ class SessionMetadata:
             raise SessionCorruptionError("session metadata is invalid") from exc
 
 
+
+class SessionLease:
+    """Kernel-backed exclusive ownership for one session directory."""
+
+    def __init__(self, session_id: str, lock_path: Path, descriptor: int) -> None:
+        self.session_id = session_id
+        self._lock_path = lock_path
+        self._descriptor = descriptor
+        self._released = False
+
+    def release(self) -> None:
+        if self._released:
+            return
+        try:
+            active = self._lock_path.parent / ACTIVE_NAME
+            if active.exists() and not active.is_symlink():
+                active.unlink(missing_ok=True)
+        except OSError:
+            pass
+        try:
+            fcntl.flock(self._descriptor, fcntl.LOCK_UN)
+        finally:
+            os.close(self._descriptor)
+            self._released = True
+
+    def __enter__(self) -> SessionLease:
+        return self
+
+    def __exit__(self, *_exc: object) -> None:
+        self.release()
+
+
 class SessionStore:
     def __init__(
         self,
@@ -175,6 +216,84 @@ class SessionStore:
         _secure_mkdir(self.root)
         _validate_path(self.root)
         return self.root
+
+    def acquire_lease(
+        self,
+        session_id: str,
+        *,
+        wait_seconds: float | None = None,
+    ) -> SessionLease:
+        """Acquire exclusive ownership before history load or mutation."""
+        directory = self._require_session_dir(session_id)
+        lock_path = directory / LOCK_NAME
+        flags = os.O_RDWR | os.O_CREAT
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        descriptor = os.open(lock_path, flags, 0o600)
+        deadline = (
+            None
+            if wait_seconds is None
+            else (float(self._clock()) + max(0.0, float(wait_seconds)))
+        )
+        while True:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError as exc:
+                if wait_seconds is None:
+                    os.close(descriptor)
+                    raise SessionBusyError(
+                        f'Session "{session_id}" is already in use by another process'
+                    ) from exc
+                if deadline is not None and float(self._clock()) >= deadline:
+                    os.close(descriptor)
+                    raise SessionBusyError(
+                        f'Session "{session_id}" remained busy until the wait deadline'
+                    ) from exc
+                time.sleep(0.05)
+            except OSError as exc:
+                os.close(descriptor)
+                raise SessionError(
+                    f'Could not lock session "{session_id}": {exc}'
+                ) from exc
+        if hasattr(os, "chmod"):
+            os.chmod(lock_path, 0o600)
+        with suppress(OSError):
+            _write_text_secure(
+                directory / ACTIVE_NAME,
+                json.dumps({"active": True, "session_id": session_id}, sort_keys=True)
+                + "\n",
+            )
+        return SessionLease(session_id, lock_path, descriptor)
+
+    def is_session_active(self, session_id: str) -> bool:
+        """Return True when another process currently holds the session lease."""
+        try:
+            directory = self._require_session_dir(session_id)
+        except SessionNotFoundError:
+            return False
+        lock_path = directory / LOCK_NAME
+        if not lock_path.exists():
+            return False
+        flags = os.O_RDWR
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        try:
+            descriptor = os.open(lock_path, flags, 0o600)
+        except OSError:
+            return False
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return True
+        except OSError:
+            return False
+        else:
+            fcntl.flock(descriptor, fcntl.LOCK_UN)
+            return False
+        finally:
+            os.close(descriptor)
+
 
     def _session_dir(self, session_id: str) -> Path:
         safe_id = _validate_session_id(session_id)
@@ -234,11 +353,24 @@ class SessionStore:
         return tuple(sessions)
 
     def delete(self, session_id: str) -> None:
-        directory = self._require_session_dir(session_id)
-        for child in directory.iterdir():
-            if child.is_file() and not child.is_symlink():
-                child.unlink()
-        directory.rmdir()
+        lease = self.acquire_lease(session_id)
+        try:
+            directory = self._require_session_dir(session_id)
+            for child in list(directory.iterdir()):
+                if (
+                    child.is_file()
+                    and not child.is_symlink()
+                    and child.name != LOCK_NAME
+                ):
+                    child.unlink(missing_ok=True)
+        finally:
+            lease.release()
+        directory = self._session_dir(session_id)
+        if directory.exists():
+            for child in list(directory.iterdir()):
+                if child.is_file() and not child.is_symlink():
+                    child.unlink(missing_ok=True)
+            directory.rmdir()
 
     def delete_all(self) -> int:
         count = 0

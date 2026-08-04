@@ -43,8 +43,10 @@ from .provider_cli import run_provider_cli
 from .run_summary import format_run_summary, summarize_run
 from .session_cli import run_session_cli
 from .sessions import (
+    SessionBusyError,
     SessionCorruptionError,
     SessionError,
+    SessionLease,
     SessionNotFoundError,
     SessionStore,
 )
@@ -87,6 +89,11 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         "--new-session",
         action="store_true",
         help="Create a new session id (prints id on stderr); optional with --session",
+    )
+    parser.add_argument(
+        "--session-wait",
+        metavar="SECONDS",
+        help="Wait up to SECONDS for exclusive session ownership (default: fail immediately)",
     )
     _add_approval_options(parser)
     return parser.parse_args(argv)
@@ -155,31 +162,54 @@ def _prepare_session(
     workspace: str,
     model: str,
     environment: Mapping[str, str],
-) -> tuple[str | None, list | None, SessionStore | None]:
+) -> tuple[str | None, list | None, SessionStore | None, SessionLease | None]:
     session_id = getattr(args, "session", None)
     new_session = bool(getattr(args, "new_session", False))
     if session_id is None and not new_session:
-        return None, None, None
+        return None, None, None, None
     store = SessionStore(environ=environment)
+    wait_seconds = _session_wait(getattr(args, "session_wait", None))
     if new_session and session_id is None:
         metadata = store.create(workspace=workspace, model=model)
         session_id = metadata.id
         print(f"session {session_id}", file=sys.stderr)
-        return session_id, None, store
+        lease = store.acquire_lease(session_id, wait_seconds=wait_seconds)
+        return session_id, None, store, lease
     assert session_id is not None
     try:
-        store.get_metadata(session_id)
-        if new_session:
-            raise ValueError(f'Session "{session_id}" already exists')
-        messages = store.load_messages(session_id)
-        return session_id, (messages or None), store
-    except SessionNotFoundError:
-        store.create(session_id=session_id, workspace=workspace, model=model)
-        return session_id, None, store
+        try:
+            store.get_metadata(session_id)
+            if new_session:
+                raise ValueError(f'Session "{session_id}" already exists')
+        except SessionNotFoundError:
+            store.create(session_id=session_id, workspace=workspace, model=model)
+            lease = store.acquire_lease(session_id, wait_seconds=wait_seconds)
+            return session_id, None, store, lease
+        lease = store.acquire_lease(session_id, wait_seconds=wait_seconds)
+        try:
+            messages = store.load_messages(session_id)
+        except Exception:
+            lease.release()
+            raise
+        return session_id, (messages or None), store, lease
+    except SessionBusyError:
+        raise
     except SessionCorruptionError as exc:
         raise ValueError(str(exc)) from exc
     except SessionError as exc:
         raise ValueError(str(exc)) from exc
+
+
+def _session_wait(value: str | None) -> float | None:
+    if value is None:
+        return None
+    try:
+        seconds = float(value)
+    except ValueError as exc:
+        raise ValueError("session wait must be a non-negative number of seconds") from exc
+    if not math.isfinite(seconds) or seconds < 0:
+        raise ValueError("session wait must be a non-negative number of seconds")
+    return seconds
 
 
 def _invoke_agent(
@@ -193,7 +223,7 @@ def _invoke_agent(
     approved_tools = _approved_tools(args)
     stream = bool(getattr(args, "stream", False))
     env = environment or os.environ
-    session_id, initial_messages, store = _prepare_session(
+    session_id, initial_messages, store, lease = _prepare_session(
         args, workspace=workspace, model=api_config.model, environment=env
     )
     client = OpenAI(api_key=api_config.api_key, base_url=api_config.base_url)
@@ -226,23 +256,27 @@ def _invoke_agent(
     if store is not None:
         run_kwargs["on_messages_update"] = on_messages_update
     try:
-        final_text = run_agent(
-            client,
-            args.user_prompt,
-            api_config.model,
-            **run_kwargs,  # type: ignore[arg-type]
-        )
-    except APIStatusError as exc:
-        raise ValueError(_provider_http_error_message(exc)) from exc
-    if stream:
-        print(file=sys.stderr)
-    if args.verbose and collector is not None:
-        print(
-            format_run_summary(summarize_run(collector.events)),
-            file=sys.stderr,
-            flush=True,
-        )
-    return final_text
+        try:
+            final_text = run_agent(
+                client,
+                args.user_prompt,
+                api_config.model,
+                **run_kwargs,  # type: ignore[arg-type]
+            )
+        except APIStatusError as exc:
+            raise ValueError(_provider_http_error_message(exc)) from exc
+        if stream:
+            print(file=sys.stderr)
+        if args.verbose and collector is not None:
+            print(
+                format_run_summary(summarize_run(collector.events)),
+                file=sys.stderr,
+                flush=True,
+            )
+        return final_text
+    finally:
+        if lease is not None:
+            lease.release()
 
 
 def _approval_timeout(value: str) -> float:

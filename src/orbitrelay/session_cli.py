@@ -48,16 +48,19 @@ def run_session_cli(
                 print("No sessions stored.", file=stream)
                 return 0
             for metadata in sessions:
+                busy = "yes" if active.is_session_active(metadata.id) else "no"
                 print(
                     f"{metadata.id} updated={metadata.updated_at}"
                     f" model={metadata.model or '-'}"
-                    f" workspace={metadata.workspace or '-'}",
+                    f" workspace={metadata.workspace or '-'}"
+                    f" active={busy}",
                     file=stream,
                 )
             return 0
         if args.session_action == "show":
             metadata = active.get_metadata(args.id)
             payload = metadata.to_dict()
+            payload["active"] = active.is_session_active(args.id)
             # include message count only, not contents dump with secrets risk
             messages = active.load_messages(args.id)
             payload["message_count"] = len(messages)
