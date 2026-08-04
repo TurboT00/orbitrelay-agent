@@ -16,7 +16,7 @@ stories:
   - id: e07s02
     title: Verify a provider explicitly without retaining probe content
     bcps: 5
-    status: todo
+    status: in_progress
     delta: ADDED
     spec: e07s02-explicit-provider-verification.md
     tasks: e07s02-tasks.yaml

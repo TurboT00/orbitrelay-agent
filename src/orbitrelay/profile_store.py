@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import TextIO, cast
 
 from .profiles import ProfileValidationError, ProviderProfile
+from .provider_verification import VerificationEvidence
 
 
 class ProfileStorageError(RuntimeError):
@@ -70,6 +71,7 @@ def _validate_storage_path(path: Path) -> None:
 class _ProfileState:
     selected: str | None
     profiles: dict[str, ProviderProfile]
+    verifications: dict[str, VerificationEvidence]
 
 
 def _load_json(path: Path) -> object:
@@ -112,22 +114,52 @@ def _selected_profile(value: object, profiles: dict[str, ProviderProfile]) -> st
     return value
 
 
+_REQUIRED_ROOT_FIELDS = frozenset({"version", "selected", "profiles"})
+_OPTIONAL_ROOT_FIELDS = frozenset({"verifications"})
+
+
+def _decode_verifications(value: object) -> dict[str, VerificationEvidence]:
+    if value is None:
+        return {}
+    if not isinstance(value, dict) or not all(isinstance(name, str) for name in value):
+        raise ProfileStorageError("Profile metadata verifications must be an object")
+    decoded: dict[str, VerificationEvidence] = {}
+    try:
+        for name, payload in value.items():
+            decoded[name] = VerificationEvidence.from_dict(payload)
+    except (TypeError, ValueError) as exc:
+        raise ProfileStorageError(f"Stored verification is invalid: {exc}") from exc
+    return decoded
+
+
 def _decode_state(raw: object, version: int) -> _ProfileState:
     if not isinstance(raw, dict) or not all(isinstance(key, str) for key in raw):
         raise ProfileStorageError("Profile metadata root must be an object")
     record = cast(dict[str, object], raw)
-    if set(record) != {"version", "selected", "profiles"}:
+    fields = set(record)
+    if not fields >= _REQUIRED_ROOT_FIELDS or fields - _REQUIRED_ROOT_FIELDS - _OPTIONAL_ROOT_FIELDS:
         raise ProfileStorageError("Profile metadata contains invalid fields")
     if record["version"] not in {1, version}:
         raise ProfileStorageError(
             f"Unsupported profile metadata version: {record['version']!r}"
         )
     profiles = _decode_profiles(record["profiles"])
-    return _ProfileState(_selected_profile(record["selected"], profiles), profiles)
+    verifications = _decode_verifications(record.get("verifications"))
+    # Drop orphaned verification rows for deleted profiles.
+    verifications = {
+        name: evidence
+        for name, evidence in verifications.items()
+        if name in profiles
+    }
+    return _ProfileState(
+        _selected_profile(record["selected"], profiles),
+        profiles,
+        verifications,
+    )
 
 
 def _encoded_state(state: _ProfileState, version: int) -> dict[str, object]:
-    return {
+    payload: dict[str, object] = {
         "version": version,
         "selected": state.selected,
         "profiles": {
@@ -135,6 +167,12 @@ def _encoded_state(state: _ProfileState, version: int) -> dict[str, object]:
             for name, profile in sorted(state.profiles.items())
         },
     }
+    if state.verifications:
+        payload["verifications"] = {
+            name: evidence.to_dict()
+            for name, evidence in sorted(state.verifications.items())
+        }
+    return payload
 
 
 def _write_temporary(path: Path, value: dict[str, object]) -> str:
@@ -278,13 +316,25 @@ class ProfileRepository:
             except KeyError as exc:
                 raise ProfileNotFoundError(f'Profile "{name}" does not exist') from exc
             state.selected = None if state.selected == name else state.selected
+            state.verifications.pop(name, None)
             self._write(state)
             return profile
+
+    def get_verification(self, name: str) -> VerificationEvidence | None:
+        return self._read().verifications.get(name)
+
+    def set_verification(self, name: str, evidence: VerificationEvidence) -> None:
+        with self.transaction():
+            state = self._read()
+            if name not in state.profiles:
+                raise ProfileNotFoundError(f'Profile "{name}" does not exist')
+            state.verifications[name] = evidence
+            self._write(state)
 
     def _read(self) -> _ProfileState:
         _validate_storage_path(self.path)
         if not self.path.exists():
-            return _ProfileState(None, {})
+            return _ProfileState(None, {}, {})
         return _decode_state(_load_json(self.path), self.VERSION)
 
     def _write(self, state: _ProfileState) -> None:

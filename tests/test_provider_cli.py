@@ -4,7 +4,7 @@ import io
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from orbitrelay.connection_service import ConnectionError, ConnectionService
 from orbitrelay.credentials import CredentialNotFoundError
@@ -269,6 +269,45 @@ class ProviderCliTests(unittest.TestCase):
         self.assertIn("authentication: unknown", text)
         self.assertIn("readiness: unknown", text)
         self.assertNotIn("local-ready", text)
+
+    def test_verify_command_uses_probe_and_status_does_not(self) -> None:
+        self.assertEqual(self.execute(["connect", "openai", "--method", "api_key"]), 0)
+        self.output.seek(0)
+        self.output.truncate(0)
+        probe = Mock()
+        with patch("orbitrelay.connection_service.default_openai_compatible_probe", probe):
+            code = run_provider_cli(
+                ["verify", "openai"],
+                self.repository,
+                self.store,
+                lambda _prompt: "unused",
+                output=self.output,
+            )
+        self.assertEqual(code, 0)
+        probe.assert_called_once()
+        text = self.output.getvalue()
+        self.assertIn("verification: ok", text)
+        self.assertIn("persisted: historical", text)
+        self.assertNotIn("test-key", text)
+
+        self.output.seek(0)
+        self.output.truncate(0)
+        probe.reset_mock()
+        with patch("orbitrelay.connection_service.default_openai_compatible_probe", probe):
+            code = run_provider_cli(
+                ["status", "openai"],
+                self.repository,
+                self.store,
+                lambda _prompt: "unused",
+                output=self.output,
+            )
+        self.assertEqual(code, 0)
+        probe.assert_not_called()
+        status_text = self.output.getvalue()
+        self.assertIn("last_verification: historical", status_text)
+        self.assertIn("readiness: local-ready", status_text)
+        self.assertNotIn("test-key", status_text)
+
 
 if __name__ == "__main__":
     unittest.main()

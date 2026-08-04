@@ -8,6 +8,8 @@ credential logic.
 
 from __future__ import annotations
 
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 
@@ -22,6 +24,13 @@ from .credentials import (
 )
 from .profile_store import ProfileNotFoundError, ProfileRepository
 from .profiles import AuthKind, ProviderProfile
+from .provider_verification import (
+    ProviderProbe,
+    VerificationEvidence,
+    VerificationOutcome,
+    classify_probe_error,
+    default_openai_compatible_probe,
+)
 from .providers import (
     AuthMethod,
     ExecutionRoute,
@@ -77,6 +86,7 @@ class ProviderReadiness:
     detail: str | None = None
     installation: str | None = None
     authentication: str | None = None
+    last_verification: VerificationEvidence | None = None
 
     def lines(self) -> tuple[str, ...]:
         rows = [
@@ -95,6 +105,34 @@ class ProviderReadiness:
         rows.append(f"readiness: {self.readiness.value}")
         if self.detail:
             rows.append(f"detail: {self.detail}")
+        if self.last_verification is not None:
+            rows.extend(self.last_verification.lines())
+        return tuple(rows)
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderVerificationResult:
+    """Outcome of an explicit verification command."""
+
+    provider: str
+    outcome: VerificationOutcome
+    route: str
+    model: str
+    detail: str | None
+    evidence: VerificationEvidence | None
+
+    def lines(self) -> tuple[str, ...]:
+        rows = [
+            f"provider: {self.provider}",
+            f"verification: {self.outcome.value}",
+            f"route: {self.route}",
+            f"model: {self.model}",
+        ]
+        if self.detail:
+            rows.append(f"detail: {self.detail}")
+        if self.evidence is not None:
+            rows.append("persisted: historical")
+            rows.extend(self.evidence.lines(prefix="historical_verification"))
         return tuple(rows)
 
 
@@ -117,10 +155,14 @@ class ConnectionService:
         credential_store: CredentialStore | None = None,
         *,
         codex_bridge: CodexBridge | None = None,
+        probe: ProviderProbe | None = None,
+        clock: Callable[[], float] | None = None,
     ) -> None:
         self._repository = repository
         self._store = credential_store
         self._codex_bridge = codex_bridge
+        self._probe = probe or default_openai_compatible_probe
+        self._clock = clock or time.time
         self._repository.migrate()
 
     def _codex(self) -> CodexBridge:
@@ -253,6 +295,150 @@ class ConnectionService:
         )
 
 
+
+    def _with_last_verification(
+        self,
+        readiness: ProviderReadiness,
+        profile_name: str | None,
+    ) -> ProviderReadiness:
+        if profile_name is None:
+            return readiness
+        evidence = self._repository.get_verification(profile_name)
+        if evidence is None:
+            return readiness
+        return ProviderReadiness(
+            provider=readiness.provider,
+            configured=readiness.configured,
+            selected=readiness.selected,
+            catalog=readiness.catalog,
+            model=readiness.model,
+            auth_kind=readiness.auth_kind,
+            credential=readiness.credential,
+            readiness=readiness.readiness,
+            detail=readiness.detail,
+            installation=readiness.installation,
+            authentication=readiness.authentication,
+            last_verification=evidence,
+        )
+
+    def verify_provider(
+        self,
+        identifier: ProviderId | str,
+        *,
+        probe: ProviderProbe | None = None,
+    ) -> ProviderVerificationResult:
+        """Run a minimal live probe only for an explicit verification command."""
+        definition = provider_definition(identifier)
+        if definition.route is not ExecutionRoute.OPENAI_COMPATIBLE:
+            raise ConnectionError(
+                f'Provider verify is only available for OpenAI-compatible API '
+                f'connections; "{definition.identifier.value}" is not supported'
+            )
+        try:
+            profile = self.profile_for_provider(definition.identifier)
+        except ConnectionError:
+            return ProviderVerificationResult(
+                provider=definition.identifier.value,
+                outcome=VerificationOutcome.UNAVAILABLE,
+                route=definition.route.value,
+                model=definition.default_model or "-",
+                detail="no stored connection",
+                evidence=None,
+            )
+        route = definition.route.value
+        model = profile.model or definition.default_model or "-"
+        credential = self._credential_state(profile)
+        if credential is CredentialState.ABSENT:
+            return self._finish_verification(
+                profile_name=profile.name,
+                provider=definition.identifier.value,
+                outcome=VerificationOutcome.UNAVAILABLE,
+                route=route,
+                model=model,
+                detail="API key is absent",
+                persist=False,
+            )
+        if credential is CredentialState.UNAVAILABLE:
+            return self._finish_verification(
+                profile_name=profile.name,
+                provider=definition.identifier.value,
+                outcome=VerificationOutcome.UNAVAILABLE,
+                route=route,
+                model=model,
+                detail="credential backend unavailable",
+                persist=False,
+            )
+        try:
+            secret = ProfileService(
+                self._repository, self._credential_store()
+            ).get_secret(profile)
+        except (CredentialNotFoundError, CredentialStoreError):
+            return self._finish_verification(
+                profile_name=profile.name,
+                provider=definition.identifier.value,
+                outcome=VerificationOutcome.UNAVAILABLE,
+                route=route,
+                model=model,
+                detail="API key is unavailable",
+                persist=False,
+            )
+        active_probe = probe or self._probe
+        try:
+            active_probe(
+                base_url=profile.base_url,
+                api_key=secret,
+                model=model,
+            )
+        except BaseException as exc:
+            outcome, detail = classify_probe_error(exc)
+            return self._finish_verification(
+                profile_name=profile.name,
+                provider=definition.identifier.value,
+                outcome=outcome,
+                route=route,
+                model=model,
+                detail=detail,
+                persist=True,
+            )
+        return self._finish_verification(
+            profile_name=profile.name,
+            provider=definition.identifier.value,
+            outcome=VerificationOutcome.OK,
+            route=route,
+            model=model,
+            detail=None,
+            persist=True,
+        )
+
+    def _finish_verification(
+        self,
+        *,
+        profile_name: str,
+        provider: str,
+        outcome: VerificationOutcome,
+        route: str,
+        model: str,
+        detail: str | None,
+        persist: bool,
+    ) -> ProviderVerificationResult:
+        evidence: VerificationEvidence | None = None
+        if persist:
+            evidence = VerificationEvidence(
+                checked_at=float(self._clock()),
+                outcome=outcome,
+                route=route,
+                model=model,
+            )
+            self._repository.set_verification(profile_name, evidence)
+        return ProviderVerificationResult(
+            provider=provider,
+            outcome=outcome,
+            route=route,
+            model=model,
+            detail=detail,
+            evidence=evidence,
+        )
+
     def inspect_provider(self, identifier: ProviderId | str) -> ProviderReadiness:
         """Return offline readiness facts without contacting a provider network."""
         definition = provider_definition(identifier)
@@ -274,7 +460,10 @@ class ConnectionService:
                 readiness=LocalReadiness.NOT_READY,
                 detail="no stored connection",
             )
-        return self._readiness_for_profile(profile, definition, is_selected=is_selected)
+        return self._with_last_verification(
+            self._readiness_for_profile(profile, definition, is_selected=is_selected),
+            profile.name,
+        )
 
     def inspect_selected(self) -> ProviderReadiness | None:
         name = self._repository.selected_name()
@@ -307,7 +496,10 @@ class ConnectionService:
                 readiness=LocalReadiness.NOT_READY,
                 detail="custom legacy endpoint is not a catalog provider",
             )
-        return self._readiness_for_profile(profile, definition, is_selected=True)
+        return self._with_last_verification(
+            self._readiness_for_profile(profile, definition, is_selected=True),
+            profile.name,
+        )
 
     def _readiness_for_profile(
         self,

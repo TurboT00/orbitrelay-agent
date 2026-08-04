@@ -9,9 +9,15 @@ from collections.abc import Callable, Sequence
 from typing import TextIO
 
 from .codex_cli import run_codex_cli
-from .connection_service import ConnectionError, ConnectionService, ProviderReadiness
+from .connection_service import (
+    ConnectionError,
+    ConnectionService,
+    ProviderReadiness,
+    ProviderVerificationResult,
+)
 from .credentials import CredentialStore
 from .profile_store import ProfileRepository, default_profile_path
+from .provider_verification import VerificationOutcome
 from .providers import AuthMethod, ProviderId, supported_providers
 
 
@@ -32,6 +38,15 @@ def parse_provider_args(argv: Sequence[str] | None = None) -> argparse.Namespace
 
     status = actions.add_parser("status", help="Show a provider connection status")
     status.add_argument("provider", nargs="?", choices=[item.value for item in ProviderId if item is not ProviderId.CUSTOM])
+
+    verify = actions.add_parser(
+        "verify",
+        help="Explicitly probe an OpenAI-compatible provider (network call)",
+    )
+    verify.add_argument(
+        "provider",
+        choices=[item.value for item in ProviderId if item is not ProviderId.CUSTOM],
+    )
 
     disconnect = actions.add_parser("disconnect", help="Disconnect a provider")
     disconnect.add_argument("provider", choices=[item.value for item in ProviderId if item is not ProviderId.CUSTOM])
@@ -91,6 +106,10 @@ def run_provider_cli(
             readiness = service.inspect_provider(ProviderId(args.provider))
             _print_readiness(readiness, stream)
             return 0
+        if args.provider_action == "verify":
+            verification = service.verify_provider(ProviderId(args.provider))
+            _print_verification(verification, stream)
+            return 0 if verification.outcome is VerificationOutcome.OK else 1
         if args.provider_action == "disconnect":
             service.disconnect(ProviderId(args.provider))
             print(f'Disconnected provider "{args.provider}".', file=stream)
@@ -103,4 +122,11 @@ def run_provider_cli(
 
 def _print_readiness(readiness: ProviderReadiness, stream: TextIO) -> None:
     for line in readiness.lines():
+        print(line, file=stream)
+
+
+def _print_verification(
+    result: ProviderVerificationResult, stream: TextIO
+) -> None:
+    for line in result.lines():
         print(line, file=stream)
