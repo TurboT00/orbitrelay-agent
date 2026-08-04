@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+    "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 264,
+      "project_tests": 271,
       "example_tests": 9
     }
   },
@@ -40,7 +40,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "references": [
         {
@@ -66,6 +66,22 @@
         {
           "path": "src/orbitrelay/sessions.py",
           "locator": "sensitive metadata and require_sensitive_resume_authority"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ],
       "command": "uv run python -m unittest tests.test_workspace_privacy -v",
@@ -74,7 +90,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -92,7 +108,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -110,7 +126,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "references": [
         {
@@ -124,6 +140,22 @@
         {
           "path": "tests/test_sessions.py",
           "locator": "corrupt session fails before tools without traceback"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ],
       "command": "uv run python -m unittest tests.test_cli_errors -v",
@@ -132,18 +164,18 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
       "references": [
         {
           "path": "src/orbitrelay/connection_service.py",
-          "locator": "lazy credential-store construction"
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
         },
         {
           "path": "tests/test_connection_service.py",
-          "locator": "metadata and Codex operations avoid keyring initialization"
+          "locator": "selection clear without fallback"
         },
         {
           "path": "src/orbitrelay/provider_verification.py",
@@ -152,13 +184,21 @@
         {
           "path": "tests/test_provider_verification.py",
           "locator": "fake probe contracts and historical persistence"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
         }
       ]
     },
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -177,18 +217,30 @@
         },
         {
           "path": "src/orbitrelay/connection_service.py",
-          "locator": "verify_provider explicit live boundary"
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
         },
         {
           "path": "tests/test_provider_verification.py",
           "locator": "fake probe contracts and historical persistence"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ]
     },
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "references": [
         {
@@ -214,7 +266,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -230,7 +282,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -250,7 +302,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -266,7 +318,7 @@
     {
       "id": "MED-03-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "references": [
         {
@@ -299,11 +351,23 @@
         },
         {
           "path": "src/orbitrelay/connection_service.py",
-          "locator": "verify_provider explicit live boundary"
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
         },
         {
           "path": "tests/test_provider_verification.py",
           "locator": "fake probe contracts and historical persistence"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ],
       "exit_code": 0,
@@ -312,7 +376,7 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -328,7 +392,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -338,13 +402,29 @@
         {
           "path": "src/orbitrelay/codex_bridge.py",
           "locator": "captured process output and final-file read"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ]
     },
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -364,7 +444,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -376,13 +456,29 @@
         {
           "path": "tests/test_provider_cli.py",
           "locator": "removed import-env rejection"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ]
     },
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -398,7 +494,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -414,12 +510,12 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/connection_service.py",
-          "locator": "ProviderReadiness for API and Codex"
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
         },
         {
           "path": "src/orbitrelay/codex_bridge.py",
@@ -431,7 +527,7 @@
         },
         {
           "path": "tests/test_codex_bridge.py",
-          "locator": "delegated readiness fixtures"
+          "locator": "plain logout and combined partial lifecycle contracts"
         },
         {
           "path": "tests/test_provider_cli.py",
@@ -444,6 +540,14 @@
         {
           "path": "tests/test_provider_verification.py",
           "locator": "fake probe contracts and historical persistence"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ],
       "command": "uv run python -m unittest tests.test_codex_bridge tests.test_provider_cli -v",
@@ -452,7 +556,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -468,7 +572,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -480,13 +584,29 @@
         {
           "path": "src/orbitrelay/provider_cli.py",
           "locator": "historical unused local removed"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ]
     },
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -506,12 +626,12 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/connection_service.py",
-          "locator": "legacy profile command guidance"
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
         },
         {
           "path": "src/orbitrelay/cli.py",
@@ -524,13 +644,25 @@
         {
           "path": "tests/test_provider_verification.py",
           "locator": "fake probe contracts and historical persistence"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ]
     },
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "passed",
       "references": [
         {
@@ -555,11 +687,23 @@
         },
         {
           "path": "src/orbitrelay/connection_service.py",
-          "locator": "verify_provider explicit live boundary"
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
         },
         {
           "path": "tests/test_provider_verification.py",
           "locator": "fake probe contracts and historical persistence"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ],
       "command": "uv run python -m unittest tests.test_release_identity -v",
@@ -568,7 +712,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -578,13 +722,29 @@
         {
           "path": "src/orbitrelay/cli.py",
           "locator": "module remains above the local size target"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "disconnect metadata-only and logout_and_disconnect_codex"
+        },
+        {
+          "path": "src/orbitrelay/codex_cli.py",
+          "locator": "logout --disconnect ownership boundary"
+        },
+        {
+          "path": "tests/test_codex_bridge.py",
+          "locator": "plain logout and combined partial lifecycle contracts"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "selection clear without fallback"
         }
       ]
     },
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "references": [
         {
@@ -600,7 +760,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
+      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
