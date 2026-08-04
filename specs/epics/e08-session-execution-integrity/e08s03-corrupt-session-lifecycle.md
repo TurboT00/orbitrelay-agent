@@ -2,7 +2,7 @@ STORY KEY: e08s03
 TITLE:     Inspect and delete corrupt sessions explicitly
 TYPE:      Story
 PARENT:    e08
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M
