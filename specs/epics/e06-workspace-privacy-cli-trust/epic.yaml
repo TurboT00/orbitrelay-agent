@@ -16,7 +16,7 @@ stories:
   - id: e06s02
     title: Apply workspace privacy rules to discovery
     bcps: 8
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e06s02-private-workspace-discovery.md
     tasks: e06s02-tasks.yaml
