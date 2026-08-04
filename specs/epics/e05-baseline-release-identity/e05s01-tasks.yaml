@@ -4,7 +4,7 @@ spec: e05s01-current-finding-disposition.md
 type: fix
 context: infra
 risk: P0
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_baseline -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -22,7 +22,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_baseline -v && ./scripts/check.sh"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -32,7 +32,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_baseline tests.test_redaction -v"
     risk: P1
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: high

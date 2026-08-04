@@ -7,7 +7,8 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** not started; explicit approval and a clean feature branch are required
+**Implementation status:** e05s01 complete; 3 tasks passing and 69 tasks failing;
+human evidence and release-version checkpoint required before any later story
 
 ## Purpose
 
@@ -250,12 +251,14 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-Start with **e05s01 only**. It is the evidence oracle that may remove or rewrite
-stale implementation assumptions. Do not proceed to e09s01 or any behavior
-story until the user reviews the e05s01 disposition and approves the next step.
+**e05s01 is complete.** Its executable disposition oracle is
+`specs/verifications/current-finding-disposition.json`. Do not proceed to
+e09s01, e05s02, or any behavior story until the user reviews the disposition,
+the remaining blocked MT-02 evidence, and the release implications. MT-09 has
+passed by revision-bound user attestation.
 
 ## Handoff
 
-Next lifecycle skill: `kickoff-branch`, then `develop-tdd` for e05s01. If the
-planning artifacts are still uncommitted, preserve them and obtain approval for
-a plan-only commit before creating the implementation worktree.
+Next action: hold the human checkpoint. Obtain explicit scenario authorization
+before running selected manual evidence, and obtain explicit story approval
+before beginning e09s01, e05s02, or any later stabilization work.

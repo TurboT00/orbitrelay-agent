@@ -2,7 +2,7 @@ STORY KEY: e05s01
 TITLE:     Publish a current finding disposition
 TYPE:      Story
 PARENT:    e05
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M
@@ -26,7 +26,8 @@ A release owner can determine the current disposition of every reviewed finding 
 
 ### 4. Trigger and preconditions [reviewed]
 
-Run first on the recorded `ad2e556` planning baseline, before implementation changes or release-number selection.
+Run first on the clean `6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41`
+planning baseline, before implementation changes or release-number selection.
 
 ### 5. Main flow and business logic [reviewed]
 
@@ -129,3 +130,14 @@ All tasks pass, every finding is classified, `scripts/check.sh` passes, and no n
 2. Run `./scripts/check.sh` from the assessed revision.
 3. Inspect the disposition summary for evidence links, revision, and release blockers.
 4. Confirm no live or credential-bearing command ran without separate authorization.
+
+## Implementation Result
+
+The executable, secret-free disposition contract is published at
+`specs/verifications/current-finding-disposition.json` and validated by
+`scripts/verify_release_baseline.py` plus `tests/test_release_baseline.py`.
+It classifies all 26 July findings at the assessed revision and selects MT-02
+and MT-09 as required pre-implementation evidence. MT-09 is recorded as a
+revision-bound, user-attested pass with only a sanitized summary retained;
+MT-02 remains not authorized and not run. Release-version selection remains at
+its human checkpoint.

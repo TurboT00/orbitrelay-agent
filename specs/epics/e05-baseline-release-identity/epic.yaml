@@ -2,14 +2,14 @@ id: e05
 title: Baseline and Release Identity
 wsjf: 6.8
 total_bcps: 10
-status: todo
+status: in_progress
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "TBD"
 stories:
   - id: e05s01
     title: Publish a current finding disposition
     bcps: 5
-    status: todo
+    status: done
     delta: ADDED
     spec: e05s01-current-finding-disposition.md
     tasks: e05s01-tasks.yaml

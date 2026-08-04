@@ -29,9 +29,12 @@ post-0.5.0 stabilization scope now covers current release blockers and their
 coupled correctness work. It is sliced into 24 vertical stories across epics e05
 through e10. A full impact assessment rates the cross-epic blast radius High and
 records shared-module, migration, test, and sequencing constraints. Detailed
-plans now define 72 failing tasks across the 24 stories. After explicit plan
-approval, the next implementation step is e05s01 rebaselining on a clean feature
-branch. No later remediation task or P5 work is approved for execution yet.
+plans define 72 tasks across the 24 stories. e05s01 is complete with 3 passing
+tasks and a revision-bound disposition for all 26 July findings; the remaining
+69 tasks are failing. The project is paused at the required manual-evidence and
+release-version checkpoint: MT-09 has passed by user attestation, while MT-02
+remains blocked pending separate live-credential authorization. No later
+remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities
 

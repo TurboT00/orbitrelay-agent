@@ -1,6 +1,6 @@
 development_status:
-  e05: todo
-  e05s01: todo
+  e05: in_progress
+  e05s01: done
   e05s02: todo
   e06: todo
   e06s01: todo
@@ -32,7 +32,7 @@ development_status:
 
 epics:
   e05:
-    status: todo
+    status: in_progress
     title: Baseline and Release Identity
     wsjf: 6.8
     total_bcps: 10
@@ -67,4 +67,3 @@ epics:
     wsjf: 3.6
     total_bcps: 15
     capsule_dir: specs/epics/e10-release-evidence-readiness
-

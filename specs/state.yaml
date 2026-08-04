@@ -10,13 +10,13 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 175
+  project_tests: 189
   example_tests: 9
 planning:
-  phase: plan
-  status: stabilization_planned
+  phase: build
+  status: e05s01_complete_checkpoint_required
   entry_skill: kickoff-branch
-  next_skill: kickoff-branch
+  next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]
   story_count: 24
   total_bcps: 151
@@ -26,9 +26,10 @@ planning:
     report: specs/IMPACT_LATEST.md
     risk: high
   next_action: >-
-    Obtain explicit approval for the detailed implementation plan, preserve or
-    commit the planning-only changes, then run kickoff-branch and implement only
-    e05s01 with develop-tdd. Do not begin P5.
+    Preserve the user-attested MT-09 pass, decide whether to authorize the
+    remaining live-credential MT-02 evidence, and hold the release-version
+    checkpoint. Do not begin e05s02, e09s01, another stabilization story, or P5
+    without explicit approval.
 handoff:
   required_reading:
     - README.md
@@ -45,11 +46,11 @@ handoff:
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
-    The High-impact stabilization initiative has 24 detailed story plans and 72
-    failing task-ledger entries. After explicit plan approval and a clean
-    kickoff branch, implement e05s01 first and review its rebaselined finding
-    disposition before any later story. Keep P5 blocked.
-  next_skill: kickoff-branch
+    e05s01 is complete with 26 revision-bound finding dispositions. Review the
+    user-attested MT-09 pass and the remaining blocked MT-02 prerequisite, then
+    make the required human release-version decision before authorizing any later
+    story. Keep P5 blocked.
+  next_skill: human-checkpoint
 decisions:
   product_identity: >-
     OrbitRelay is a general-purpose, text-first personal assistant. Coding and
