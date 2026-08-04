@@ -9,7 +9,7 @@ stories:
   - id: e07s01
     title: Inspect API-provider readiness offline
     bcps: 8
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e07s01-offline-provider-readiness.md
     tasks: e07s01-tasks.yaml

@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-08-03
 **Latest tagged release:** 0.5.0
-**Development status:** post-0.5.0 stabilization at identity 0.6.0; e06s05 complete; next story approval required
+**Development status:** post-0.5.0 stabilization at identity 0.6.0; e07s01 complete; next story approval required
 
 ## Current baseline
 
@@ -30,13 +30,14 @@ post-0.5.0 stabilization scope now covers current release blockers and their
 coupled correctness work. It is sliced into 24 vertical stories across epics e05
 through e10. A full impact assessment rates the cross-epic blast radius High and
 records shared-module, migration, test, and sequencing constraints. Detailed
-plans define 72 tasks across the 24 stories. Wave 0 plus e06s01/s02/s05 are
-complete with 18 passing tasks; the revision-bound disposition still covers all
-26 July findings; the remaining 54 tasks are failing. Automated verification is
-the release gate; user-run side testing remains optional and non-blocking.
+plans define 72 tasks across the 24 stories. Wave 0 plus e06s01/s02/s05 and
+e07s01 are complete with 21 passing tasks; the revision-bound disposition still
+covers all 26 July findings; the remaining 51 tasks are failing. Automated
+verification is the release gate; user-run side testing remains optional and
+non-blocking.
 Release identity 0.6.0 is applied; protected I/O fails closed; expected CLI
-failures are concise on stderr. The project is paused only for explicit
-next-story approval (recommended: e07s01).
+failures are concise; API-provider status is offline-truthful. The project is
+paused only for explicit next-story approval (recommended: e07s03).
 No later remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities
