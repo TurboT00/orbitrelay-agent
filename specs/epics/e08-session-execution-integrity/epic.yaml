@@ -16,7 +16,7 @@ stories:
   - id: e08s02
     title: Recover from interruption at a replay-safe checkpoint
     bcps: 8
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e08s02-replay-safe-checkpoints.md
     tasks: e08s02-tasks.yaml

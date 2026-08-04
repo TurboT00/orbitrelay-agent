@@ -8,6 +8,7 @@ import json
 import os
 import re
 import stat
+import tempfile
 import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
@@ -16,7 +17,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .events import EventCollector, EventType, RunEvent
+from .context_budget import is_replay_safe, replay_safe_prefix
+from .events import EventCollector, RunEvent
 from .redaction import redact_secrets
 
 SESSION_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
@@ -93,22 +95,40 @@ def _secure_mkdir(path: Path) -> None:
 
 
 def _write_text_secure(path: Path, content: str) -> None:
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
-    if hasattr(os, "O_NOFOLLOW"):
-        flags |= os.O_NOFOLLOW
-    descriptor = os.open(temporary, flags, 0o600)
+    directory = path.parent
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=str(directory),
+    )
+    temporary = Path(temporary_name)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())
+        if hasattr(os, "chmod"):
+            os.chmod(temporary, 0o600)
         os.replace(temporary, path)
         if hasattr(os, "chmod"):
             os.chmod(path, 0o600)
+        _fsync_directory(directory)
     finally:
         if temporary.exists():
             temporary.unlink(missing_ok=True)
+
+
+def _fsync_directory(directory: Path) -> None:
+    try:
+        dir_fd = os.open(str(directory), os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(dir_fd)
+    except OSError:
+        pass
+    finally:
+        os.close(dir_fd)
 
 
 def _append_text_secure(path: Path, content: str) -> None:
@@ -402,22 +422,51 @@ class SessionStore:
                     messages.append(payload)
         except OSError as exc:
             raise SessionError(f'Could not read session messages: "{path}"') from exc
-        return messages
+        return replay_safe_prefix(messages)
 
     def replace_messages(
         self, session_id: str, messages: Sequence[Mapping[str, Any]]
     ) -> None:
+        self.commit_checkpoint(session_id, messages)
+
+    def commit_checkpoint(
+        self,
+        session_id: str,
+        messages: Sequence[Any],
+        *,
+        events: Sequence[RunEvent] | None = None,
+    ) -> None:
+        """Persist one complete replay-safe generation atomically."""
         directory = self._require_session_dir(session_id)
+        normalized: list[Any] = []
+        for message in messages:
+            if isinstance(message, Mapping):
+                normalized.append(dict(message))
+            else:
+                normalized.append(message)
+        if not is_replay_safe(normalized):
+            raise SessionError(
+                f'Session "{session_id}" checkpoint refused: '
+                "incomplete tool-call/result group"
+            )
+        newline = "\n"
         body = "".join(
             json.dumps(
                 redact_secrets(dict(message)),
                 sort_keys=True,
                 separators=(",", ":"),
             )
-            + "\n"
-            for message in messages
+            + newline
+            for message in normalized
         )
         _write_text_secure(directory / MESSAGES_NAME, body)
+        if events is not None:
+            event_body = "".join(
+                json.dumps(event.to_dict(), sort_keys=True, separators=(",", ":"))
+                + newline
+                for event in events
+            )
+            _write_text_secure(directory / EVENTS_NAME, event_body)
         metadata = self._read_metadata(directory)
         updated = SessionMetadata(
             id=metadata.id,
@@ -442,19 +491,8 @@ class SessionStore:
     def bind_collector(
         self, session_id: str, collector: EventCollector
     ) -> EventCollector:
-        """Wrap collector emissions so new events are appended durably."""
-        original_emit = collector.emit
-        store = self
-        start = len(collector.events)
-
-        def emit(event_type: EventType | str, **data: Any) -> RunEvent:
-            event = original_emit(event_type, **data)
-            # append only the newly emitted event
-            store.append_events(session_id, (event,))
-            return event
-
-        collector.emit = emit  # type: ignore[method-assign]
-        del start
+        """Keep events in memory until a replay-safe checkpoint commits them."""
+        del session_id
         return collector
 
     def _require_session_dir(self, session_id: str) -> Path:

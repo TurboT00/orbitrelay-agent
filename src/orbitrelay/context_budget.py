@@ -162,3 +162,40 @@ def assert_no_orphan_tool_results(messages: Sequence[Any]) -> None:
                 raise AssertionError(f"orphan tool result: {tool_id!r}")
             continue
         pending_ids = set()
+
+
+def is_replay_safe(messages: Sequence[Any]) -> bool:
+    """Return True when every assistant tool-call group has all correlated results."""
+    index = 0
+    items = list(messages)
+    while index < len(items):
+        message = items[index]
+        tool_calls = _tool_calls(message)
+        if _role(message) == "assistant" and tool_calls:
+            ids = _call_ids(tool_calls)
+            index += 1
+            seen: set[str] = set()
+            while index < len(items) and _role(items[index]) == "tool":
+                tool_id = _tool_call_id(items[index])
+                if tool_id is None or (ids and tool_id not in ids):
+                    return False
+                if tool_id in seen:
+                    return False
+                seen.add(tool_id)
+                index += 1
+            if ids and seen != ids:
+                return False
+            continue
+        if _role(message) == "tool":
+            return False
+        index += 1
+    return True
+
+
+def replay_safe_prefix(messages: Sequence[Any]) -> list[Any]:
+    """Return the longest prefix that is replay-safe (drop incomplete trailing groups)."""
+    items = list(messages)
+    while items and not is_replay_safe(items):
+        # Drop trailing incomplete assistant/tool tail one message at a time.
+        items.pop()
+    return items

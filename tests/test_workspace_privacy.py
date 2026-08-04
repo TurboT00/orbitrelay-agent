@@ -262,6 +262,20 @@ class WorkspacePrivacySideChannelTests(unittest.TestCase):
             metadata.id,
             [
                 {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [
+                        {
+                            "id": "c1",
+                            "type": "function",
+                            "function": {
+                                "name": "get_file_content",
+                                "arguments": "{}",
+                            },
+                        }
+                    ],
+                },
+                {
                     "role": "tool",
                     "tool_call_id": "c1",
                     "content": result,

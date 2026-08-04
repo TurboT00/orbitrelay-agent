@@ -238,7 +238,12 @@ def _invoke_agent(
 
     def on_messages_update(messages: list) -> None:
         if store is not None and session_id is not None:
-            store.replace_messages(session_id, messages)
+            event_batch = collector.events if collector is not None else None
+            store.commit_checkpoint(
+                session_id,
+                messages,
+                events=event_batch,
+            )
 
     run_kwargs: dict[str, object] = {
         "working_directory": workspace,
