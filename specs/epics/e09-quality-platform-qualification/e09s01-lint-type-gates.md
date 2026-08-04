@@ -2,7 +2,7 @@ STORY KEY: e09s01
 TITLE:     Run lint and typing as terminal release gates
 TYPE:      Story
 PARENT:    e09
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M

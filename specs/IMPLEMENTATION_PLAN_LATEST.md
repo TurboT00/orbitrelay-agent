@@ -7,8 +7,8 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** e05s01 complete; 3 tasks passing and 69 tasks failing;
-release target 0.6.0 selected; next-story approval still required before later work
+**Implementation status:** e05s01 and e09s01 complete; 6 tasks passing and 66 tasks failing;
+release target 0.6.0 selected; next-story approval required before later work
 
 ## Purpose
 
@@ -249,15 +249,15 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**e05s01 is complete.** Its executable disposition oracle is
-`specs/verifications/current-finding-disposition.json`. The user has accepted
-automated verification as the release gate. **Release target 0.6.0 is selected**
-(1.0.0 reserved for later). Package, module, CLI, and wheel identity remain
-0.5.0 until e05s02 applies the selected version. Do not proceed to e09s01,
-e05s02, or any behavior story until the next story is explicitly approved.
+**e05s01 and e09s01 are complete.** The disposition oracle remains at
+`specs/verifications/current-finding-disposition.json` and is rebound to the
+e09s01 implementation revision. **Release target 0.6.0 is selected** (1.0.0
+reserved for later). Package, module, CLI, and wheel identity remain 0.5.0 until
+e05s02 applies the selected version. Do not proceed to e05s02 or any behavior
+story until the next story is explicitly approved.
 
 ## Handoff
 
-Next action: hold the next-story checkpoint. Recommended Wave 0 remainder is
-e09s01 then e05s02. Obtain explicit story approval before beginning e09s01,
-e05s02, or any later stabilization work.
+Next action: hold the next-story checkpoint. Recommended next story is e05s02
+(apply reproducible 0.6.0 release identity). Obtain explicit story approval
+before beginning e05s02 or any later stabilization work.

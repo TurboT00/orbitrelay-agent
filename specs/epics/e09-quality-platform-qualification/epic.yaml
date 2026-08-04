@@ -9,7 +9,7 @@ stories:
   - id: e09s01
     title: Run lint and typing as terminal release gates
     bcps: 5
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e09s01-lint-type-gates.md
     tasks: e09s01-tasks.yaml
