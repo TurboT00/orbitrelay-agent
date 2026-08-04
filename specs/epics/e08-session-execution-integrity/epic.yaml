@@ -37,7 +37,7 @@ stories:
   - id: e08s05
     title: Bound local tool and Codex process output
     bcps: 5
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e08s05-bounded-process-output.md
     tasks: e08s05-tasks.yaml

@@ -4,7 +4,7 @@ spec: e08s05-bounded-process-output.md
 type: fix
 context: infra
 risk: P0
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_tools tests.test_codex_bridge -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -22,7 +22,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_tools tests.test_codex_bridge tests.test_events -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -32,7 +32,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_tools tests.test_codex_bridge tests.test_run_summary tests.test_redaction -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical

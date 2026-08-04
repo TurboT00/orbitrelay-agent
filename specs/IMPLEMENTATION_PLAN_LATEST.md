@@ -7,7 +7,7 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** Wave 0 complete; e06 and e07 epics complete; e08s01/s02/s03/s04 complete; 48 tasks passing and 24 tasks failing;
+**Implementation status:** Wave 0 complete; e06 and e07 epics complete; e08s01 through e08s05 complete; 51 tasks passing and 21 tasks failing;
 release identity 0.6.0 applied; next-story approval required before later work
 
 ## Purpose
@@ -249,13 +249,13 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**Wave 0 plus the full e06 and e07 epics and e08s01 through e08s04 are complete.**
+**Wave 0 plus the full e06 and e07 epics and e08s01 through e08s05 are complete.**
 The disposition oracle remains at `specs/verifications/current-finding-disposition.json`
-and records selected identity **0.6.0** with bounded segmented session history.
-Do not proceed to later stories until the next story is explicitly approved.
+and records selected identity **0.6.0** with bounded process output. Do not
+proceed to later stories until the next story is explicitly approved.
 
 ## Handoff
 
 Next action: hold the next-story checkpoint. Recommended Wave 2 next story is
-e08s05 (bounded process output). Obtain explicit story approval before
-beginning e08s05 or any later stabilization work.
+e08s06 (crash-safe tool outcomes). Obtain explicit story approval before
+beginning e08s06 or any later stabilization work.
