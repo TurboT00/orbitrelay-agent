@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSESSED_REVISION = "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014"
-EXPECTED_CONTRACT_SHA256 = "102bec02e0ad508449d12fe18ebdfc4d150af6f299685fb7bda53a3f6d373561"
+ASSESSED_REVISION = "dc7c826f0ed5298ad05377d7a9f6d581eeb12394"
+EXPECTED_CONTRACT_SHA256 = "6d0bc35227e3e70ccc7ff892c286981906d415e4f3f326c8dc04c0bc57666feb"
 CANONICAL_FINDING_IDS = tuple(
     [f"MAJ-{number:02d}" for number in range(1, 9)]
     + [f"MED-{number:02d}" for number in range(1, 12)]
@@ -22,6 +22,7 @@ ALLOWED_EVIDENCE_OUTCOMES = {"observed", "passed"}
 APPROVED_PASSED_COMMANDS = {
     "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
     "uv run python -m unittest tests.test_release_identity -v",
+    "uv run python -m unittest tests.test_workspace_privacy -v",
     "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
     "uv run ruff check .",
     "uv run mypy src/orbitrelay",
@@ -39,7 +40,7 @@ ALLOWED_EVIDENCE_KINDS = {
     "source-review",
 }
 EXPECTED_FINDING_STATUSES = {
-    "MAJ-01": "open",
+    "MAJ-01": "fixed",
     "MAJ-02": "fixed",
     "MAJ-03": "fixed",
     "MAJ-04": "open",

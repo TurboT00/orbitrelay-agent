@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+    "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 198,
+      "project_tests": 209,
       "example_tests": 9
     }
   },
@@ -19,11 +19,10 @@
     "counts": {
       "accepted": 1,
       "deferred": 2,
-      "fixed": 8,
-      "open": 15
+      "fixed": 9,
+      "open": 14
     },
     "release_blockers": [
-      "MAJ-01",
       "MAJ-04",
       "MAJ-08",
       "MED-01",
@@ -43,28 +42,34 @@
   "evidence": [
     {
       "id": "MAJ-01-current",
-      "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
+      "outcome": "passed",
       "references": [
         {
-          "path": "src/orbitrelay/terminal_authorizer.py",
-          "locator": "TerminalAuthorizer.authorize read branch"
+          "path": "src/orbitrelay/tools/workspace_privacy.py",
+          "locator": "D-01 absolute-deny and sensitive classifier"
         },
         {
-          "path": "src/orbitrelay/agent.py",
-          "locator": "tool results appended before the next provider request"
+          "path": "src/orbitrelay/tools/get_file_content.py",
+          "locator": "deny before file open"
         },
         {
-          "path": "tests/test_approvals.py",
-          "locator": "read_allowed policy regressions"
+          "path": "src/orbitrelay/tools/__init__.py",
+          "locator": "prepare_tool fails closed for protected reads"
+        },
+        {
+          "path": "tests/test_workspace_privacy.py",
+          "locator": "table-driven AP/SP read regressions"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_workspace_privacy -v",
+      "exit_code": 0
     },
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -82,7 +87,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -100,7 +105,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -116,7 +121,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -134,7 +139,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -152,7 +157,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "references": [
         {
@@ -178,7 +183,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -194,7 +199,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -214,7 +219,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -230,7 +235,7 @@
     {
       "id": "MED-03-current",
       "kind": "source-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -246,7 +251,7 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -262,7 +267,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -278,7 +283,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -298,7 +303,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -316,7 +321,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -332,7 +337,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -348,7 +353,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -364,7 +369,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -380,7 +385,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -398,7 +403,7 @@
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -418,7 +423,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -434,7 +439,7 @@
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "passed",
       "references": [
         {
@@ -460,7 +465,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -476,7 +481,7 @@
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "references": [
         {
@@ -492,7 +497,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "b5d7ac85874458e2d6b9ff2cd7c6f40af2bdc014",
+      "revision": "dc7c826f0ed5298ad05377d7a9f6d581eeb12394",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
@@ -513,14 +518,14 @@
       "id": "MAJ-01",
       "severity": "major",
       "title": "Workspace reads can disclose secrets without confirmation",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MAJ-01-current"
       ],
-      "rationale": "Ordinary reads are still automatically allowed and their results can enter the next hosted-provider request; no protected-content policy exists yet.",
-      "release_effect": "Blocks release until the e06 privacy boundary is implemented and verified.",
+      "rationale": "Direct workspace reads classify paths under the D-01 catalog before bytes load; sensitive and absolute-deny paths fail closed with secret-free errors under every approval policy.",
+      "release_effect": "No independent release block remains for unprotected automatic sensitive reads; discovery ignore rules and one-run exceptions remain later e06 stories.",
       "owner": "e06-workspace-privacy-cli-trust",
-      "residual_risk": "A model-initiated read can disclose sensitive workspace content to a hosted provider."
+      "residual_risk": "SP-08 gitignore/.orbitrelayignore discovery and one-process exceptions are not in e06s01; listings may still name protected entries until e06s02."
     },
     {
       "id": "MAJ-02",
