@@ -14,6 +14,14 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
+from .process_bounds import (
+    DEFAULT_CODEX_CAPTURE_TIMEOUT_SECONDS,
+    DEFAULT_MAX_STDERR_CHARS,
+    DEFAULT_MAX_STDOUT_CHARS,
+    bound_text,
+    run_bounded_subprocess,
+)
+
 CODEX_BINARY_NAME = "codex"
 CODEX_INSTALL_GUIDANCE = (
     "Install the official Codex CLI separately and ensure `codex` is on PATH. "
@@ -49,7 +57,20 @@ class CodexDelegatedStatus:
 
 
 
-Runner = Callable[..., subprocess.CompletedProcess[str]]
+@dataclass(frozen=True)
+class _CapturedProcess:
+    """CompletedProcess-compatible capture with bound metadata."""
+
+    args: list[str]
+    returncode: int
+    stdout: str = ""
+    stderr: str = ""
+    timed_out: bool = False
+    stdout_truncated: bool = False
+    stderr_truncated: bool = False
+
+
+Runner = Callable[..., subprocess.CompletedProcess[str] | _CapturedProcess]
 Which = Callable[[str], str | None]
 
 
@@ -85,6 +106,8 @@ class CodexExecResult:
     final_message: str
     version_warning: str | None = None
     argv: tuple[str, ...] = ()
+    timed_out: bool = False
+    output_truncated: bool = False
 
 
 def _default_runner(
@@ -96,12 +119,35 @@ def _default_runner(
     cwd: str | None = None,
     env: Mapping[str, str] | None = None,
     timeout: float | None = None,
-) -> subprocess.CompletedProcess[str]:
+) -> subprocess.CompletedProcess[str] | _CapturedProcess:
     del check
+    del text  # bounded capture always uses text mode when capturing
+    if capture_output:
+        bounded = run_bounded_subprocess(
+            list(argv),
+            cwd=cwd,
+            env=env,
+            timeout=(
+                DEFAULT_CODEX_CAPTURE_TIMEOUT_SECONDS
+                if timeout is None
+                else float(timeout)
+            ),
+            max_stdout_chars=DEFAULT_MAX_STDOUT_CHARS,
+            max_stderr_chars=DEFAULT_MAX_STDERR_CHARS,
+        )
+        return _CapturedProcess(
+            args=list(argv),
+            returncode=bounded.returncode,
+            stdout=bounded.stdout,
+            stderr=bounded.stderr,
+            timed_out=bounded.timed_out,
+            stdout_truncated=bounded.stdout_truncated,
+            stderr_truncated=bounded.stderr_truncated,
+        )
     return subprocess.run(
         list(argv),
-        capture_output=capture_output,
-        text=text,
+        capture_output=False,
+        text=True,
         cwd=cwd,
         env=None if env is None else dict(env),
         timeout=timeout,
@@ -133,11 +179,12 @@ class CodexBridge:
         if completed.returncode != 0:
             detail = (completed.stderr or completed.stdout or "").strip()
             warning = detail or f"`{self._binary_name} --version` failed"
+            warning, _ = bound_text(warning, 200)
             return CodexInstallation(
                 available=False,
                 path=path,
                 version=None,
-                warning=warning[:200],
+                warning=warning or None,
             )
         version_text = (completed.stdout or completed.stderr or "").strip()
         version = version_text.splitlines()[0].strip() if version_text else None
@@ -276,28 +323,57 @@ class CodexBridge:
                 workspace=str(workspace_path),
                 output_last_message=final_path,
             )
-            completed = self._runner(argv, capture_output=True, text=True)
+            completed = self._runner(
+                argv,
+                capture_output=True,
+                text=True,
+                timeout=DEFAULT_CODEX_CAPTURE_TIMEOUT_SECONDS,
+            )
+            timed_out = bool(getattr(completed, "timed_out", False))
+            stdout_truncated = bool(getattr(completed, "stdout_truncated", False))
+            stderr_truncated = bool(getattr(completed, "stderr_truncated", False))
+            stdout, stdout_cut = bound_text(
+                completed.stdout or "", DEFAULT_MAX_STDOUT_CHARS
+            )
+            stderr, stderr_cut = bound_text(
+                completed.stderr or "", DEFAULT_MAX_STDERR_CHARS
+            )
+            stdout_truncated = stdout_truncated or stdout_cut
+            stderr_truncated = stderr_truncated or stderr_cut
             final_message = ""
+            final_truncated = False
             final_file = Path(final_path)
             if final_file.is_file():
-                final_message = final_file.read_text(encoding="utf-8")
-            elif completed.stdout:
-                final_message = _final_message_from_jsonl(completed.stdout)
-            if completed.returncode != 0 and not final_message:
-                detail = (completed.stderr or completed.stdout or "").strip()
+                raw_final = final_file.read_text(encoding="utf-8")
+                final_message, final_truncated = bound_text(
+                    raw_final, DEFAULT_MAX_STDOUT_CHARS
+                )
+            elif stdout:
+                final_message = _final_message_from_jsonl(stdout)
+            if timed_out and not final_message:
                 raise CodexBridgeError(
-                    detail or f"codex exec failed with exit code {completed.returncode}"
+                    f"process timed out after {DEFAULT_CODEX_CAPTURE_TIMEOUT_SECONDS:g} seconds"
+                )
+            if completed.returncode != 0 and not final_message:
+                detail = (stderr or stdout or "").strip()
+                if len(detail) > 400:
+                    detail = detail[:400]
+                raise CodexBridgeError(
+                    detail
+                    or f"codex exec failed with exit code {completed.returncode}"
                 )
             return CodexExecResult(
                 exit_code=int(completed.returncode),
                 final_message=final_message.strip(),
                 version_warning=installation.warning,
                 argv=tuple(argv),
+                timed_out=timed_out,
+                output_truncated=stdout_truncated or stderr_truncated or final_truncated,
             )
 
 
 def _normalize_login_status(
-    completed: subprocess.CompletedProcess[str],
+    completed: subprocess.CompletedProcess[str] | _CapturedProcess,
 ) -> CodexAuthentication:
     """Map official login status to a coarse auth fact without retaining output."""
     code = int(completed.returncode)

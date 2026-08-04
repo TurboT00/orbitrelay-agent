@@ -72,7 +72,7 @@ class ExecuteToolTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as workspace:
             Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
 
-            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+            with patch("orbitrelay.tools.run_python_file.run_bounded_subprocess") as run:
                 prepared = prepare_tool(
                     "call-exec",
                     "run_python_file",
@@ -108,7 +108,7 @@ class ExecuteToolTests(unittest.TestCase):
                 ('{"file_path":"task.py","args":[7]}', "args must be a list of strings"),
             )
 
-            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+            with patch("orbitrelay.tools.run_python_file.run_bounded_subprocess") as run:
                 for arguments, expected_error in cases:
                     with self.subTest(arguments=arguments):
                         prepared = prepare_tool(
@@ -176,14 +176,21 @@ class ExecuteToolTests(unittest.TestCase):
             if not isinstance(prepared, PreparedToolCall):
                 self.fail(f"expected prepared call, got {prepared!r}")
 
+            from orbitrelay.process_bounds import BoundedProcessResult
+
             with (
                 patch(
-                    "orbitrelay.tools.run_python_file.subprocess.run",
-                    return_value=type(
-                        "Completed",
-                        (),
-                        {"returncode": 0, "stdout": "ok\n", "stderr": ""},
-                    )(),
+                    "orbitrelay.tools.run_python_file.run_bounded_subprocess",
+                    return_value=BoundedProcessResult(
+                        returncode=0,
+                        stdout="ok\n",
+                        stderr="",
+                        timed_out=False,
+                        stdout_truncated=False,
+                        stderr_truncated=False,
+                        duration_seconds=0.01,
+                        timeout_seconds=30.0,
+                    ),
                 ),
                 redirect_stdout(output),
             ):

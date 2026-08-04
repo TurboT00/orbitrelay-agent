@@ -1,10 +1,22 @@
 # story: e02s02
+# story: e08s05
+
+from __future__ import annotations
 
 import os
-import subprocess
 import sys
+from collections.abc import Callable, Sequence
 
+from ..process_bounds import (
+    DEFAULT_MAX_STDERR_CHARS,
+    DEFAULT_MAX_STDOUT_CHARS,
+    DEFAULT_PROCESS_TIMEOUT_SECONDS,
+    BoundedProcessResult,
+    run_bounded_subprocess,
+)
 from .path_safety import resolve_path_within
+
+ProcessRunner = Callable[..., BoundedProcessResult]
 
 
 def validate_python_target(
@@ -33,12 +45,25 @@ def run_python_file(
     working_directory: str,
     file_path: str,
     args: list[str] | None = None,
+    *,
+    runner: ProcessRunner | None = None,
+    timeout: float = DEFAULT_PROCESS_TIMEOUT_SECONDS,
+    max_stdout_chars: int = DEFAULT_MAX_STDOUT_CHARS,
+    max_stderr_chars: int = DEFAULT_MAX_STDERR_CHARS,
 ) -> str:
     try:
         validation_error = validate_python_target(working_directory, file_path, args)
         if validation_error is not None:
             return validation_error
-        return _execute_python_file(working_directory, file_path, args or [])
+        return _execute_python_file(
+            working_directory,
+            file_path,
+            args or [],
+            runner=runner,
+            timeout=timeout,
+            max_stdout_chars=max_stdout_chars,
+            max_stderr_chars=max_stderr_chars,
+        )
     except Exception as exc:
         return f"Error: executing Python file: {exc}"
 
@@ -47,33 +72,27 @@ def _execute_python_file(
     working_directory: str,
     file_path: str,
     args: list[str],
+    *,
+    runner: ProcessRunner | None,
+    timeout: float,
+    max_stdout_chars: int,
+    max_stderr_chars: int,
 ) -> str:
     working_dir_abs, absolute_file_path, valid_target_file = resolve_path_within(
         working_directory, file_path
     )
     if not valid_target_file:  # Recheck confinement at the execution boundary.
         return _outside_workspace_error(file_path)
-    completed = subprocess.run(
-        [sys.executable, absolute_file_path, *args],
-        capture_output=True,
-        text=True,
+    argv: Sequence[str] = [sys.executable, absolute_file_path, *args]
+    active = runner or run_bounded_subprocess
+    result = active(
+        argv,
         cwd=working_dir_abs,
-        timeout=30,
+        timeout=timeout,
+        max_stdout_chars=max_stdout_chars,
+        max_stderr_chars=max_stderr_chars,
     )
-    return _format_process_result(completed)
-
-
-def _format_process_result(completed: subprocess.CompletedProcess[str]) -> str:
-    output_parts = []
-    if completed.returncode != 0:
-        output_parts.append(f"Process exited with code {completed.returncode}")
-    if completed.stdout:
-        output_parts.append(f"STDOUT:\n{completed.stdout}")
-    if completed.stderr:
-        output_parts.append(f"STDERR:\n{completed.stderr}")
-    if not completed.stdout and not completed.stderr:
-        output_parts.append("No output produced")
-    return "\n".join(output_parts)
+    return result.format_tool_output()
 
 
 def _outside_workspace_error(file_path: str) -> str:

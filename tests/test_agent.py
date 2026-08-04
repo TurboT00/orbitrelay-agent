@@ -196,8 +196,19 @@ class AgentLoopTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as workspace:
             Path(workspace, "task.py").write_text("print('safe')", encoding="utf-8")
-            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
-                run.return_value = SimpleNamespace(returncode=0, stdout="ran\n", stderr="")
+            with patch("orbitrelay.tools.run_python_file.run_bounded_subprocess") as run:
+                from orbitrelay.process_bounds import BoundedProcessResult
+
+                run.return_value = BoundedProcessResult(
+                    returncode=0,
+                    stdout="ran\n",
+                    stderr="",
+                    timed_out=False,
+                    stdout_truncated=False,
+                    stderr_truncated=False,
+                    duration_seconds=0.01,
+                    timeout_seconds=30.0,
+                )
 
                 def authorize(requests):
                     self.assertEqual(
@@ -438,7 +449,7 @@ class AgentLoopTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as workspace:
             Path(workspace, "task.py").write_text("print('blocked')", encoding="utf-8")
-            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+            with patch("orbitrelay.tools.run_python_file.run_bounded_subprocess") as run:
                 result = run_agent(
                     client,
                     "write but do not execute",
@@ -490,7 +501,7 @@ class AgentLoopTests(unittest.TestCase):
             except (NotImplementedError, OSError) as exc:
                 self.skipTest(f"symlinks unavailable: {exc}")
 
-            with patch("orbitrelay.tools.run_python_file.subprocess.run") as run:
+            with patch("orbitrelay.tools.run_python_file.run_bounded_subprocess") as run:
                 result = run_agent(
                     client,
                     "escape confinement",
