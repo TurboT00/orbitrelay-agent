@@ -2,7 +2,7 @@ STORY KEY: e07s02
 TITLE:     Verify a provider explicitly without retaining probe content
 TYPE:      Story
 PARENT:    e07
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M
