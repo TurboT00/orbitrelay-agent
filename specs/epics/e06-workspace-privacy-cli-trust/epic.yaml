@@ -23,7 +23,7 @@ stories:
   - id: e06s03
     title: Authorize an exact sensitive read for one run
     bcps: 8
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e06s03-one-run-read-exception.md
     tasks: e06s03-tasks.yaml
