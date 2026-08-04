@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import TextIO
 
 from .codex_bridge import CodexBridge, CodexBridgeError
+from .connection_service import ConnectionService, LifecyclePart
+from .credentials import CredentialStore
+from .profile_store import ProfileRepository, default_profile_path
 
 
 def parse_codex_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -26,7 +29,17 @@ def parse_codex_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Use codex login --device-auth",
     )
 
-    actions.add_parser("logout", help="Delegate logout to official codex logout")
+    logout = actions.add_parser(
+        "logout", help="Delegate logout to official codex logout"
+    )
+    logout.add_argument(
+        "--disconnect",
+        action="store_true",
+        help=(
+            "After successful official logout, also remove OrbitRelay codex "
+            "metadata (logout-first; no automatic provider fallback)"
+        ),
+    )
 
     execute = actions.add_parser(
         "exec", help="Run a noninteractive codex exec alternate path"
@@ -45,6 +58,8 @@ def run_codex_cli(
     *,
     bridge: CodexBridge | None = None,
     output: TextIO | None = None,
+    profile_repository: ProfileRepository | None = None,
+    credential_store: CredentialStore | None = None,
 ) -> int:
     args = parse_codex_args(argv)
     active = bridge or CodexBridge()
@@ -62,6 +77,20 @@ def run_codex_cli(
                 print("Codex login completed.", file=stream)
             return code
         if args.codex_action == "logout":
+            if bool(getattr(args, "disconnect", False)):
+                service = ConnectionService(
+                    profile_repository or ProfileRepository(default_profile_path()),
+                    credential_store,
+                    codex_bridge=active,
+                )
+                lifecycle = service.logout_and_disconnect_codex()
+                for line in lifecycle.lines():
+                    print(line, file=stream)
+                if lifecycle.logout is LifecyclePart.COMPLETED:
+                    print("Codex logout completed.", file=stream)
+                if lifecycle.complete:
+                    return 0
+                return 1
             code = active.logout()
             if code == 0:
                 print("Codex logout completed.", file=stream)
@@ -72,12 +101,12 @@ def run_codex_cli(
                 if args.workspace is None
                 else str(Path(args.workspace).expanduser())
             )
-            result = active.exec(args.prompt, workspace)
-            if result.version_warning:
-                print(f"Warning: {result.version_warning}", file=error_stream)
-            if result.final_message:
-                print(result.final_message, file=stream)
-            return result.exit_code
+            execution = active.exec(args.prompt, workspace)
+            if execution.version_warning:
+                print(f"Warning: {execution.version_warning}", file=error_stream)
+            if execution.final_message:
+                print(execution.final_message, file=stream)
+            return execution.exit_code
     except CodexBridgeError as exc:
         print(str(exc), file=error_stream)
         return 1

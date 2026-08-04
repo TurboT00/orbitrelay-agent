@@ -12,6 +12,7 @@ from .codex_cli import run_codex_cli
 from .connection_service import (
     ConnectionError,
     ConnectionService,
+    DisconnectResult,
     ProviderReadiness,
     ProviderVerificationResult,
 )
@@ -111,8 +112,8 @@ def run_provider_cli(
             _print_verification(verification, stream)
             return 0 if verification.outcome is VerificationOutcome.OK else 1
         if args.provider_action == "disconnect":
-            service.disconnect(ProviderId(args.provider))
-            print(f'Disconnected provider "{args.provider}".', file=stream)
+            disconnected = service.disconnect(ProviderId(args.provider))
+            _print_disconnect(disconnected, stream)
             return 0
     except ConnectionError as exc:
         print(str(exc), file=stream)
@@ -128,5 +129,11 @@ def _print_readiness(readiness: ProviderReadiness, stream: TextIO) -> None:
 def _print_verification(
     result: ProviderVerificationResult, stream: TextIO
 ) -> None:
+    for line in result.lines():
+        print(line, file=stream)
+
+
+def _print_disconnect(result: DisconnectResult, stream: TextIO) -> None:
+    print(f'Disconnected provider "{result.provider}".', file=stream)
     for line in result.lines():
         print(line, file=stream)

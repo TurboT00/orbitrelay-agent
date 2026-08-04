@@ -444,7 +444,11 @@ def _dispatch_cli(
             secret_prompt,
         )
     if raw_argv and raw_argv[0] == "codex":
-        return run_codex_cli(raw_argv[1:])
+        return run_codex_cli(
+            raw_argv[1:],
+            profile_repository=repository,
+            credential_store=credential_store,
+        )
     if raw_argv and raw_argv[0] == "session":
         return run_session_cli(raw_argv[1:], environment=environment)
     return _run_agent_cli(

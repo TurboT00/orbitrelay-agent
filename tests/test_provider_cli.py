@@ -309,5 +309,22 @@ class ProviderCliTests(unittest.TestCase):
         self.assertNotIn("test-key", status_text)
 
 
+    def test_disconnect_codex_is_metadata_only(self) -> None:
+        service = ConnectionService(self.repository, self.store)
+        service.connect_subscription(ProviderId.CODEX)
+        self.output.seek(0)
+        self.output.truncate(0)
+        with patch("orbitrelay.codex_bridge.CodexBridge.logout") as logout:
+            code = self.execute(["disconnect", "codex"])
+            logout.assert_not_called()
+        self.assertEqual(code, 0)
+        text = self.output.getvalue()
+        self.assertIn('Disconnected provider "codex".', text)
+        self.assertIn("official_auth: unchanged", text)
+        self.assertIn("metadata: completed", text)
+        self.assertIn("OrbitRelay metadata only", text)
+        self.assertIsNone(self.repository.selected_name())
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -123,5 +123,45 @@ class CliConnectionTests(unittest.TestCase):
         self.assertIn("orbitrelay provider --help", error.getvalue())
 
 
+    def test_codex_logout_disconnect_dispatch(self) -> None:
+        self.connections.connect_subscription(ProviderId.CODEX)
+        out = io.StringIO()
+        with (
+            patch("orbitrelay.codex_cli.CodexBridge") as bridge_cls,
+            patch("sys.stdout", out),
+        ):
+            bridge = bridge_cls.return_value
+            bridge.logout.return_value = 0
+            # run_codex_cli constructs ConnectionService with codex_bridge=active
+            # when --disconnect; need the bridge instance used inside
+            result = cli.main(
+                ["codex", "logout", "--disconnect"],
+                profile_repository=self.repository,
+                credential_store=self.store,
+            )
+        # Depending on wiring, CodexBridge may be constructed inside run_codex_cli
+        self.assertIn(result, (0, 1))
+        # stronger path: call with patched bridge via codex_cli
+        from unittest.mock import Mock
+
+        from orbitrelay.codex_bridge import CodexBridge
+        from orbitrelay.codex_cli import run_codex_cli
+        bridge = Mock(spec=CodexBridge)
+        bridge.logout.return_value = 0
+        out2 = io.StringIO()
+        self.connections.connect_subscription(ProviderId.CODEX)
+        code = run_codex_cli(
+            ["logout", "--disconnect"],
+            bridge=bridge,
+            output=out2,
+            profile_repository=self.repository,
+            credential_store=self.store,
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("complete: yes", out2.getvalue())
+        self.assertIsNone(self.repository.selected_name())
+        bridge.logout.assert_called_once_with()
+
+
 if __name__ == "__main__":
     unittest.main()

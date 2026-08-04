@@ -10,10 +10,11 @@ from orbitrelay.connection_service import (
     CodexCliConnection,
     ConnectionError,
     ConnectionService,
+    LifecyclePart,
     OpenAICompatibleConnection,
 )
 from orbitrelay.credentials import CredentialNotFoundError
-from orbitrelay.profile_store import ProfileRepository
+from orbitrelay.profile_store import ProfileNotFoundError, ProfileRepository
 from orbitrelay.profiles import AuthKind, ProviderCapability, ProviderProfile
 from orbitrelay.providers import ProviderId
 
@@ -175,6 +176,53 @@ class ConnectionServiceTests(unittest.TestCase):
 
 
 
+
+
+    def test_codex_disconnect_clears_selection_without_fallback(self) -> None:
+        self.service.connect_api_key(ProviderId.OPENAI, "openai-secret")
+        self.service.connect_subscription(ProviderId.CODEX)
+        self.assertEqual(self.repository.selected_name(), "codex")
+        result = self.service.disconnect(ProviderId.CODEX)
+        self.assertEqual(result.metadata, LifecyclePart.COMPLETED)
+        self.assertEqual(result.selection, LifecyclePart.COMPLETED)
+        self.assertEqual(result.official_auth, LifecyclePart.UNCHANGED)
+        self.assertIsNone(self.repository.selected_name())
+        with self.assertRaises(ProfileNotFoundError):
+            self.repository.get("codex")
+        # OpenAI remains connected but is not auto-selected.
+        self.assertEqual(self.repository.get("openai").name, "openai")
+
+    def test_logout_and_disconnect_codex_is_logout_first_with_partials(self) -> None:
+        from unittest.mock import Mock
+
+        bridge = Mock()
+        bridge.logout.return_value = 0
+        service = ConnectionService(self.repository, self.store, codex_bridge=bridge)
+        service.connect_subscription(ProviderId.CODEX)
+        complete = service.logout_and_disconnect_codex()
+        self.assertTrue(complete.complete)
+        self.assertEqual(complete.logout, LifecyclePart.COMPLETED)
+        self.assertEqual(complete.metadata, LifecyclePart.COMPLETED)
+        bridge.logout.assert_called_once_with()
+        with self.assertRaises(ProfileNotFoundError):
+            self.repository.get("codex")
+
+        # logout fails: metadata untouched
+        service.connect_subscription(ProviderId.CODEX)
+        bridge.logout.return_value = 1
+        failed = service.logout_and_disconnect_codex()
+        self.assertFalse(failed.complete)
+        self.assertEqual(failed.logout, LifecyclePart.FAILED)
+        self.assertEqual(failed.metadata, LifecyclePart.UNCHANGED)
+        self.assertEqual(self.repository.get("codex").name, "codex")
+        self.assertIn("retry:", failed.recovery or "")
+
+        # logout ok, metadata already absent
+        bridge.logout.return_value = 0
+        service.disconnect(ProviderId.CODEX)
+        absent = service.logout_and_disconnect_codex()
+        self.assertTrue(absent.complete)
+        self.assertEqual(absent.metadata, LifecyclePart.ABSENT)
 
 class ProviderReadinessTests(unittest.TestCase):
     def setUp(self) -> None:

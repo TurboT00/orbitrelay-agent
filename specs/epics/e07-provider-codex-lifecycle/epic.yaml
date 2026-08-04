@@ -30,7 +30,7 @@ stories:
   - id: e07s04
     title: Disconnect and log out of Codex with explicit ownership
     bcps: 8
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e07s04-codex-disconnect-ownership.md
     tasks: e07s04-tasks.yaml

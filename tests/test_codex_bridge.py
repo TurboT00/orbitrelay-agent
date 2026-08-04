@@ -287,5 +287,141 @@ class CodexBridgeTests(unittest.TestCase):
         status = bridge.inspect_readiness()
         self.assertEqual(status.authentication, CodexAuthentication.UNKNOWN)
 
+
+
+class CodexLifecycleOwnershipTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.home = Path(self.directory.name)
+        from orbitrelay.connection_service import ConnectionService
+        from orbitrelay.credentials import CredentialNotFoundError
+        from orbitrelay.profile_store import ProfileRepository
+        from orbitrelay.providers import ProviderId
+
+        class Fake:
+            def __init__(self) -> None:
+                self.values: dict[str, str] = {}
+
+            def set_secret(self, key: str, secret: str) -> None:
+                self.values[key] = secret
+
+            def get_secret(self, key: str) -> str:
+                try:
+                    return self.values[key]
+                except KeyError as exc:
+                    raise CredentialNotFoundError(key) from exc
+
+            def delete_secret(self, key: str) -> None:
+                self.values.pop(key, None)
+
+        self.repository = ProfileRepository(self.home / "profiles.json")
+        self.store = Fake()
+        self.service = ConnectionService(self.repository, self.store)
+        self.ProviderId = ProviderId
+        self.service.connect_subscription(ProviderId.CODEX)
+
+    def tearDown(self) -> None:
+        self.directory.cleanup()
+
+    def test_plain_logout_does_not_touch_orbitrelay_metadata(self) -> None:
+        runner = RecordingRunner(
+            [
+                _completed(stdout="codex-cli 1.0.0\n"),
+                _completed(),
+            ]
+        )
+        bridge = CodexBridge(
+            runner=runner,
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+        )
+        out = StringIO()
+        code = run_codex_cli(
+            ["logout"],
+            bridge=bridge,
+            output=out,
+            profile_repository=self.repository,
+            credential_store=self.store,
+        )
+        self.assertEqual(code, 0)
+        self.assertIn("Codex logout completed.", out.getvalue())
+        self.assertEqual(self.repository.get("codex").name, "codex")
+        self.assertEqual(self.repository.selected_name(), "codex")
+        self.assertIn(["/bin/codex", "logout"], runner.calls)
+
+    def test_logout_disconnect_combined_success(self) -> None:
+        runner = RecordingRunner(
+            [
+                _completed(stdout="codex-cli 1.0.0\n"),
+                _completed(),
+            ]
+        )
+        bridge = CodexBridge(
+            runner=runner,
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+        )
+        out = StringIO()
+        code = run_codex_cli(
+            ["logout", "--disconnect"],
+            bridge=bridge,
+            output=out,
+            profile_repository=self.repository,
+            credential_store=self.store,
+        )
+        self.assertEqual(code, 0)
+        text = out.getvalue()
+        self.assertIn("logout: completed", text)
+        self.assertIn("metadata: completed", text)
+        self.assertIn("complete: yes", text)
+        self.assertIn("Codex logout completed.", text)
+        self.assertIsNone(self.repository.selected_name())
+
+    def test_logout_disconnect_partial_when_metadata_removal_fails(self) -> None:
+        from orbitrelay.connection_service import ConnectionError, ConnectionService
+
+        runner = RecordingRunner(
+            [
+                _completed(stdout="codex-cli 1.0.0\n"),
+                _completed(),
+            ]
+        )
+        bridge = CodexBridge(
+            runner=runner,
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+        )
+        service = ConnectionService(
+            self.repository, self.store, codex_bridge=bridge
+        )
+
+        def boom(_identifier):
+            raise ConnectionError("metadata removal SENTINEL failed")
+
+        out = StringIO()
+        with patch.object(ConnectionService, "disconnect", side_effect=boom):
+            # call through service method used by CLI
+            result = service.logout_and_disconnect_codex()
+        self.assertFalse(result.complete)
+        self.assertEqual(result.logout.value, "completed")
+        self.assertEqual(result.metadata.value, "failed")
+        self.assertIn("SENTINEL", result.detail or "")
+        self.assertEqual(result.recovery, "orbitrelay provider disconnect codex")
+        # metadata still present (disconnect mocked)
+        self.assertEqual(self.repository.get("codex").name, "codex")
+        # CLI reports partial nonzero
+        out = StringIO()
+        with patch.object(ConnectionService, "disconnect", side_effect=boom):
+            code = run_codex_cli(
+                ["logout", "--disconnect"],
+                bridge=bridge,
+                output=out,
+                profile_repository=self.repository,
+                credential_store=self.store,
+            )
+        self.assertEqual(code, 1)
+        text = out.getvalue()
+        self.assertIn("complete: no", text)
+        self.assertIn("recovery: orbitrelay provider disconnect codex", text)
+        self.assertIn("Codex logout completed.", text)
+
+
 if __name__ == "__main__":
     unittest.main()

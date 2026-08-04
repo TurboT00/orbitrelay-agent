@@ -138,6 +138,61 @@ class ProviderVerificationResult:
 
 
 
+
+class LifecyclePart(StrEnum):
+    UNCHANGED = "unchanged"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    ABSENT = "absent"
+
+
+@dataclass(frozen=True, slots=True)
+class DisconnectResult:
+    """OrbitRelay-owned disconnect outcome (never touches official Codex auth)."""
+
+    provider: str
+    metadata: LifecyclePart
+    selection: LifecyclePart
+    official_auth: LifecyclePart = LifecyclePart.UNCHANGED
+    detail: str | None = None
+
+    def lines(self) -> tuple[str, ...]:
+        rows = [
+            f"provider: {self.provider}",
+            f"metadata: {self.metadata.value}",
+            f"selection: {self.selection.value}",
+            f"official_auth: {self.official_auth.value}",
+        ]
+        if self.detail:
+            rows.append(f"detail: {self.detail}")
+        return tuple(rows)
+
+
+@dataclass(frozen=True, slots=True)
+class CodexLifecycleResult:
+    """Combined Codex logout/disconnect ownership report."""
+
+    logout: LifecyclePart
+    metadata: LifecyclePart
+    selection: LifecyclePart
+    complete: bool
+    recovery: str | None = None
+    detail: str | None = None
+
+    def lines(self) -> tuple[str, ...]:
+        rows = [
+            f"logout: {self.logout.value}",
+            f"metadata: {self.metadata.value}",
+            f"selection: {self.selection.value}",
+            f"complete: {'yes' if self.complete else 'no'}",
+        ]
+        if self.detail:
+            rows.append(f"detail: {self.detail}")
+        if self.recovery:
+            rows.append(f"recovery: {self.recovery}")
+        return tuple(rows)
+
+
 def _provider_for_profile(profile: ProviderProfile) -> ProviderDefinition | None:
     if profile.auth_kind is AuthKind.EXTERNAL_FIRST_PARTY_CLI:
         return provider_definition(ProviderId.CODEX)
@@ -611,14 +666,85 @@ class ConnectionService:
             return CredentialState.ABSENT
         return CredentialState.PRESENT
 
-    def disconnect(self, identifier: ProviderId | str) -> None:
-        profile = self.profile_for_provider(identifier)
+    def disconnect(self, identifier: ProviderId | str) -> DisconnectResult:
+        """Remove OrbitRelay connection metadata only.
+
+        Official Codex authentication is never inspected or modified here.
+        Selection is cleared when the disconnected profile was selected; no
+        automatic fallback provider is chosen.
+        """
+        definition = provider_definition(identifier)
+        try:
+            profile = self.profile_for_provider(definition.identifier)
+        except ConnectionError as exc:
+            raise ConnectionError(str(exc)) from exc
+        selected_name = self._repository.selected_name()
+        was_selected = selected_name == profile.name
         if profile.requires_secret:
             ProfileService(
                 self._repository, self._credential_store()
             ).delete(profile.name)
         else:
             self._repository.delete(profile.name)
+        # Confirm no fallback selection occurred.
+        if was_selected and self._repository.selected_name() is not None:
+            raise ConnectionError(
+                "disconnect cleared a selected connection but another provider "
+                "was automatically selected"
+            )
+        return DisconnectResult(
+            provider=definition.identifier.value,
+            metadata=LifecyclePart.COMPLETED,
+            selection=(
+                LifecyclePart.COMPLETED if was_selected else LifecyclePart.UNCHANGED
+            ),
+            official_auth=LifecyclePart.UNCHANGED,
+            detail=(
+                "OrbitRelay metadata only; official authentication unchanged"
+                if definition.route is ExecutionRoute.CODEX_CLI
+                else None
+            ),
+        )
+
+    def logout_and_disconnect_codex(self) -> CodexLifecycleResult:
+        """Logout-first combined Codex operation with truthful partial results."""
+        logout_code = self._codex().logout()
+        if logout_code != 0:
+            return CodexLifecycleResult(
+                logout=LifecyclePart.FAILED,
+                metadata=LifecyclePart.UNCHANGED,
+                selection=LifecyclePart.UNCHANGED,
+                complete=False,
+                detail="official Codex logout failed",
+                recovery="retry: orbitrelay codex logout --disconnect",
+            )
+        try:
+            disconnected = self.disconnect(ProviderId.CODEX)
+        except ConnectionError as exc:
+            message = str(exc)
+            if "is not connected" in message:
+                return CodexLifecycleResult(
+                    logout=LifecyclePart.COMPLETED,
+                    metadata=LifecyclePart.ABSENT,
+                    selection=LifecyclePart.UNCHANGED,
+                    complete=True,
+                    detail="official logout completed; no OrbitRelay codex metadata present",
+                )
+            return CodexLifecycleResult(
+                logout=LifecyclePart.COMPLETED,
+                metadata=LifecyclePart.FAILED,
+                selection=LifecyclePart.UNCHANGED,
+                complete=False,
+                detail=message,
+                recovery="orbitrelay provider disconnect codex",
+            )
+        return CodexLifecycleResult(
+            logout=LifecyclePart.COMPLETED,
+            metadata=disconnected.metadata,
+            selection=disconnected.selection,
+            complete=True,
+            detail="official logout and OrbitRelay metadata disconnect completed",
+        )
 
     def _selected_profile(self) -> ProviderProfile:
         name = self._repository.selected_name()
