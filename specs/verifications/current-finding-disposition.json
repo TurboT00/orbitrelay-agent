@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+    "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 271,
+      "project_tests": 275,
       "example_tests": 9
     }
   },
@@ -40,7 +40,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "references": [
         {
@@ -65,7 +65,7 @@
         },
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "sensitive metadata and require_sensitive_resume_authority"
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
         },
         {
           "path": "src/orbitrelay/connection_service.py",
@@ -82,6 +82,18 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "selection clear without fallback"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt visibility active delete partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ],
       "command": "uv run python -m unittest tests.test_workspace_privacy -v",
@@ -90,7 +102,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -108,7 +120,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -126,7 +138,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "references": [
         {
@@ -139,7 +151,7 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt session fails before tools without traceback"
+          "locator": "corrupt visibility active delete partial delete-all"
         },
         {
           "path": "src/orbitrelay/connection_service.py",
@@ -156,6 +168,18 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "selection clear without fallback"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ],
       "command": "uv run python -m unittest tests.test_cli_errors -v",
@@ -164,7 +188,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -198,7 +222,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -240,7 +264,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "references": [
         {
@@ -266,7 +290,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -282,7 +306,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -302,28 +326,36 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "list suppression and delete_all behavior"
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt message and healthy deletion coverage"
+          "locator": "corrupt visibility active delete partial delete-all"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ]
     },
     {
       "id": "MED-03-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "commit_checkpoint unique temps and replay-safe gate"
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
         },
         {
           "path": "src/orbitrelay/cli.py",
@@ -331,11 +363,11 @@
         },
         {
           "path": "src/orbitrelay/session_cli.py",
-          "locator": "list/show active status; delete takes lease"
+          "locator": "list/show corrupt diagnostics and partial delete-all"
         },
         {
           "path": "tests/test_session_concurrency.py",
-          "locator": "multi-process conflict wait timeout crash"
+          "locator": "active delete fails closed"
         },
         {
           "path": "src/orbitrelay/context_budget.py",
@@ -368,6 +400,10 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "selection clear without fallback"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt visibility active delete partial delete-all"
         }
       ],
       "exit_code": 0,
@@ -376,23 +412,35 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "unbounded JSONL load and full-history rewrite"
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
         },
         {
           "path": "src/orbitrelay/context_budget.py",
           "locator": "outbound-only character budget"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt visibility active delete partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ]
     },
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -424,7 +472,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -444,7 +492,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -478,7 +526,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -494,7 +542,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -510,7 +558,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "references": [
         {
@@ -556,7 +604,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -572,7 +620,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -600,13 +648,29 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "selection clear without fallback"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt visibility active delete partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ]
     },
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -626,7 +690,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -656,13 +720,29 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "selection clear without fallback"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt visibility active delete partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ]
     },
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "passed",
       "references": [
         {
@@ -704,6 +784,22 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "selection clear without fallback"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt visibility active delete partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ],
       "command": "uv run python -m unittest tests.test_release_identity -v",
@@ -712,7 +808,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -738,13 +834,29 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "selection clear without fallback"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show corrupt diagnostics and partial delete-all"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt visibility active delete partial delete-all"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "active delete fails closed"
         }
       ]
     },
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "references": [
         {
@@ -760,7 +872,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "25e71e0517e63277db4f979a243b36a674be1dea",
+      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
