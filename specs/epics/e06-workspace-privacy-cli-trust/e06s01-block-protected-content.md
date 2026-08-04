@@ -2,7 +2,7 @@ STORY KEY: e06s01
 TITLE:     Block protected workspace content before disclosure
 TYPE:      Story
 PARENT:    e06
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M

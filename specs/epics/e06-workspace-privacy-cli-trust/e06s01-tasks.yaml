@@ -4,7 +4,7 @@ spec: e06s01-block-protected-content.md
 type: fix
 context: domain
 risk: P0
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_workspace_privacy -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -22,7 +22,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_agent tests.test_approvals -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -32,7 +32,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_workspace_privacy tests.test_events tests.test_run_summary tests.test_sessions -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical

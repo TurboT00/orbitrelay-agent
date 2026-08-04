@@ -9,7 +9,7 @@ stories:
   - id: e06s01
     title: Block protected workspace content before disclosure
     bcps: 5
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e06s01-block-protected-content.md
     tasks: e06s01-tasks.yaml
