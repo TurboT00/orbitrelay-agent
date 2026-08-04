@@ -44,7 +44,7 @@ stories:
   - id: e08s06
     title: Receive truthful crash-safe local tool outcomes
     bcps: 8
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e08s06-crash-safe-tool-outcomes.md
     tasks: e08s06-tasks.yaml

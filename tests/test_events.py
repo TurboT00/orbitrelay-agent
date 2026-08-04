@@ -182,5 +182,52 @@ class EventModelTests(unittest.TestCase):
         self.assertEqual(result_event.data["status"], "error")
 
 
+
+    def test_denied_tool_never_emits_executing_or_ok(self) -> None:
+        from orbitrelay.approvals import ApprovalDecision, ApprovalSession
+        from orbitrelay.events import EventType
+
+        client = Mock()
+        client.chat.completions.create.side_effect = [
+            _response(
+                _assistant_message(
+                    tool_calls=[
+                        _tool_call(
+                            "call-1",
+                            "write_file",
+                            '{"file_path":"x.txt","content":"nope"}',
+                        )
+                    ]
+                )
+            ),
+            _response(_assistant_message(content="done")),
+        ]
+        collector = EventCollector()
+
+        def authorize(requests):
+            return (ApprovalDecision.deny(reason="user_denied"),)
+
+        with tempfile.TemporaryDirectory() as workspace:
+            run_agent(
+                client,
+                "write something",
+                "test-model",
+                working_directory=workspace,
+                event_collector=collector,
+                approval_session=ApprovalSession(authorize),
+            )
+            self.assertFalse(Path(workspace, "x.txt").exists())
+
+        progress = [
+            event.data.get("phase")
+            for event in collector.of_type(EventType.TOOL_PROGRESS)
+        ]
+        self.assertIn("preparing", progress)
+        self.assertIn("authorizing", progress)
+        self.assertNotIn("executing", progress)
+        result = collector.of_type(EventType.TOOL_RESULT)[0]
+        self.assertEqual(result.data["status"], "denied")
+
+
 if __name__ == "__main__":
     unittest.main()

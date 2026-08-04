@@ -303,5 +303,59 @@ class ExecuteToolTests(unittest.TestCase):
         self.assertEqual(result, "workspace data")
 
 
+    def test_write_is_atomic_on_replace_failure(self) -> None:
+        from orbitrelay.tools.write_file import write_file
+
+        with tempfile.TemporaryDirectory() as workspace:
+            target = Path(workspace, "notes.txt")
+            target.write_text("ORIGINAL", encoding="utf-8")
+            with patch("orbitrelay.tools.write_file.os.replace", side_effect=OSError("interrupted")):
+                result = write_file(workspace, "notes.txt", "NEW_CONTENT_SHOULD_NOT_LAND")
+            self.assertTrue(result.startswith("Error:"))
+            self.assertEqual(target.read_text(encoding="utf-8"), "ORIGINAL")
+            # no leftover temp files with new content as the final name
+            leftovers = list(Path(workspace).glob(".orbitrelay-write-*"))
+            self.assertEqual(leftovers, [])
+
+    def test_write_fails_if_target_becomes_outside_symlink(self) -> None:
+        from orbitrelay.tools.write_file import write_file
+
+        with tempfile.TemporaryDirectory() as root:
+            workspace = Path(root, "workspace")
+            outside = Path(root, "outside")
+            workspace.mkdir()
+            outside.mkdir()
+            outside_file = outside / "secret.txt"
+            outside_file.write_text("SECRET", encoding="utf-8")
+            # First create a normal file inside workspace
+            inside = workspace / "target.txt"
+            inside.write_text("inside", encoding="utf-8")
+
+            real_resolve = __import__(
+                "orbitrelay.tools.write_file", fromlist=["resolve_path_within"]
+            ).resolve_path_within
+            calls = {"n": 0}
+
+            def flaky_resolve(working_directory, file_path):
+                calls["n"] += 1
+                # After initial validation/setup calls, swap target to outside symlink
+                # so the pre-replace revalidation observes the escape.
+                if calls["n"] >= 3 and inside.exists() and not inside.is_symlink():
+                    inside.unlink()
+                    try:
+                        inside.symlink_to(outside_file)
+                    except OSError as exc:
+                        self.skipTest(f"symlinks unavailable: {exc}")
+                return real_resolve(working_directory, file_path)
+
+            with patch(
+                "orbitrelay.tools.write_file.resolve_path_within",
+                side_effect=flaky_resolve,
+            ):
+                result = write_file(str(workspace), "target.txt", "PWNED")
+            self.assertIn("outside the permitted", result)
+            self.assertEqual(outside_file.read_text(encoding="utf-8"), "SECRET")
+
+
 if __name__ == "__main__":
     unittest.main()

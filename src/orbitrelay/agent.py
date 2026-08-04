@@ -395,12 +395,14 @@ def _tool_round_messages(
                 disposition=record.disposition.value,
                 reason=record.reason,
             )
-            collector.emit(
-                EventType.TOOL_PROGRESS,
-                tool_call_id=record.call_id,
-                tool=record.tool_name,
-                phase="executing",
-            )
+            # Denied/disabled calls never enter an executing phase.
+            if record.disposition.value == "allowed":
+                collector.emit(
+                    EventType.TOOL_PROGRESS,
+                    tool_call_id=record.call_id,
+                    tool=record.tool_name,
+                    phase="executing",
+                )
     results = _tool_result_messages(
         validated,
         prepared,
@@ -451,23 +453,26 @@ def _tool_result_messages(
     for (call_id, name, _arguments), prepared in zip(
         validated_calls, prepared_calls, strict=True
     ):
-        result = (
-            prepared
-            if isinstance(prepared, str)
-            else _execute_authorized_call(
+        decision: ApprovalDecision | None = None
+        if isinstance(prepared, str):
+            result = prepared
+            status = "error"
+        else:
+            decision = next(decisions)
+            result = _execute_authorized_call(
                 prepared,
-                next(decisions),
+                decision,
                 verbose,
                 sys.stderr if audit_stream is None else audit_stream,
             )
-        )
+            status = _tool_outcome_status(decision=decision, result=result)
         if collector is not None:
             # Do not include raw tool payload content in events (may be large/sensitive).
             collector.emit(
                 EventType.TOOL_RESULT,
                 tool_call_id=call_id,
                 tool=name,
-                status="error" if _looks_like_tool_error(result) else "ok",
+                status=status,
                 content_length=len(result),
             )
         messages.append({"role": "tool", "tool_call_id": call_id, "content": result})
@@ -482,6 +487,19 @@ def _looks_like_tool_error(result: str) -> bool:
     except json.JSONDecodeError:
         return False
     return isinstance(payload, dict) and "error" in payload
+
+
+def _tool_outcome_status(
+    *,
+    decision: ApprovalDecision,
+    result: str,
+) -> str:
+    """Map approval + result to a truthful observer status (never success on deny)."""
+    if not decision.approved:
+        return "denied"
+    if _looks_like_tool_error(result):
+        return "error"
+    return "ok"
 
 
 def _execute_authorized_call(
