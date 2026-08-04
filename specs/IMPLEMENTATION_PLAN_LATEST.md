@@ -7,7 +7,7 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** Wave 0 complete; e06s01 and e06s02 complete; 15 tasks passing and 57 tasks failing;
+**Implementation status:** Wave 0 complete; e06s01, e06s02, and e06s05 complete; 18 tasks passing and 54 tasks failing;
 release identity 0.6.0 applied; next-story approval required before later work
 
 ## Purpose
@@ -249,13 +249,13 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**Wave 0, e06s01, and e06s02 are complete.** The disposition oracle remains at
-`specs/verifications/current-finding-disposition.json` and records selected
-identity **0.6.0** with D-01 direct-read and discovery gates. Do not proceed to
-e06s05 or later stories until the next story is explicitly approved.
+**Wave 0 plus e06s01, e06s02, and e06s05 are complete.** The disposition oracle
+remains at `specs/verifications/current-finding-disposition.json`, records
+selected identity **0.6.0**, and marks MAJ-01 and MAJ-04 fixed. Do not proceed
+to e07s01 or later stories until the next story is explicitly approved.
 
 ## Handoff
 
 Next action: hold the next-story checkpoint. Recommended Wave 1 next story is
-e06s05 (CLI failure streams). Obtain explicit story approval before beginning
-e06s05 or any later stabilization work.
+e07s01 (offline provider readiness). Obtain explicit story approval before
+beginning e07s01 or any later stabilization work.

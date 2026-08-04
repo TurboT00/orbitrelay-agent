@@ -37,7 +37,7 @@ stories:
   - id: e06s05
     title: Receive expected CLI failures without traceback leakage
     bcps: 5
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e06s05-cli-failure-streams.md
     tasks: e06s05-tasks.yaml

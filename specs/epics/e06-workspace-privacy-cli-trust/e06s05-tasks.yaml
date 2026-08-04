@@ -4,7 +4,7 @@ spec: e06s05-cli-failure-streams.md
 type: fix
 context: infra
 risk: P0
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_cli_errors -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -22,7 +22,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_cli_errors tests.test_redaction -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -32,7 +32,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_cli_errors tests.test_streaming tests.test_agent -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
