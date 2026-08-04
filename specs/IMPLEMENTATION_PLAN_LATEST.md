@@ -7,7 +7,7 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** Wave 0 complete; e06s01/s02/s05, e07s01/s03, and e08s01 complete; 27 tasks passing and 45 tasks failing;
+**Implementation status:** Wave 0 complete; e06s01/s02/s05, e07s01/s03, and e08s01/s02 complete; 30 tasks passing and 42 tasks failing;
 release identity 0.6.0 applied; next-story approval required before later work
 
 ## Purpose
@@ -249,13 +249,14 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**Wave 0 plus e06s01/s02/s05, e07s01/s03, and e08s01 are complete.** The
+**Wave 0 plus e06s01/s02/s05, e07s01/s03, and e08s01/s02 are complete.** The
 disposition oracle remains at `specs/verifications/current-finding-disposition.json`
-and records selected identity **0.6.0** with exclusive session ownership. Do not
-proceed to e08s02 or later stories until the next story is explicitly approved.
+and records selected identity **0.6.0** with exclusive ownership and replay-safe
+checkpoints. Do not proceed to Wave 2 stories until the next story is explicitly
+approved.
 
 ## Handoff
 
-Next action: hold the next-story checkpoint. Recommended Wave 1 next story is
-e08s02 (replay-safe checkpoints). Obtain explicit story approval before
-beginning e08s02 or any later stabilization work.
+Next action: hold the next-story checkpoint. Recommended Wave 2 next story is
+e06s03 (one-run sensitive-read exception). Obtain explicit story approval before
+beginning e06s03 or any later stabilization work.
