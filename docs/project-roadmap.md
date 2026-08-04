@@ -16,9 +16,8 @@ resumable local sessions.
 
 The project is on `main`. Releases 0.3.0 through 0.5.0 are complete. The next
 standalone stabilization target is 0.6.0, with 1.0.0 reserved for a later
-milestone. The source tree contains post-release provider-connection and
-maintenance work but still declares package version 0.5.0 until e05s02 applies
-the selected identity.
+milestone. Package, module, CLI, and wheel identity report 0.6.0; the release is
+not tagged until the remaining stabilization stories complete.
 
 Use the [architecture guide](architecture.md) for implementation boundaries and
 the [README](../README.md) for installation and operation.
@@ -46,6 +45,7 @@ No later remediation task or P5 work is approved for execution yet.
 | 0.3.0 | Workspace tool approvals | Complete |
 | 0.4.0 | Hosted provider access and Codex CLI bridge | Complete |
 | 0.5.0 | Events, streaming, sessions, and context budgeting | Complete |
+| 0.6.0 | Trustworthy Stabilization (in progress) | In progress |
 
 ### Provider connections
 

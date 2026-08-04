@@ -16,7 +16,7 @@ stories:
   - id: e05s02
     title: Identify a reproducible stabilization candidate
     bcps: 5
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e05s02-release-identity.md
     tasks: e05s02-tasks.yaml

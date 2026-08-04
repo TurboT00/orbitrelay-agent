@@ -21,6 +21,7 @@ ALLOWED_STATUSES = {"fixed", "open", "accepted", "deferred"}
 ALLOWED_EVIDENCE_OUTCOMES = {"observed", "passed"}
 APPROVED_PASSED_COMMANDS = {
     "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
+    "uv run python -m unittest tests.test_release_identity -v",
     "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
     "uv run ruff check .",
     "uv run mypy src/orbitrelay",
@@ -44,7 +45,7 @@ EXPECTED_FINDING_STATUSES = {
     "MAJ-04": "open",
     "MAJ-05": "fixed",
     "MAJ-06": "fixed",
-    "MAJ-07": "open",
+    "MAJ-07": "fixed",
     "MAJ-08": "open",
     "MED-01": "open",
     "MED-02": "open",
@@ -60,7 +61,7 @@ EXPECTED_FINDING_STATUSES = {
     "MIN-01": "fixed",
     "MIN-02": "open",
     "MIN-03": "open",
-    "MIN-04": "open",
+    "MIN-04": "fixed",
     "MIN-05": "accepted",
     "MIN-06": "open",
     "MIN-07": "open",
@@ -275,8 +276,10 @@ def _validate_release_checkpoint(contract: dict[str, Any]) -> None:
     if not isinstance(release, dict):
         raise ContractError("release_version must be an object")
     _require_fields(release, {"state", "selected", "implications"}, "release version")
-    if release.get("state") != "pending-human-checkpoint" or release.get("selected") is not None:
-        raise ContractError("release version was selected before the human checkpoint")
+    if release.get("state") != "selected":
+        raise ContractError("release version must record the selected stabilization identity")
+    if release.get("selected") != "0.6.0":
+        raise ContractError("release version must remain the approved 0.6.0 identity")
     implications = release.get("implications")
     if not isinstance(implications, list) or not implications:
         raise ContractError("release version implications must be recorded")

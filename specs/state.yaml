@@ -1,8 +1,8 @@
-active_flow: none
-active_epic_id: null
-active_story_id: null
+active_flow: build_epic
+active_epic_id: e05
+active_story_id: e05s02
 release:
-  current_version: 0.5.0
+  current_version: 0.6.0
   last_completed_release: 0.5.0
   last_completed_tag: v0.5.0
   next_target: 0.6.0
@@ -14,7 +14,7 @@ verification:
   example_tests: 9
 planning:
   phase: build
-  status: e09s01_complete_next_story_checkpoint
+  status: e05s02_in_progress
   entry_skill: kickoff-branch
   next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]
@@ -102,8 +102,8 @@ decisions:
   remote_push: Do not push without an explicit user request.
   stabilization_release_target: >-
     The standalone post-0.5.0 stabilization release is 0.6.0. Keep 1.0.0 reserved
-    for a later product milestone. Package, module, CLI, and wheel identity stay
-    at 0.5.0 until e05s02 applies the selected version across all surfaces.
+    for a later product milestone. Package, module, CLI, and wheel identity report
+    0.6.0; tagging and publication still require later release-owner approval.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.

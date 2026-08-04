@@ -53,5 +53,6 @@ fi
 
 section "Checking the isolated wheel command"
 uv run --isolated --no-project --with "$wheel_path" orbitrelay --help >/dev/null
+uv run --isolated --no-project --with "$wheel_path" orbitrelay --version >/dev/null
 
 printf '\nAll OrbitRelay checks passed.\n'

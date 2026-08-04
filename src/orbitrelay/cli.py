@@ -22,6 +22,7 @@ from typing import TextIO
 
 from openai import APIStatusError, OpenAI
 
+from . import __version__
 from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
 from .codex_cli import run_codex_cli
@@ -53,6 +54,12 @@ CONSEQUENTIAL_TOOL_NAMES = frozenset({"write_file", "run_python_file"})
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="OrbitRelay personal assistant")
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version=f"orbitrelay {__version__}",
+    )
     parser.add_argument("user_prompt", help="User prompt")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
     parser.add_argument(
@@ -313,6 +320,9 @@ def _dispatch_cli(
     input_stream: TextIO | None,
     environment: Mapping[str, str],
 ) -> int:
+    if list(raw_argv) in (["--version"], ["-V"]):
+        print(f"orbitrelay {__version__}")
+        return 0
     if raw_argv and raw_argv[0] in {"profile", "auth"}:
         print(
             'The legacy "profile" and "auth" commands were replaced by '

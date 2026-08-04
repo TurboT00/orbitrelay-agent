@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 192,
+      "project_tests": 198,
       "example_tests": 9
     }
   },
@@ -19,13 +19,12 @@
     "counts": {
       "accepted": 1,
       "deferred": 2,
-      "fixed": 6,
-      "open": 17
+      "fixed": 8,
+      "open": 15
     },
     "release_blockers": [
       "MAJ-01",
       "MAJ-04",
-      "MAJ-07",
       "MAJ-08",
       "MED-01",
       "MED-02",
@@ -37,7 +36,6 @@
       "MED-10",
       "MIN-02",
       "MIN-03",
-      "MIN-04",
       "MIN-06",
       "MIN-07"
     ]
@@ -153,19 +151,29 @@
     },
     {
       "id": "MAJ-07-current",
-      "kind": "release-behavior-review",
+      "kind": "source-and-test-run",
       "revision": "4676dcdf5c398f3d1c8c1be87a79d6734effb53a",
-      "outcome": "observed",
+      "outcome": "passed",
       "references": [
         {
           "path": "pyproject.toml",
-          "locator": "project version remains 0.5.0"
+          "locator": "project version is 0.6.0"
+        },
+        {
+          "path": "src/orbitrelay/__init__.py",
+          "locator": "module identity is 0.6.0"
         },
         {
           "path": "scripts/check.sh",
-          "locator": "build and isolated-wheel behavior"
+          "locator": "isolated wheel --version smoke"
+        },
+        {
+          "path": "tests/test_release_identity.py",
+          "locator": "reproducible identity contracts"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_release_identity -v",
+      "exit_code": 0
     },
     {
       "id": "MAJ-08-current",
@@ -425,23 +433,29 @@
     },
     {
       "id": "MIN-04-current",
-      "kind": "release-behavior-review",
+      "kind": "source-and-test-run",
       "revision": "4676dcdf5c398f3d1c8c1be87a79d6734effb53a",
-      "outcome": "observed",
+      "outcome": "passed",
       "references": [
         {
+          "path": "src/orbitrelay/__init__.py",
+          "locator": "__version__ is 0.6.0"
+        },
+        {
           "path": "src/orbitrelay/cli.py",
-          "locator": "parser has no version option"
+          "locator": "--version / -V reports orbitrelay 0.6.0"
         },
         {
           "path": "pyproject.toml",
-          "locator": "package version 0.5.0"
+          "locator": "project version is 0.6.0"
         },
         {
-          "path": "scripts/check.sh",
-          "locator": "isolated wheel checks help only"
+          "path": "tests/test_release_identity.py",
+          "locator": "package, CLI, and wheel identity contracts"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_release_identity -v",
+      "exit_code": 0
     },
     {
       "id": "MIN-05-current",
@@ -577,14 +591,14 @@
       "id": "MAJ-07",
       "severity": "major",
       "title": "The reviewed implementation has no reproducible release baseline",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MAJ-07-current"
       ],
-      "rationale": "The refactor is committed and reproducible, but post-0.5.0 source still builds and reports version 0.5.0 without a matching release identity.",
-      "release_effect": "Blocks a release artifact until e05s02 establishes an approved identity; this story does not select it.",
+      "rationale": "The selected stabilization identity is 0.6.0 across pyproject metadata, orbitrelay.__version__, both CLI entry points, and isolated-wheel command output.",
+      "release_effect": "No independent release block remains for missing post-0.5.0 identity; tagging and publication still require later release-owner approval.",
       "owner": "e05-baseline-release-identity",
-      "residual_risk": "Artifacts from materially different source can be mistaken for released 0.5.0."
+      "residual_risk": "Untagged source can still change after identity selection; e10 remains the candidate closeout."
     },
     {
       "id": "MAJ-08",
@@ -787,14 +801,14 @@
       "id": "MIN-04",
       "severity": "minor",
       "title": "The CLI has no version command",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MIN-04-current"
       ],
-      "rationale": "Neither source nor isolated-wheel CLI exposes release identity, while package metadata still says 0.5.0.",
-      "release_effect": "Blocks e05s02 release identity but does not authorize selecting a version here.",
+      "rationale": "orbitrelay --version and python -m orbitrelay --version report the selected 0.6.0 identity consistently with package metadata and orbitrelay.__version__.",
+      "release_effect": "No independent release block remains for missing CLI version identity.",
       "owner": "e05-baseline-release-identity",
-      "residual_risk": "Operators cannot reliably identify the running build."
+      "residual_risk": "Operators must still distinguish untagged development builds from a published tag."
     },
     {
       "id": "MIN-05",
@@ -837,12 +851,13 @@
     }
   ],
   "release_version": {
-    "state": "pending-human-checkpoint",
-    "selected": null,
+    "state": "selected",
+    "selected": "0.6.0",
     "implications": [
-      "Post-0.5.0 source currently builds artifacts identified as 0.5.0.",
-      "Breaking provider changes exist, but semantic-version selection requires the e05s01 evidence checkpoint and release-owner decision.",
-      "Python metadata remains at 3.14 until the complete macOS 3.12 through 3.14 matrix passes."
+      "Release-owner selected 0.6.0 for the standalone stabilization candidate and reserved 1.0.0 for a later milestone.",
+      "Package, module, CLI, and wheel identity report 0.6.0 after e05s02.",
+      "Python metadata remains at 3.14 until the complete macOS 3.12 through 3.14 matrix passes.",
+      "Selecting 0.6.0 does not authorize tagging, publishing, or push."
     ]
   }
 }

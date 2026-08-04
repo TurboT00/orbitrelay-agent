@@ -69,11 +69,11 @@ class ReleaseBaselineContractTests(unittest.TestCase):
         )
         self.assertNotRegex(serialized, r"\bmt-\d{2}\b")
 
-    def test_release_version_remains_at_human_checkpoint(self) -> None:
+    def test_release_version_records_selected_stabilization_identity(self) -> None:
         release = self.contract["release_version"]
 
-        self.assertEqual(release["state"], "pending-human-checkpoint")
-        self.assertIsNone(release["selected"])
+        self.assertEqual(release["state"], "selected")
+        self.assertEqual(release["selected"], "0.6.0")
 
     def test_contract_contains_no_secret_bearing_evidence(self) -> None:
         serialized = json.dumps(self.contract, sort_keys=True)
