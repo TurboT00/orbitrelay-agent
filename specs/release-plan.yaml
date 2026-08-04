@@ -23,7 +23,7 @@ epics:
   - id: e05
     title: Baseline and Release Identity
     capsule_dir: epics/e05-baseline-release-identity
-    status: in_progress
+    status: done
     wsjf: 6.8
     bcps: 10
     note: >-

@@ -1,6 +1,6 @@
-active_flow: build_epic
-active_epic_id: e05
-active_story_id: e05s02
+active_flow: none
+active_epic_id: null
+active_story_id: null
 release:
   current_version: 0.6.0
   last_completed_release: 0.5.0
@@ -10,11 +10,11 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 192
+  project_tests: 198
   example_tests: 9
 planning:
   phase: build
-  status: e05s02_in_progress
+  status: e05s02_complete_next_story_checkpoint
   entry_skill: kickoff-branch
   next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]
@@ -26,9 +26,10 @@ planning:
     report: specs/IMPACT_LATEST.md
     risk: high
   next_action: >-
-    e09s01 is complete. Explicitly approve the next automated story before
-    implementation. Recommended next: e05s02 (apply release identity 0.6.0).
-    Do not begin later stabilization stories or P5 without explicit approval.
+    Wave 0 is complete (e05s01, e09s01, e05s02). Explicitly approve the next
+    automated story before implementation. Recommended next: e06s01 (block
+    protected content). Do not begin later stabilization stories or P5 without
+    explicit approval.
 handoff:
   required_reading:
     - README.md
@@ -41,14 +42,14 @@ handoff:
     - specs/IMPACT_LATEST.md
     - specs/IMPLEMENTATION_PLAN_LATEST.md
   open_decisions:
-    - Explicitly approve the next automated stabilization story (recommended: e05s02).
+    - Explicitly approve the next automated stabilization story (recommended: e06s01).
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
-    Release target 0.6.0 is selected. e05s01 and e09s01 are complete. Automated
-    verification is the release gate; user-run side testing is optional and
-    non-blocking. Approve the next story (recommended: e05s02), then begin only
-    that story. Keep P5 blocked and keep package identity at 0.5.0 until e05s02.
+    Release identity 0.6.0 is applied. e05, e05s01, e05s02, and e09s01 are complete.
+    Automated verification is the release gate; user-run side testing is optional
+    and non-blocking. Approve the next story (recommended: e06s01), then begin only
+    that story. Keep P5 blocked. Tagging/publishing still require separate approval.
   next_skill: human-checkpoint
 decisions:
   product_identity: >-

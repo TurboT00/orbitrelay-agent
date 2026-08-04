@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-08-03
 **Latest tagged release:** 0.5.0
-**Development status:** post-0.5.0 stabilization toward 0.6.0; e09s01 complete; next story approval required
+**Development status:** post-0.5.0 stabilization at identity 0.6.0; Wave 0 complete; next story approval required
 
 ## Current baseline
 
@@ -30,12 +30,12 @@ post-0.5.0 stabilization scope now covers current release blockers and their
 coupled correctness work. It is sliced into 24 vertical stories across epics e05
 through e10. A full impact assessment rates the cross-epic blast radius High and
 records shared-module, migration, test, and sequencing constraints. Detailed
-plans define 72 tasks across the 24 stories. e05s01 and e09s01 are complete with
-6 passing tasks; the revision-bound disposition still covers all 26 July findings;
-the remaining 66 tasks are failing. Automated verification is the release gate;
-user-run side testing remains optional and non-blocking.
-Release target 0.6.0 is selected. The project is paused only for explicit
-next-story approval before Wave 0 continues (recommended: e05s02).
+plans define 72 tasks across the 24 stories. Wave 0 is complete (e05s01, e09s01,
+e05s02) with 9 passing tasks; the revision-bound disposition still covers all 26
+July findings; the remaining 63 tasks are failing. Automated verification is the
+release gate; user-run side testing remains optional and non-blocking.
+Release identity 0.6.0 is applied. The project is paused only for explicit
+next-story approval before Wave 1 (recommended: e06s01).
 No later remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities

@@ -1,7 +1,7 @@
 development_status:
-  e05: in_progress
+  e05: done
   e05s01: done
-  e05s02: in_progress
+  e05s02: done
   e06: todo
   e06s01: todo
   e06s02: todo
@@ -32,7 +32,7 @@ development_status:
 
 epics:
   e05:
-    status: in_progress
+    status: done
     title: Baseline and Release Identity
     wsjf: 6.8
     total_bcps: 10
