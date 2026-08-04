@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSESSED_REVISION = "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1"
-EXPECTED_CONTRACT_SHA256 = "8f1d5041489b7fe9ec8209c4d93c13b280af5bdb081517d60fad0ffda88cd154"
+ASSESSED_REVISION = "0df7e685885ba133412c9554849312ada33f614f"
+EXPECTED_CONTRACT_SHA256 = "b8091e84b9a13f2485a142160bd62ef82088fb2db71f3e0b3557f8785b05405d"
 CANONICAL_FINDING_IDS = tuple(
     [f"MAJ-{number:02d}" for number in range(1, 9)]
     + [f"MED-{number:02d}" for number in range(1, 12)]
@@ -25,6 +25,7 @@ APPROVED_PASSED_COMMANDS = {
     "uv run python -m unittest tests.test_workspace_privacy -v",
     "uv run python -m unittest tests.test_cli_errors -v",
     "uv run python -m unittest tests.test_provider_cli tests.test_connection_service -v",
+    "uv run python -m unittest tests.test_codex_bridge tests.test_provider_cli -v",
     "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
     "uv run ruff check .",
     "uv run mypy src/orbitrelay",
