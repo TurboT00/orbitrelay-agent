@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+    "revision": "07374e55561645d794a19f644505c0a99b815c51",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 275,
+      "project_tests": 280,
       "example_tests": 9
     }
   },
@@ -40,7 +40,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "references": [
         {
@@ -65,7 +65,7 @@
         },
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/connection_service.py",
@@ -89,11 +89,19 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ],
       "command": "uv run python -m unittest tests.test_workspace_privacy -v",
@@ -102,7 +110,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -120,25 +128,37 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
       "references": [
         {
           "path": "src/orbitrelay/agent.py",
-          "locator": "audit_stream defaults to stderr"
+          "locator": "current system instructions on resume"
         },
         {
           "path": "tests/test_run_summary.py",
           "locator": "final-answer-only stdout regressions"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "segmented history and load_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "bounded segments migration and system replacement"
         }
       ]
     },
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "references": [
         {
@@ -151,7 +171,7 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "src/orbitrelay/connection_service.py",
@@ -171,7 +191,7 @@
         },
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/session_cli.py",
@@ -180,6 +200,14 @@
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ],
       "command": "uv run python -m unittest tests.test_cli_errors -v",
@@ -188,7 +216,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -222,7 +250,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -264,7 +292,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "references": [
         {
@@ -290,7 +318,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
@@ -306,12 +334,12 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/agent.py",
-          "locator": "string-based tool-error inference"
+          "locator": "current system instructions on resume"
         },
         {
           "path": "src/orbitrelay/tools/run_python_file.py",
@@ -320,22 +348,34 @@
         {
           "path": "src/orbitrelay/run_summary.py",
           "locator": "event status counts"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "segmented history and load_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "bounded segments migration and system replacement"
         }
       ]
     },
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "src/orbitrelay/session_cli.py",
@@ -344,18 +384,26 @@
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ]
     },
     {
       "id": "MED-03-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/cli.py",
@@ -371,7 +419,7 @@
         },
         {
           "path": "src/orbitrelay/context_budget.py",
-          "locator": "is_replay_safe and replay_safe_prefix"
+          "locator": "pack_segments and select_replay_messages"
         },
         {
           "path": "tests/test_session_transactions.py",
@@ -403,7 +451,11 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ],
       "exit_code": 0,
@@ -412,16 +464,16 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/context_budget.py",
-          "locator": "outbound-only character budget"
+          "locator": "pack_segments and select_replay_messages"
         },
         {
           "path": "src/orbitrelay/session_cli.py",
@@ -429,18 +481,22 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ]
     },
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
@@ -472,7 +528,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
@@ -492,7 +548,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -526,39 +582,59 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/agent.py",
-          "locator": "unconditional executing event after authorization"
+          "locator": "current system instructions on resume"
         },
         {
           "path": "tests/test_events.py",
           "locator": "approval event coverage"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "segmented history and load_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "bounded segments migration and system replacement"
         }
       ]
     },
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/context_budget.py",
-          "locator": "fixed serialized-character budget"
+          "locator": "pack_segments and select_replay_messages"
         },
         {
           "path": "src/orbitrelay/agent.py",
-          "locator": "tool schema added after history budgeting"
+          "locator": "current system instructions on resume"
+        },
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "segmented history and load_replay_messages"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "bounded segments migration and system replacement"
         }
       ]
     },
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "references": [
         {
@@ -604,7 +680,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
@@ -620,7 +696,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -651,7 +727,7 @@
         },
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/session_cli.py",
@@ -659,18 +735,26 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ]
     },
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
@@ -690,7 +774,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
@@ -723,7 +807,7 @@
         },
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/session_cli.py",
@@ -731,18 +815,26 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ]
     },
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "passed",
       "references": [
         {
@@ -787,7 +879,7 @@
         },
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/session_cli.py",
@@ -795,11 +887,19 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "current system instructions on resume"
         }
       ],
       "command": "uv run python -m unittest tests.test_release_identity -v",
@@ -808,12 +908,12 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
           "path": "src/orbitrelay/agent.py",
-          "locator": "module remains above the local size target"
+          "locator": "current system instructions on resume"
         },
         {
           "path": "src/orbitrelay/cli.py",
@@ -837,7 +937,7 @@
         },
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "SessionSummary corrupt visibility and DeleteAllResult"
+          "locator": "segmented history and load_replay_messages"
         },
         {
           "path": "src/orbitrelay/session_cli.py",
@@ -845,18 +945,22 @@
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt visibility active delete partial delete-all"
+          "locator": "bounded segments migration and system replacement"
         },
         {
           "path": "tests/test_session_concurrency.py",
           "locator": "active delete fails closed"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "pack_segments and select_replay_messages"
         }
       ]
     },
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "references": [
         {
@@ -872,7 +976,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "027ca7341e7e6ea639f0587e277a17d527073d3b",
+      "revision": "07374e55561645d794a19f644505c0a99b815c51",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
