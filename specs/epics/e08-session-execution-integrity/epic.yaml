@@ -9,7 +9,7 @@ stories:
   - id: e08s01
     title: Prevent concurrent ownership of one active session
     bcps: 8
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e08s01-exclusive-session-owner.md
     tasks: e08s01-tasks.yaml

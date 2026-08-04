@@ -1,6 +1,6 @@
-active_flow: build_epic
-active_epic_id: e08
-active_story_id: e08s01
+active_flow: none
+active_epic_id: null
+active_story_id: null
 release:
   current_version: 0.6.0
   last_completed_release: 0.5.0
@@ -10,11 +10,11 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 237
+  project_tests: 243
   example_tests: 9
 planning:
   phase: build
-  status: e08s01_in_progress
+  status: e08s01_complete_next_story_checkpoint
   entry_skill: kickoff-branch
   next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]
@@ -26,8 +26,8 @@ planning:
     report: specs/IMPACT_LATEST.md
     risk: high
   next_action: >-
-    e07s03 is complete. Explicitly approve the next automated story before
-    implementation. Recommended next: e08s01 (exclusive session owner).
+    e08s01 is complete. Explicitly approve the next automated story before
+    implementation. Recommended next: e08s02 (replay-safe checkpoints).
     Do not begin later stories or P5 without explicit approval.
 handoff:
   required_reading:
@@ -41,14 +41,14 @@ handoff:
     - specs/IMPACT_LATEST.md
     - specs/IMPLEMENTATION_PLAN_LATEST.md
   open_decisions:
-    - Explicitly approve the next automated stabilization story (recommended: e08s01).
+    - Explicitly approve the next automated stabilization story (recommended: e08s02).
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
-    Release identity 0.6.0 is applied. Wave 0 plus e06 privacy/CLI and e07s01/s03
-    are complete. Automated verification is the release gate; user-run side testing
-    is optional and non-blocking. Approve the next story (recommended: e08s01),
-    then begin only that story. Keep P5 blocked. Tagging/publishing still require
+    Release identity 0.6.0 is applied. Wave 0 plus e06/e07 readiness and e08s01 are
+    complete. Automated verification is the release gate; user-run side testing is
+    optional and non-blocking. Approve the next story (recommended: e08s02), then
+    begin only that story. Keep P5 blocked. Tagging/publishing still require
     separate approval.
   next_skill: human-checkpoint
 decisions:
