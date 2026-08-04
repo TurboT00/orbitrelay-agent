@@ -13,6 +13,7 @@ from orbitrelay.approvals import ApprovalRequest, ToolCategory
 from .get_file_content import get_file_content
 from .get_files_info import get_files_info
 from .run_python_file import run_python_file, validate_python_target
+from .workspace_privacy import deny_protected_read
 from .write_file import validate_write_target, write_file
 
 FUNCTIONS: dict[str, Callable[..., str]] = {
@@ -179,6 +180,27 @@ def _approval_request(
         return _write_approval_request(call_id, name, arguments)
     if name == "run_python_file":
         return _execution_approval_request(call_id, name, arguments)
+    if name == "get_file_content":
+        return _read_approval_request(call_id, name, arguments)
+    return ApprovalRequest(
+        call_id=call_id,
+        tool_name=name,
+        category=TOOL_CATEGORIES[name],
+        safe_context=(),
+    )
+
+
+def _read_approval_request(
+    call_id: str,
+    name: str,
+    arguments: dict[str, Any],
+) -> ApprovalRequest | str:
+    file_path = arguments.get("file_path")
+    if not isinstance(file_path, str):
+        return f'Error: invalid arguments for "{name}": file_path must be a string'
+    denial = deny_protected_read(arguments["working_directory"], file_path)
+    if denial is not None:
+        return denial
     return ApprovalRequest(
         call_id=call_id,
         tool_name=name,

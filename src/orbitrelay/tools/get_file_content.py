@@ -2,10 +2,15 @@ import os
 
 from ..config import MAX_CHARS
 from .path_safety import resolve_path_within
+from .workspace_privacy import deny_protected_read
 
 
 def get_file_content(working_directory, file_path):
     try:
+        denial = deny_protected_read(working_directory, file_path)
+        if denial is not None:
+            return denial
+
         _working_dir, target_file, valid_target_file = resolve_path_within(
             working_directory, file_path
         )
@@ -18,7 +23,9 @@ def get_file_content(working_directory, file_path):
         with open(target_file, encoding="utf-8") as file:
             content = file.read(MAX_CHARS)
             if file.read(1):
-                content += f'[...File "{file_path}" truncated at {MAX_CHARS} characters]'
+                content += (
+                    f'[...File "{file_path}" truncated at {MAX_CHARS} characters]'
+                )
             return content
     except Exception as e:
         return f"Error: {e}"

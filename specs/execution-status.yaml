@@ -2,8 +2,8 @@ development_status:
   e05: done
   e05s01: done
   e05s02: done
-  e06: todo
-  e06s01: todo
+  e06: in_progress
+  e06s01: in_progress
   e06s02: todo
   e06s03: todo
   e06s04: todo
@@ -38,7 +38,7 @@ epics:
     total_bcps: 10
     capsule_dir: specs/epics/e05-baseline-release-identity
   e06:
-    status: todo
+    status: in_progress
     title: Workspace Privacy and CLI Trust
     wsjf: 6.0
     total_bcps: 34

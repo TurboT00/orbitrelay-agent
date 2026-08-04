@@ -2,14 +2,14 @@ id: e06
 title: Workspace Privacy and CLI Trust
 wsjf: 6.0
 total_bcps: 34
-status: todo
+status: in_progress
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.6.0"
 stories:
   - id: e06s01
     title: Block protected workspace content before disclosure
     bcps: 5
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e06s01-block-protected-content.md
     tasks: e06s01-tasks.yaml
