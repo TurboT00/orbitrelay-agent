@@ -60,10 +60,10 @@ in_scope:
       and the approved macOS Python 3.12 through 3.14 compatibility claim.
   - id: e10
     outcome: >-
-      Complete the authorized manual evidence, re-audit the candidate, align
+      Complete revision-bound automated evidence, re-audit the candidate, align
       product and architecture records with shipped behavior, and produce a
       standalone release candidate with no unresolved critical or unaccepted
-      major concern.
+      major concern. User-run side testing is optional and non-blocking.
 
 out_of_scope:
   - item: P5 local-model or Ollama support
@@ -157,24 +157,24 @@ success_criteria:
     with rationale, owner, and effect on release readiness.
   - Ordinary workspace reads remain automatic while all D-01 sensitive-path,
     directory-discovery, exception-lifetime, private-key, and session-persistence
-    rules pass automated tests and MT-11.
+    rules pass automated unit, integration, and process-level tests.
   - Provider status distinguishes configuration, selection, credential or login
     state, local readiness, and historical verification without exposing secrets
     or requiring network access.
   - Failed provider and Codex lifecycle operations preserve prior state, and
-    disconnect/logout behavior matches D-05 and MT-08.
+    disconnect/logout behavior matches D-05 under injected CLI regressions.
   - Same-session concurrent processes cannot silently corrupt or overwrite
     history; replay-safe checkpoints, corrupt-session handling, and deletion
-    behavior pass process-level tests and MT-12/MT-13.
+    behavior pass deterministic process-level tests.
   - Coupled tool, event, context, output-bound, and crash-safety findings required
     by the release blockers have regression tests and observable failure states.
   - One documented local command enforces the agreed test, Ruff, mypy, coverage,
     dependency, security, build, and isolated-wheel gates and fails on regression.
   - Python 3.12, 3.13, and 3.14 each pass the complete macOS release matrix before
     package metadata or classifiers claim the lower floor.
-  - Authorized manual evidence and a release re-audit support the candidate; the
-    README, architecture, roadmap, package version, and active state match shipped
-    behavior.
+  - Revision-bound automated evidence and a release re-audit support the candidate;
+    the README, architecture, roadmap, package version, and active state match
+    shipped behavior.
   - A clean checkout can reproduce the standalone stabilization release candidate
     without live credentials or untracked build artifacts.
 
@@ -186,7 +186,6 @@ references:
   - docs/project-roadmap.md
   - docs/project-review-2026-07-29.md (local internal evidence)
   - docs/remediation-plan-2026-07-29.md (local internal decision record)
-  - docs/manual-test-plan-2026-07-29.md (local internal evidence plan)
   - specs/archive/IMPACT-provider-connections.md
   - specs/archive/REFACTOR-2026-07-provider-connections.md
   - specs/archive/TRACEABILITY-0.5.0.md

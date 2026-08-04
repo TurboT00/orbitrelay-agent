@@ -16,11 +16,13 @@ OrbitRelay declares Python 3.14+ without evidence that a lower floor is necessar
 
 ### 2. Value statement [reviewed]
 
-Users receive a proven macOS Python 3.12–3.14 support range backed by one lock, complete tests, quality gates, build, wheel smoke, and credential checks.
+Users receive a proven macOS Python 3.12–3.14 support range backed by one lock,
+complete tests, quality gates, injected credential-store regressions, build, and
+wheel smoke.
 
 ### 3. Actors and permissions [reviewed]
 
-Maintainers run automated matrix jobs; authorized operators run native credential checks in disposable environments.
+Maintainers run automated matrix jobs in disposable environments.
 
 ### 4. Trigger and preconditions [reviewed]
 
@@ -28,7 +30,7 @@ e05s02 identity and e09s01/e09s02 gates are complete; D-04 forbids metadata chan
 
 ### 5. Main flow and business logic [reviewed]
 
-Generate a disposable candidate manifest/lock without changing tracked metadata, run the full automated matrix on 3.12/3.13/3.14, collect separately authorized macOS credential evidence, then apply the proven candidate metadata/lock and rerun.
+Generate a disposable candidate manifest/lock without changing tracked metadata, run the full automated matrix on 3.12/3.13/3.14, then apply the proven candidate metadata/lock and rerun the same automated gates.
 
 ### 6. Alternative flows and exceptions [reviewed]
 
@@ -36,15 +38,20 @@ Any minor failure blocks metadata change until fixed or a new explicit product d
 
 ### 7. Interface elements [reviewed]
 
-`scripts/check-python-matrix.sh` can stage a disposable candidate floor for qualification, run the complete per-minor contract, validate an explicit local evidence record, and report each interpreter/stage.
+`scripts/check-python-matrix.sh` can stage a disposable candidate floor for
+qualification, run the complete per-minor contract, validate a tracked automated
+evidence record, and report each interpreter/stage.
 
 ### 8. Domain model [reviewed]
 
-A matrix result records OS, architecture, Python minor, lock revision, stage results, artifact identity, and authorized credential evidence reference.
+A matrix result records OS, architecture, Python minor, lock revision, stage
+results, artifact identity, and injected credential-store test results.
 
 ### 9. Integrations and boundaries [reviewed]
 
-Touches a temporary candidate `requires-python`/classifiers/lock, then the accepted tracked metadata and lock, dependencies, examples, quality tools, build, entry points, and separately authorized keyring checks.
+Touches a temporary candidate `requires-python`/classifiers/lock, then the
+accepted tracked metadata and lock, dependencies, examples, quality tools, build,
+entry points, and injected keyring-backend regressions.
 
 ### 10. Background processes [reviewed]
 
@@ -56,7 +63,8 @@ The matrix names the exact interpreter and failed stage.
 
 ### 12. Audit and logging [reviewed]
 
-Credential evidence records outcome only and follows the local sanitized runbook.
+Generated evidence records allowlisted outcomes only and rejects secret-bearing
+values or private payloads.
 
 ### 13. Solution variabilities [reviewed]
 
@@ -68,7 +76,9 @@ Use one script parameterized by interpreter and candidate floor, not three diver
 
 ### 15. Test strategy [reviewed]
 
-For every minor: candidate lock/sync, import, full tests, examples, Ruff, mypy, coverage/audits, build, isolated wheel, and both entry points; validate separately authorized per-minor keyring evidence before tracked metadata changes.
+For every minor: candidate lock/sync, import, full tests, examples, Ruff, mypy,
+coverage/audits, injected keyring-backend regressions, build, isolated wheel, and
+both entry points before tracked metadata changes.
 
 ### 16. Observability [reviewed]
 
@@ -87,7 +97,8 @@ Feature: macOS Python compatibility matrix
   Scenario: Every declared minor passes
     Given one lock and Python 3.12, 3.13, and 3.14 on macOS
     When the matrix runs
-    Then every disposable-candidate test, quality, build, wheel, and CLI stage passes and authorized credential evidence is complete
+    Then every disposable-candidate test, quality, injected credential-store,
+    build, wheel, and CLI stage passes
 
   Scenario: One minor fails
     When any required stage fails
@@ -120,11 +131,11 @@ All three minors pass the full matrix and metadata changes only afterward with n
 
 1. Add contracts and a disposable candidate-manifest/lock procedure that leaves tracked Python 3.14 metadata unchanged → verify: `uv run python -m unittest tests.test_python_matrix -v`
 2. Run complete automated tests, quality, build, wheel, and CLI checks against the disposable 3.12-floor candidate on every minor → verify: `./scripts/check-python-matrix.sh --candidate-floor 3.12 --automated-only`
-3. Validate separately authorized per-minor credential evidence, apply the proven candidate metadata/lock, and rerun the committed matrix → verify: `uv run python -m unittest tests.test_release_identity tests.test_python_matrix -v && ./scripts/check-python-matrix.sh --evidence-file docs/manual-test-results-stabilization.md --require-credential-evidence`
+3. Apply the proven candidate metadata/lock and rerun the complete committed matrix → verify: `uv run python -m unittest tests.test_release_identity tests.test_python_matrix -v && ./scripts/check-python-matrix.sh --automated-only`
 
 ## Verification Script (Step-by-Step)
 
 1. Verify all three interpreters are available and tracked metadata still requires Python 3.14.
 2. Run the disposable candidate-floor matrix and confirm it leaves tracked files unchanged.
-3. Obtain separate authorization for per-minor native credential checks and record sanitized results in the local evidence file.
-4. Apply the proven candidate metadata/lock only after both automated and required manual evidence pass, then rerun the committed matrix.
+3. Generate and validate the revision-bound automated matrix evidence record.
+4. Apply the proven candidate metadata/lock only after every automated matrix gate passes, then rerun the committed matrix.

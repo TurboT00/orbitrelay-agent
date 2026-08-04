@@ -20,7 +20,7 @@ Release owners can see whether every critical/major concern is resolved, accepte
 
 ### 3. Actors and permissions [reviewed]
 
-Reviewers run automated or authorized manual evidence; release owners accept residual risk separately from implementation.
+Reviewers run automated evidence and independent review; release owners accept residual risk separately from implementation.
 
 ### 4. Trigger and preconditions [reviewed]
 
@@ -36,7 +36,7 @@ Open critical findings block automatically; open major findings require explicit
 
 ### 7. Interface elements [reviewed]
 
-The re-audit report distinguishes automated proof, authorized manual proof, waiver, accepted risk, deferred work, and blocker.
+The re-audit report distinguishes automated proof, independent review, waiver, accepted risk, deferred work, and blocker.
 
 ### 8. Domain model [reviewed]
 
@@ -44,7 +44,7 @@ A verdict binds revision, finding dispositions, evidence references, waivers, re
 
 ### 9. Integrations and boundaries [reviewed]
 
-Consumes e05 finding data, all verification artifacts, impact constraints, private evidence summaries, diffs, tests, and release gates.
+Consumes e05 finding data, tracked verification artifacts, impact constraints, diffs, tests, and release gates.
 
 ### 10. Background processes [reviewed]
 
@@ -56,7 +56,7 @@ The verdict is READY, NOT READY, or READY WITH EXPLICIT ACCEPTANCE; it never hid
 
 ### 12. Audit and logging [reviewed]
 
-Only sanitized references enter the verdict; private payloads remain local and untracked.
+Only allowlisted, secret-free references enter the verdict; private payloads are rejected.
 
 ### 13. Solution variabilities [reviewed]
 
@@ -85,7 +85,7 @@ Feature: Stabilization candidate re-audit
   Scenario: Evidence is complete
     Given the exact candidate and all required artifacts
     When the oracle and independent review run
-    Then every finding links to current automated/manual evidence or explicit risk treatment
+    Then every finding links to current automated evidence or explicit risk treatment
 
   Scenario: Critical concern remains
     When the verdict is calculated
@@ -112,11 +112,11 @@ Baseline/evidence/redaction tests and independent code/security reviews support 
 
 1. Re-run the current finding oracle against the exact revision and link evidence → verify: `uv run python -m unittest tests.test_release_baseline tests.test_release_evidence -v`
 2. Require every critical/major concern to be fixed, accepted, or deferred by policy → verify: `uv run python -m unittest tests.test_release_baseline -v`
-3. Produce a secret-free verdict separating proof, waivers, residual risk, and independent review evidence → verify: `uv run python -m unittest tests.test_release_baseline tests.test_redaction -v && uv run python scripts/validate_release_evidence.py --record docs/manual-test-results-stabilization.md --revision "$(git rev-parse HEAD)" --required-set stabilization --require-review`
+3. Produce a secret-free verdict separating automated proof, waivers, residual risk, and independent review evidence → verify: `uv run python -m unittest tests.test_release_baseline tests.test_redaction -v && uv run python scripts/validate_release_evidence.py --record specs/verifications/release-evidence.json --revision "$(git rev-parse HEAD)" --required-set automated --require-review`
 
 ## Verification Script (Step-by-Step)
 
 1. Freeze and record the candidate revision.
-2. Run all automated gates and validate manual evidence revision binding.
+2. Run all automated gates and validate generated evidence revision binding.
 3. Conduct independent code and security review of affected paths.
 4. Calculate and review the final verdict and residual risks.

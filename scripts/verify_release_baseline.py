@@ -11,14 +11,12 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSESSED_REVISION = "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41"
-EXPECTED_CONTRACT_SHA256 = "e330f400598c47615fb9f20994fab468d892d21241d35d24b28bc2c7c788e282"
+EXPECTED_CONTRACT_SHA256 = "c5fe66e5b6ae492b6c76cd42f08222f8a0622fea5f608872b9956e2c907d219f"
 CANONICAL_FINDING_IDS = tuple(
     [f"MAJ-{number:02d}" for number in range(1, 9)]
     + [f"MED-{number:02d}" for number in range(1, 12)]
     + [f"MIN-{number:02d}" for number in range(1, 8)]
 )
-CANONICAL_MANUAL_IDS = ("MT-01", "MT-02", "MT-08", "MT-09", "MT-11")
-SELECTED_MANUAL_IDS = {"MT-02", "MT-09"}
 ALLOWED_STATUSES = {"fixed", "open", "accepted", "deferred"}
 ALLOWED_EVIDENCE_OUTCOMES = {"observed", "passed"}
 APPROVED_PASSED_COMMANDS = {
@@ -68,8 +66,6 @@ EXPECTED_FINDING_STATUSES = {
 PRIVATE_RECORD_NAMES = {
     "project-review-2026-07-29.md",
     "remediation-plan-2026-07-29.md",
-    "manual-test-plan-2026-07-29.md",
-    "manual-test-runbook-macos.md",
 }
 SECRET_PATTERNS = (
     re.compile(r"-----BEGIN [^-]*PRIVATE KEY-----"),
@@ -89,7 +85,6 @@ TOP_LEVEL_FIELDS = {
     "summary",
     "evidence",
     "findings",
-    "manual_prerequisites",
     "release_version",
 }
 
@@ -265,7 +260,7 @@ def _validate_summary(contract: dict[str, Any]) -> None:
     summary = contract.get("summary")
     if not isinstance(summary, dict):
         raise ContractError("summary must be an object")
-    _require_fields(summary, {"counts", "release_blockers", "manual_blockers", "manual_passed"}, "summary")
+    _require_fields(summary, {"counts", "release_blockers"}, "summary")
     findings = contract["findings"]
     expected_counts = {status: sum(item["status"] == status for item in findings) for status in sorted(ALLOWED_STATUSES)}
     if summary.get("counts") != expected_counts:
@@ -273,68 +268,6 @@ def _validate_summary(contract: dict[str, Any]) -> None:
     expected_blockers = sorted(item["id"] for item in findings if item["status"] == "open")
     if summary.get("release_blockers") != expected_blockers:
         raise ContractError("summary release blockers do not match open findings")
-    if summary.get("manual_blockers") != ["MT-02"] or summary.get("manual_passed") != ["MT-09"]:
-        raise ContractError("summary manual evidence state does not match the approved checkpoint")
-
-
-def _validate_manual_prerequisites(contract: dict[str, Any]) -> None:
-    manual = contract.get("manual_prerequisites")
-    if not isinstance(manual, list) or not all(isinstance(item, dict) for item in manual):
-        raise ContractError("manual_prerequisites must be a list of objects")
-    _require_unique(manual, "scenario_id", "manual scenario")
-    if {item.get("scenario_id") for item in manual} != set(CANONICAL_MANUAL_IDS):
-        raise ContractError("manual prerequisite registry mismatch")
-    selected = {item["scenario_id"] for item in manual if item.get("selected") is True}
-    if selected != SELECTED_MANUAL_IDS:
-        raise ContractError("manual prerequisite selection mismatch")
-    for item in manual:
-        _require_fields(
-            item,
-            {
-                "scenario_id",
-                "selected",
-                "execution_class",
-                "authorization",
-                "result",
-                "disposition",
-                "planned_phase",
-                "rationale",
-                "evidence_revision",
-                "evidence_kind",
-                "attested_on",
-                "sanitization",
-            },
-            "manual prerequisite",
-        )
-        scenario_id = str(item["scenario_id"])
-        for field in ("execution_class", "authorization", "result", "disposition", "planned_phase", "rationale"):
-            _require_text(item.get(field), f"{scenario_id}.{field}")
-        if item.get("result") == "passed":
-            if scenario_id != "MT-09" or not item.get("selected"):
-                raise ContractError(f"unexpected passed manual evidence for {scenario_id}")
-            if item.get("authorization") != "user-authorized" or item.get("disposition") != "satisfied":
-                raise ContractError("MT-09 passed evidence lacks user authorization")
-            if item.get("evidence_revision") != ASSESSED_REVISION:
-                raise ContractError("MT-09 passed evidence is stale")
-            if item.get("evidence_kind") != "user-attested-manual":
-                raise ContractError("MT-09 passed evidence lacks a bounded attestation")
-            if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(item.get("attested_on", ""))):
-                raise ContractError("MT-09 passed evidence lacks an attestation date")
-            if item.get("sanitization") != "secret-free-summary-only":
-                raise ContractError("MT-09 passed evidence lacks sanitization state")
-        elif item.get("result") == "not-run":
-            unexpected_evidence = {"evidence_revision", "evidence_kind", "attested_on", "sanitization"} & set(item)
-            if unexpected_evidence:
-                raise ContractError(f"unexecuted scenario {scenario_id} cannot publish evidence")
-            if item.get("selected"):
-                if item.get("authorization") != "not-authorized" or item.get("disposition") != "blocked":
-                    raise ContractError(f"selected scenario {scenario_id} must remain blocked without authorization")
-            elif item.get("disposition") != "deferred":
-                raise ContractError(f"nonselected scenario {scenario_id} must record an explicit deferral")
-        else:
-            raise ContractError(f"invalid manual result for {scenario_id}")
-
-
 def _validate_release_checkpoint(contract: dict[str, Any]) -> None:
     release = contract.get("release_version")
     if not isinstance(release, dict):
@@ -373,7 +306,6 @@ def validate_contract(contract: dict[str, Any]) -> None:
     evidence = _validate_evidence(contract, revision)
     _validate_findings(contract, evidence)
     _validate_summary(contract)
-    _validate_manual_prerequisites(contract)
     _validate_release_checkpoint(contract)
     _validate_contract_digest(contract)
 

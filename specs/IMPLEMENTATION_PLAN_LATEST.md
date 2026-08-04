@@ -8,7 +8,7 @@
 **Tasks:** 72  
 **BCP:** 151  
 **Implementation status:** e05s01 complete; 3 tasks passing and 69 tasks failing;
-human evidence and release-version checkpoint required before any later story
+release-version and next-story approval required before later work
 
 ## Purpose
 
@@ -63,7 +63,7 @@ Plan these once and reuse them across stories:
 - **Tool/process outcome:** typed status/truncation/timeout metadata consumed by
   tool results, events, summaries, and session checkpoints.
 - **Release evidence:** revision-bound allowlisted metadata that distinguishes
-  automated proof, authorized manual proof, skips, waivers, and residual risk.
+  automated proof, waivers, independent review, and residual risk.
 
 ## D-01 protected-path catalog and precedence
 
@@ -178,12 +178,10 @@ conflicts and circular migrations.
 3. [e05s02 — Reproducible release identity](epics/e05-baseline-release-identity/e05s02-release-identity.md)
 
 **Pre-implementation evidence checkpoint:** review the rebaselined finding
-dispositions and select the required candidate-relevant subset of MT-01, MT-02,
-MT-08, MT-09, and MT-11. Obtain explicit authorization before any
-credential-bearing/live step; execute and sanitize the authorized subset, or
-record it as blocked/skipped. Do not approve Wave 1 while required prerequisite
-evidence is absent. Review the selected version rationale and early gate at the
-same checkpoint.
+dispositions and automated regression coverage. Automated checks are the release
+gate; user-run side testing is optional, non-blocking, and not retained as release
+evidence. Review the selected version rationale and early gate at the same
+checkpoint.
 
 ### Wave 1 — Establish shared security, provider, and session foundations
 
@@ -223,7 +221,7 @@ support metadata or release claims are accepted.
 
 ### Wave 4 — Evidence, audit, and candidate
 
-22. [e10s01 — Authorized macOS evidence](epics/e10-release-evidence-readiness/e10s01-authorized-macos-evidence.md)
+22. [e10s01 — Automated macOS evidence](epics/e10-release-evidence-readiness/e10s01-automated-macos-evidence.md)
 23. [e10s02 — Candidate re-audit](epics/e10-release-evidence-readiness/e10s02-candidate-reaudit.md)
 24. [e10s03 — Standalone release candidate](epics/e10-release-evidence-readiness/e10s03-standalone-release-candidate.md)
 
@@ -241,8 +239,8 @@ candidate passes; candidate production is not publish authorization.
 - Qualify the lower floor first with
   `./scripts/check-python-matrix.sh --candidate-floor 3.12 --automated-only` in
   its disposable candidate checkout; do not change tracked metadata early.
-- Treat live/manual e10 commands as blocked until the user explicitly authorizes
-  the exact scenario; an unexecuted manual step remains failing/skipped.
+- Keep release gates fully automated and credential-free. Optional user-run side
+  testing does not block stories and is not consumed by the release verdict.
 - Candidate re-audit must validate the separate evidence record with
   `--require-review` so independent code/security review is executable evidence,
   not narrative only.
@@ -252,13 +250,12 @@ candidate passes; candidate production is not publish authorization.
 ## First implementation target
 
 **e05s01 is complete.** Its executable disposition oracle is
-`specs/verifications/current-finding-disposition.json`. Do not proceed to
-e09s01, e05s02, or any behavior story until the user reviews the disposition,
-the remaining blocked MT-02 evidence, and the release implications. MT-09 has
-passed by revision-bound user attestation.
+`specs/verifications/current-finding-disposition.json`. The user has accepted
+automated verification as the release gate. Do not proceed to e09s01, e05s02,
+or any behavior story until the release implications are reviewed and the next
+story is explicitly approved.
 
 ## Handoff
 
-Next action: hold the human checkpoint. Obtain explicit scenario authorization
-before running selected manual evidence, and obtain explicit story approval
-before beginning e09s01, e05s02, or any later stabilization work.
+Next action: hold the release-version and next-story checkpoint. Obtain explicit
+story approval before beginning e09s01, e05s02, or any later stabilization work.

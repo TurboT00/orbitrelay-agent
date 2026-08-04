@@ -10,7 +10,7 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 189
+  project_tests: 188
   example_tests: 9
 planning:
   phase: build
@@ -26,10 +26,9 @@ planning:
     report: specs/IMPACT_LATEST.md
     risk: high
   next_action: >-
-    Preserve the user-attested MT-09 pass, decide whether to authorize the
-    remaining live-credential MT-02 evidence, and hold the release-version
-    checkpoint. Do not begin e05s02, e09s01, another stabilization story, or P5
-    without explicit approval.
+    Review the release-version implications and explicitly approve the next
+    automated stabilization story. Do not begin e05s02, e09s01, another
+    stabilization story, or P5 without explicit approval.
 handoff:
   required_reading:
     - README.md
@@ -46,10 +45,10 @@ handoff:
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
-    e05s01 is complete with 26 revision-bound finding dispositions. Review the
-    user-attested MT-09 pass and the remaining blocked MT-02 prerequisite, then
-    make the required human release-version decision before authorizing any later
-    story. Keep P5 blocked.
+    e05s01 is complete with 26 revision-bound finding dispositions. Automated
+    verification is the release gate; user-run side testing is optional and
+    non-blocking. Make the required human release-version decision and explicitly
+    approve the next story. Keep P5 blocked.
   next_skill: human-checkpoint
 decisions:
   product_identity: >-

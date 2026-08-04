@@ -28,7 +28,7 @@ tasks:
       severity: critical
       categories: ["Release Baseline", "integration", "Security Review"]
   - id: 3
-    description: Publish fixed, open, accepted, and deferred outcomes plus the required pre-implementation MT evidence subset and authorization state, with no secret-bearing evidence.
+    description: Publish fixed, open, accepted, and deferred outcomes backed by revision-bound automated evidence, with no secret-bearing values or private payloads.
     verify: "uv run python -m unittest tests.test_release_baseline tests.test_redaction -v"
     risk: P1
     security: high

@@ -100,7 +100,8 @@ Feature: Explicit provider verification
 
 ### 18. Dependencies and sequencing [reviewed]
 
-Depends on e07s01 and profile schema migration planning; manual live evidence waits for e10s01 authorization.
+Depends on e07s01 and profile schema migration planning. User-run live side
+testing is optional and outside e10s01 release evidence.
 
 ### 19. Out of scope [reviewed]
 
@@ -120,5 +121,5 @@ Offline fake-provider, profile migration, redaction, CLI, and security checks pa
 
 1. Run all automated scenarios with an injected fake client and clock.
 2. Inspect stored profile JSON and both streams for sentinel payloads.
-3. Do not run a real provider probe unless separately authorized under e10s01.
-
+3. Do not run a real provider probe as part of the release workflow; a separately
+   requested live side check still requires explicit user authorization.

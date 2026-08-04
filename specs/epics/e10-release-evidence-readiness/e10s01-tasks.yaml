@@ -1,6 +1,6 @@
 story_id: e10s01
-title: Record the authorized macOS readiness evidence
-spec: e10s01-authorized-macos-evidence.md
+title: Record automated macOS readiness evidence
+spec: e10s01-automated-macos-evidence.md
 type: feat
 context: infra
 risk: P0
@@ -8,7 +8,7 @@ status: failing
 bcps: 5
 tasks:
   - id: 1
-    description: Update the disposable macOS runbook, evidence form, and executable validator to match the scoped privacy, provider, Codex, session, and Python contracts.
+    description: Add the automated evidence schema, generator, and executable validator for the scoped privacy, provider, Codex, session, Python, and release contracts.
     verify: "uv run python -m unittest tests.test_release_evidence -v"
     risk: P1
     security: high
@@ -16,19 +16,19 @@ tasks:
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: high
-      categories: ["Release Evidence", "runbook", "Security Review"]
+      categories: ["Release Evidence", "automation", "Security Review"]
   - id: 2
-    description: Execute only explicitly authorized credential-bearing or live scenarios, sanitize every result, and validate the separate revision-bound evidence record.
-    verify: "uv run python scripts/validate_release_evidence.py --record docs/manual-test-results-stabilization.md --revision \"$(git rev-parse HEAD)\" --required-set stabilization"
+    description: Generate and validate the revision-bound automated evidence record from every required release gate.
+    verify: "uv run python scripts/validate_release_evidence.py --record specs/verifications/release-evidence.json --revision \"$(git rev-parse HEAD)\" --required-set automated"
     risk: P0
     security: high
     status: failing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
-      categories: ["Release Evidence", "manual", "Security Review"]
+      categories: ["Release Evidence", "automated", "Security Review"]
   - id: 3
-    description: Validate that required results are complete, revision-bound, secret-free, and explicit about skipped or deferred platforms.
+    description: Validate that required automated results are complete, revision-bound, secret-free, and explicit about unsupported platforms.
     verify: "uv run python -m unittest tests.test_release_evidence tests.test_redaction -v"
     risk: P0
     security: high

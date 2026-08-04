@@ -31,10 +31,10 @@ through e10. A full impact assessment rates the cross-epic blast radius High and
 records shared-module, migration, test, and sequencing constraints. Detailed
 plans define 72 tasks across the 24 stories. e05s01 is complete with 3 passing
 tasks and a revision-bound disposition for all 26 July findings; the remaining
-69 tasks are failing. The project is paused at the required manual-evidence and
-release-version checkpoint: MT-09 has passed by user attestation, while MT-02
-remains blocked pending separate live-credential authorization. No later
-remediation task or P5 work is approved for execution yet.
+69 tasks are failing. Automated verification is the release gate; user-run side
+testing remains optional and non-blocking.
+The project is paused only for the release-version and next-story approval
+checkpoint. No later remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities
 
@@ -48,7 +48,7 @@ remediation task or P5 work is approved for execution yet.
 
 One selected stored connection supplies each agent run. Offline-tested API-key
 routes are implemented for OpenAI, Gemini, Grok, and DeepSeek. Live conformance
-remains subject to private manual evidence.
+is optional side testing and is not a release prerequisite.
 
 Codex delegates subscription sign-in and execution to the installed official
 Codex CLI.

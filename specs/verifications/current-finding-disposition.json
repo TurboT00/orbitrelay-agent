@@ -40,9 +40,7 @@
       "MIN-04",
       "MIN-06",
       "MIN-07"
-    ],
-    "manual_blockers": ["MT-02"],
-    "manual_passed": ["MT-09"]
+    ]
   },
   "evidence": [
     {
@@ -245,8 +243,7 @@
       "outcome": "observed",
       "references": [
         {"path": "pyproject.toml", "locator": "requires-python remains >=3.14"},
-        {"path": "uv.lock", "locator": "requires-python remains >=3.14"},
-        {"path": "specs/epics/e09-quality-platform-qualification/e09s03-macos-python-matrix.md", "locator": "planned 3.12 through 3.14 qualification"}
+        {"path": "uv.lock", "locator": "requires-python remains >=3.14"}
       ]
     },
     {
@@ -300,8 +297,7 @@
       "outcome": "observed",
       "references": [
         {"path": "src/orbitrelay/agent.py", "locator": "module remains above the local size target"},
-        {"path": "src/orbitrelay/cli.py", "locator": "module remains above the local size target"},
-        {"path": "specs/product/SCOPE_LATEST.yaml", "locator": "cosmetic splitting and speculative redesign are deferred"}
+        {"path": "src/orbitrelay/cli.py", "locator": "module remains above the local size target"}
       ]
     },
     {
@@ -348,7 +344,7 @@
       "rationale": "Unknown streamed assistant extension fields are assembled and replayed across a tool round with offline regressions.",
       "release_effect": "No independent release block remains for the historical field-loss defect.",
       "owner": "orbitrelay-maintainers",
-      "residual_risk": "Real provider-specific streamed shapes remain candidate conformance evidence."
+      "residual_risk": "Provider-specific streamed shapes require maintained synthetic fixtures and are not a live release gate."
     },
     {
       "id": "MAJ-03",
@@ -381,7 +377,7 @@
       "rationale": "Credential-store construction is lazy and metadata-only and Codex routes are regression-tested without keyring initialization.",
       "release_effect": "The historical eager-keyring defect no longer blocks release.",
       "owner": "orbitrelay-maintainers",
-      "residual_risk": "Native backend behavior remains part of selected MT-02 evidence."
+      "residual_risk": "Native backend behavior may receive optional side testing but is not a release gate."
     },
     {
       "id": "MAJ-06",
@@ -392,7 +388,7 @@
       "rationale": "Delegated login now completes before metadata mutation and failed-login rollback is regression-tested.",
       "release_effect": "The historical failed-login mutation no longer blocks release.",
       "owner": "orbitrelay-maintainers",
-      "residual_risk": "Actual delegated CLI lifecycle remains candidate evidence after e07 semantics are complete."
+      "residual_risk": "Delegated CLI lifecycle requires maintained fake-executable regressions after e07 semantics are complete."
     },
     {
       "id": "MAJ-07",
@@ -613,62 +609,6 @@
       "release_effect": "Gates the dependency-policy portion of e09s02; being behind latest alone is not a defect.",
       "owner": "e09-quality-platform-qualification",
       "residual_risk": "Dependency advisories or unsupported versions can escape the official check."
-    }
-  ],
-  "manual_prerequisites": [
-    {
-      "scenario_id": "MT-01",
-      "selected": false,
-      "execution_class": "credential-free-clean-install",
-      "authorization": "not-required-current-phase",
-      "result": "not-run",
-      "disposition": "deferred",
-      "planned_phase": "candidate-installation-evidence",
-      "rationale": "The official check already covers automated build and wheel smoke; repeat the manual clean-install flow on the selected candidate and Python matrix."
-    },
-    {
-      "scenario_id": "MT-02",
-      "selected": true,
-      "execution_class": "native-credential-and-live-provider",
-      "authorization": "not-authorized",
-      "result": "not-run",
-      "disposition": "blocked",
-      "planned_phase": "pre-wave-1-evidence-checkpoint",
-      "rationale": "The keychain-only refactor requires real macOS persistence, replacement, metadata-secrecy, and targeted-deletion evidence before later provider work."
-    },
-    {
-      "scenario_id": "MT-08",
-      "selected": false,
-      "execution_class": "delegated-account-and-live-codex",
-      "authorization": "not-authorized",
-      "result": "not-run",
-      "disposition": "deferred",
-      "planned_phase": "post-e07-candidate-evidence",
-      "rationale": "e07 intentionally changes Codex readiness and disconnect semantics, so lifecycle evidence should exercise the stabilized candidate rather than become stale now."
-    },
-    {
-      "scenario_id": "MT-09",
-      "selected": true,
-      "execution_class": "credential-free-offline-official-cli",
-      "authorization": "user-authorized",
-      "result": "passed",
-      "disposition": "satisfied",
-      "planned_phase": "completed-pre-wave-1-evidence",
-      "rationale": "The user reported the complete credential-free MT-09 scenario passed. Only this sanitized attestation is retained; no raw command output, account data, or private payload is published.",
-      "evidence_revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
-      "evidence_kind": "user-attested-manual",
-      "attested_on": "2026-08-03",
-      "sanitization": "secret-free-summary-only"
-    },
-    {
-      "scenario_id": "MT-11",
-      "selected": false,
-      "execution_class": "live-provider-sensitive-read",
-      "authorization": "not-authorized",
-      "result": "not-run",
-      "disposition": "deferred",
-      "planned_phase": "post-e06-candidate-evidence",
-      "rationale": "Current source already proves the exposure and D-01 defines the intended policy; run the revised scenario after e06 to attest the implemented boundary."
     }
   ],
   "release_version": {

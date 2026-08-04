@@ -60,31 +60,14 @@ class ReleaseBaselineContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError, "unapproved passed evidence command"):
             validate_contract(contract)
 
-    def test_manual_prerequisites_record_selection_and_authorization(self) -> None:
-        manual = {item["scenario_id"]: item for item in self.contract["manual_prerequisites"]}
+    def test_contract_contains_only_automated_release_evidence(self) -> None:
+        serialized = json.dumps(self.contract, sort_keys=True).lower()
 
         self.assertEqual(
-            {scenario_id for scenario_id, item in manual.items() if item["selected"]},
-            {"MT-02", "MT-09"},
+            set(self.contract),
+            {"schema_version", "story_id", "assessment", "summary", "evidence", "findings", "release_version"},
         )
-        self.assertEqual(
-            (manual["MT-02"]["authorization"], manual["MT-02"]["result"], manual["MT-02"]["disposition"]),
-            ("not-authorized", "not-run", "blocked"),
-        )
-        self.assertEqual(
-            (manual["MT-09"]["authorization"], manual["MT-09"]["result"], manual["MT-09"]["disposition"]),
-            ("user-authorized", "passed", "satisfied"),
-        )
-        self.assertEqual(manual["MT-09"]["evidence_revision"], self.contract["assessment"]["revision"])
-        self.assertEqual(manual["MT-09"]["evidence_kind"], "user-attested-manual")
-
-    def test_passed_manual_evidence_requires_revision_bound_attestation(self) -> None:
-        contract = copy.deepcopy(self.contract)
-        manual = next(item for item in contract["manual_prerequisites"] if item["scenario_id"] == "MT-09")
-        manual["evidence_revision"] = "0" * 40
-
-        with self.assertRaisesRegex(ContractError, "MT-09 passed evidence is stale"):
-            validate_contract(contract)
+        self.assertNotRegex(serialized, r"\bmt-\d{2}\b")
 
     def test_release_version_remains_at_human_checkpoint(self) -> None:
         release = self.contract["release_version"]

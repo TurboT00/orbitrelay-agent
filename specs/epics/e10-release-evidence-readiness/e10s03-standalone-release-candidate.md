@@ -102,7 +102,7 @@ Final story; depends on e10s02 and every earlier release gate.
 
 ### 19. Out of scope [reviewed]
 
-Tagging, pushing, publishing, hosted release creation, P5, or live provider use beyond separately accepted evidence.
+Tagging, pushing, publishing, hosted release creation, P5, or live-provider use.
 
 ### 20. Definition of done [reviewed]
 
@@ -120,4 +120,3 @@ Clean release/matrix gates, package inspection, identity/evidence tests, audit v
 2. Run both complete gates and build the wheel.
 3. Inspect metadata, installed commands, package file list, and artifact hash.
 4. Confirm no tag, push, publish, release, live probe, or P5 work occurred.
-

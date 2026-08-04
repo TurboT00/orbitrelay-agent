@@ -78,9 +78,9 @@ based credential import is intentionally unsupported.
 
 ### Available connection methods
 
-These methods are implemented and covered by offline tests. Availability does
-not claim live-provider conformance; qualify a provider with disposable manual
-tests before relying on it for release work.
+These methods are implemented and covered by offline tests. Those automated
+contracts are the release gate. Availability does not claim current network or
+account readiness; user-run live side checks are optional and non-blocking.
 
 | Provider | Available method | Notes |
 | --- | --- | --- |

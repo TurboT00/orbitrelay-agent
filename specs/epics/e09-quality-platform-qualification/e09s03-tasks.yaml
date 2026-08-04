@@ -28,8 +28,8 @@ tasks:
       severity: critical
       categories: ["Python Matrix", "macOS", "Security Review"]
   - id: 3
-    description: Validate separately authorized per-minor credential evidence, then apply the proven candidate metadata and lock and reject unsupported drift.
-    verify: "uv run python -m unittest tests.test_release_identity tests.test_python_matrix -v && ./scripts/check-python-matrix.sh --evidence-file docs/manual-test-results-stabilization.md --require-credential-evidence"
+    description: Apply the proven candidate metadata and lock, rerun the complete automated matrix, and reject unsupported drift.
+    verify: "uv run python -m unittest tests.test_release_identity tests.test_python_matrix -v && ./scripts/check-python-matrix.sh --automated-only"
     risk: P0
     security: medium
     status: failing

@@ -78,6 +78,6 @@ boundaries.
 release evidence, generated reports, and prior handoffs are historical records
 under `specs/archive/`.
 
-Local review, remediation, and manual-test records may also exist under `docs/`.
-Those records are intentionally untracked and are not part of the public
-documentation contract.
+Local review and remediation records may also exist under `docs/`. Those records
+are intentionally untracked and are not part of the public documentation
+contract.

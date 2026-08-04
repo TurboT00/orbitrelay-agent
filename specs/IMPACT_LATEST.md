@@ -94,7 +94,7 @@ an observable-contract regression.
   `scripts/check.sh`, and the planned Python-matrix script must agree on version,
   dependencies, Python floor, and installed behavior.
 - README, architecture, roadmap, `AGENTS.md`, `specs/state.yaml`, release plan,
-  epic capsules, local manual evidence, and the release audit must describe the
+  epic capsules, automated evidence, and the release audit must describe the
   same shipped contract.
 - The official check currently runs tests, examples, import/CLI smoke, build, and
   isolated-wheel smoke. Ruff, mypy, coverage, dependency audit, and security scan
@@ -173,9 +173,9 @@ an observable-contract regression.
 
 ### e10 — Release Evidence and Readiness — Risk: Medium to High
 
-- **e10s01** affects local private evidence and manual procedures. The primary
-  risk is credential/workspace leakage rather than runtime regression.
-- **e10s02** consumes every earlier automated/manual result and can block release.
+- **e10s01** affects automated evidence generation and validation. The primary
+  risk is a false-positive readiness verdict rather than runtime regression.
+- **e10s02** consumes every earlier automated result and can block release.
 - **e10s03** affects package contents, docs, active state, build artifacts, and
   the final installed command. It must not package local internal review files.
 - **Cross-epic impact:** e10 is blocked by accepted completion evidence from
@@ -200,7 +200,7 @@ an observable-contract regression.
    introducing output/history formats that the checkpoint design later replaces.
 8. **e09s02/e09s03 after focused regressions exist:** set gates from accepted
    risk evidence, then prove the full Python matrix.
-9. **e10 last:** manual evidence, re-audit, and candidate production use one
+9. **e10 last:** automated evidence, re-audit, and candidate production use one
    exact revision after all automated gates pass.
 
 ## Persistent data and migration impact
@@ -251,7 +251,7 @@ the new outcomes.
 | Sessions/context | Permissions, basic corruption, resume, CLI lifecycle, tool-pair budgeting | Only eight session tests; no process-level lock tests, atomic interruption matrix, active deletion, sensitivity marker, migration, or storage growth bounds. |
 | Events/summaries | Ordering, correlation, redaction, plain-text tool error | No truncation, partial external operation, privacy denial, crash-safe write, or full denied-phase truth matrix. |
 | Quality/release | `scripts/check.sh` passes tests/build/wheel smoke | No test for the gate itself, no locked mypy/audit/coverage/security tools, no Python 3.12/3.13 evidence, and no package/docs identity consistency test. |
-| Manual evidence | MT-01 and MT-02 contain recorded passes | Remaining authorized macOS evidence is incomplete and not tied to the future candidate revision. |
+| Automated evidence | Current checks cover tests, build, and wheel smoke | Candidate evidence still needs one revision-bound automated record spanning every required release gate. |
 
 Planned new modules named in sliced task files—workspace privacy, CLI errors,
 session concurrency/transactions, provider verification, release baseline,

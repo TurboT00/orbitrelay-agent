@@ -10,8 +10,8 @@ the current codebase, but source and tests remain authoritative.
 2. Read `README.md`, `docs/architecture.md`, `docs/project-roadmap.md`, and
    `specs/state.yaml` before changing product behavior.
 3. For security, provider, persistence, or roadmap work, also read any local
-   review, remediation, and manual-test records present under `docs/`. These
-   files are intentionally untracked and may not exist in a public checkout.
+   review and remediation records present under `docs/`. These files are
+   intentionally untracked and may not exist in a public checkout.
 4. Treat `specs/state.yaml` as the active machine-readable project state.
    Material under `specs/archive/` is historical evidence, not current
    implementation instructions.
@@ -37,9 +37,9 @@ stabilization decision baseline. `specs/product/SCOPE_LATEST.yaml` is the active
 standalone stabilization boundary. `specs/release-plan.yaml` and the e05 through
 e10 capsules contain 24 sliced stories. `specs/IMPACT_LATEST.md` records a High
 cross-epic blast radius. `specs/IMPLEMENTATION_PLAN_LATEST.md` contains 24
-detailed story plans and 72 failing task-ledger entries. Explicit plan approval,
-e05s01 rebaselining, and relevant manual evidence remain prerequisites to broad
-implementation.
+detailed story plans and 72 task-ledger entries. e05s01 is complete; automated
+verification and explicit approval of each next story remain prerequisites to
+broad implementation.
 
 The long-term direction is a Siri-like personal assistant with possible voice,
 device-action, and personal-service integrations. None is implemented today.
@@ -169,7 +169,7 @@ network/cache access on a clean machine.
 
 `scripts/check.sh` is not currently a complete quality gate: it does not run
 Ruff, mypy, coverage, dependency auditing, or security scanning. Do not describe
-it as proving those checks. The current project suite contains 175 tests and the
+it as proving those checks. The current project suite contains 188 tests and the
 calculator example contains 9 tests.
 
 ## Known baseline and scope controls
@@ -194,11 +194,11 @@ baseline has not been tagged.
 The local stabilization remediation plan contains the user-approved D-01
 through D-05 planning baseline. It is not blanket implementation authority. Do
 not silently implement it, begin P5, broaden provider/auth/platform claims, or
-run unapproved evidence. After explicit plan approval, use `kickoff-branch` and
-implement e05s01 first; preserve the plan, impact report, scope, and decisions,
-and request explicit direction before changing their trade-offs.
+run unapproved live operations. e05s01 is complete; preserve the plan, impact
+report, scope, and decisions, and request explicit direction before changing
+their trade-offs or beginning another story.
 
 Do not push, publish, create releases, use live credentials, or run paid/live
-provider tests unless the user explicitly asks. For authorized live or OS-level
-verification, use the disposable environment and evidence rules in any local
-manual test plan or runbook.
+provider tests unless the user explicitly asks. Automated tests are the release
+gate. User-run side testing is optional and must not block implementation or be
+treated as retained release evidence.

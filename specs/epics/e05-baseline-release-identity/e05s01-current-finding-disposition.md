@@ -21,7 +21,7 @@ A release owner can determine the current disposition of every reviewed finding 
 ### 3. Actors and permissions [reviewed]
 
 - Maintainers run offline checks and classify findings.
-- Authorized operators alone run credential-bearing manual probes.
+- User-run live checks remain outside the release contract and do not block work.
 - Public artifacts never receive local review records or secrets.
 
 ### 4. Trigger and preconditions [reviewed]
@@ -31,11 +31,11 @@ planning baseline, before implementation changes or release-number selection.
 
 ### 5. Main flow and business logic [reviewed]
 
-Create a machine-checkable finding inventory, re-run the applicable offline evidence, publish one current status and release consequence per finding, and select the candidate-relevant pre-implementation manual evidence subset.
+Create a machine-checkable finding inventory, re-run the applicable automated evidence, and publish one current status and release consequence per finding.
 
 ### 6. Alternative flows and exceptions [reviewed]
 
-Unavailable live evidence is recorded as unverified, not passed; stale evidence is historical, not current.
+Missing or stale automated evidence keeps the finding open and cannot be reported as current proof.
 
 ### 7. Interface elements [reviewed]
 
@@ -43,11 +43,11 @@ The contract is an offline test plus a secret-free disposition document under `d
 
 ### 8. Domain model [reviewed]
 
-A disposition contains finding ID, status (`fixed`, `open`, `accepted`, or `deferred`), evidence reference, revision, release-blocking rationale, and any prerequisite MT scenario/authorization state.
+A disposition contains finding ID, status (`fixed`, `open`, `accepted`, or `deferred`), evidence reference, revision, and release-blocking rationale.
 
 ### 9. Integrations and boundaries [reviewed]
 
-Consumes source, tests, lock data, `scripts/check.sh`, and private manual records without publishing the latter.
+Consumes source, tests, lock data, and `scripts/check.sh` without publishing private records.
 
 ### 10. Background processes [reviewed]
 
@@ -100,10 +100,10 @@ Feature: Current finding disposition
     When redaction checks scan it
     Then no secret-bearing value or private payload is present
 
-  Scenario: Prerequisite manual evidence is selected
-    Given the candidate-relevant MT-01, MT-02, MT-08, MT-09, and MT-11 scenarios
+  Scenario: Automated evidence is sufficient
+    Given the current source, tests, dependencies, and release behavior
     When the disposition is published
-    Then each required scenario is selected with authorization state or explicitly recorded as blocked, skipped, or deferred
+    Then every release claim is backed by revision-bound automated evidence or explicit risk treatment
 ```
 
 ### 18. Dependencies and sequencing [reviewed]
@@ -122,7 +122,7 @@ All tasks pass, every finding is classified, `scripts/check.sh` passes, and no n
 
 1. Add the failing completeness and schema contract for every July finding → verify: `uv run python -m unittest tests.test_release_baseline -v`
 2. Revalidate each finding against current source, tests, dependencies, and release behavior → verify: `uv run python -m unittest tests.test_release_baseline -v && ./scripts/check.sh`
-3. Publish secret-free outcomes plus the required pre-implementation evidence subset and authorization state → verify: `uv run python -m unittest tests.test_release_baseline tests.test_redaction -v`
+3. Publish secret-free outcomes backed by revision-bound automated evidence and explicit risk treatment → verify: `uv run python -m unittest tests.test_release_baseline tests.test_redaction -v`
 
 ## Verification Script (Step-by-Step)
 
@@ -136,8 +136,6 @@ All tasks pass, every finding is classified, `scripts/check.sh` passes, and no n
 The executable, secret-free disposition contract is published at
 `specs/verifications/current-finding-disposition.json` and validated by
 `scripts/verify_release_baseline.py` plus `tests/test_release_baseline.py`.
-It classifies all 26 July findings at the assessed revision and selects MT-02
-and MT-09 as required pre-implementation evidence. MT-09 is recorded as a
-revision-bound, user-attested pass with only a sanitized summary retained;
-MT-02 remains not authorized and not run. Release-version selection remains at
-its human checkpoint.
+It classifies all 26 July findings at the assessed revision using automated
+evidence and explicit risk treatment. Release-version selection remains at its
+human checkpoint.

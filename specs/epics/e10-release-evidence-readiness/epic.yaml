@@ -7,11 +7,11 @@ scope: specs/product/SCOPE_LATEST.yaml
 release_target: "TBD"
 stories:
   - id: e10s01
-    title: Record the authorized macOS readiness evidence
+    title: Record automated macOS readiness evidence
     bcps: 5
     status: todo
     delta: MODIFIED
-    spec: e10s01-authorized-macos-evidence.md
+    spec: e10s01-automated-macos-evidence.md
     tasks: e10s01-tasks.yaml
   - id: e10s02
     title: Re-audit the stabilization candidate
