@@ -9,7 +9,7 @@ from collections.abc import Callable, Sequence
 from typing import TextIO
 
 from .codex_cli import run_codex_cli
-from .connection_service import ConnectionError, ConnectionService
+from .connection_service import ConnectionError, ConnectionService, ProviderReadiness
 from .credentials import CredentialStore
 from .profile_store import ProfileRepository, default_profile_path
 from .providers import AuthMethod, ProviderId, supported_providers
@@ -82,14 +82,14 @@ def run_provider_cli(
             return 0
         if args.provider_action == "status":
             if args.provider is None:
-                selected = service.selected_provider()
-                if selected is None:
+                readiness = service.inspect_selected()
+                if readiness is None:
                     print("No provider is selected.", file=stream)
-                else:
-                    print(f"Selected provider: {selected.identifier.value}", file=stream)
+                    return 0
+                _print_readiness(readiness, stream)
                 return 0
-            profile = service.profile_for_provider(ProviderId(args.provider))
-            print(f'Provider "{args.provider}" is connected as "{profile.name}".', file=stream)
+            readiness = service.inspect_provider(ProviderId(args.provider))
+            _print_readiness(readiness, stream)
             return 0
         if args.provider_action == "disconnect":
             service.disconnect(ProviderId(args.provider))
@@ -99,3 +99,8 @@ def run_provider_cli(
         print(str(exc), file=stream)
         return 1
     raise AssertionError(f"Unknown provider action: {args.provider_action}")
+
+
+def _print_readiness(readiness: ProviderReadiness, stream: TextIO) -> None:
+    for line in readiness.lines():
+        print(line, file=stream)

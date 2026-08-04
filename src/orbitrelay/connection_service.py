@@ -9,11 +9,13 @@ credential logic.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 
 from .config import ApiConfig
 from .credentials import (
     CredentialNotFoundError,
     CredentialStore,
+    CredentialStoreError,
     ProfileService,
     credential_store_or_default,
 )
@@ -45,6 +47,50 @@ class CodexCliConnection:
 
 
 ResolvedConnection = OpenAICompatibleConnection | CodexCliConnection
+
+class CredentialState(StrEnum):
+    PRESENT = "present"
+    ABSENT = "absent"
+    UNAVAILABLE = "unavailable"
+    NOT_APPLICABLE = "not-applicable"
+
+
+class LocalReadiness(StrEnum):
+    LOCAL_READY = "local-ready"
+    NOT_READY = "not-ready"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True, slots=True)
+class ProviderReadiness:
+    """Offline local facts for one provider connection."""
+
+    provider: str
+    configured: bool
+    selected: bool
+    catalog: str
+    model: str | None
+    auth_kind: str | None
+    credential: CredentialState
+    readiness: LocalReadiness
+    detail: str | None = None
+
+    def lines(self) -> tuple[str, ...]:
+        rows = [
+            f"provider: {self.provider}",
+            f"configured: {'yes' if self.configured else 'no'}",
+            f"selected: {'yes' if self.selected else 'no'}",
+            f"catalog: {self.catalog}",
+            f"model: {self.model or '-'}",
+            f"auth: {self.auth_kind or '-'}",
+            f"credential: {self.credential.value}",
+            f"readiness: {self.readiness.value}",
+        ]
+        if self.detail:
+            rows.append(f"detail: {self.detail}")
+        return tuple(rows)
+
+
 
 
 def _provider_for_profile(profile: ProviderProfile) -> ProviderDefinition | None:
@@ -190,6 +236,129 @@ class ConnectionService:
         return OpenAICompatibleConnection(
             ApiConfig(profile.base_url, secret, profile.model), definition
         )
+
+
+    def inspect_provider(self, identifier: ProviderId | str) -> ProviderReadiness:
+        """Return offline readiness facts without contacting a provider network."""
+        definition = provider_definition(identifier)
+        selected = self.selected_provider()
+        is_selected = selected is definition
+        try:
+            profile = self.profile_for_provider(definition.identifier)
+        except ConnectionError:
+            return ProviderReadiness(
+                provider=definition.identifier.value,
+                configured=False,
+                selected=is_selected,
+                catalog=definition.identifier.value,
+                model=definition.default_model,
+                auth_kind=None,
+                credential=CredentialState.ABSENT
+                if definition.route is ExecutionRoute.OPENAI_COMPATIBLE
+                else CredentialState.NOT_APPLICABLE,
+                readiness=LocalReadiness.NOT_READY,
+                detail="no stored connection",
+            )
+        return self._readiness_for_profile(profile, definition, is_selected=is_selected)
+
+    def inspect_selected(self) -> ProviderReadiness | None:
+        name = self._repository.selected_name()
+        if name is None:
+            return None
+        try:
+            profile = self._repository.get(name)
+        except ProfileNotFoundError:
+            return ProviderReadiness(
+                provider="-",
+                configured=False,
+                selected=True,
+                catalog="-",
+                model=None,
+                auth_kind=None,
+                credential=CredentialState.UNAVAILABLE,
+                readiness=LocalReadiness.UNKNOWN,
+                detail="selected connection metadata is missing",
+            )
+        definition = _provider_for_profile(profile)
+        if definition is None:
+            return ProviderReadiness(
+                provider=profile.name,
+                configured=True,
+                selected=True,
+                catalog="custom",
+                model=profile.model,
+                auth_kind=profile.auth_kind.value,
+                credential=self._credential_state(profile),
+                readiness=LocalReadiness.NOT_READY,
+                detail="custom legacy endpoint is not a catalog provider",
+            )
+        return self._readiness_for_profile(profile, definition, is_selected=True)
+
+    def _readiness_for_profile(
+        self,
+        profile: ProviderProfile,
+        definition: ProviderDefinition,
+        *,
+        is_selected: bool,
+    ) -> ProviderReadiness:
+        credential = self._credential_state(profile)
+        catalog_ok = definition.identifier is not ProviderId.CUSTOM
+        model = profile.model or definition.default_model
+        model_ok = bool(model and str(model).strip())
+        if credential is CredentialState.UNAVAILABLE:
+            readiness = LocalReadiness.UNKNOWN
+            detail = "credential backend unavailable"
+        elif definition.route is ExecutionRoute.CODEX_CLI:
+            # Codex local CLI/login facts belong to e07s03; metadata alone is not ready.
+            readiness = LocalReadiness.NOT_READY
+            detail = (
+                "catalog or model metadata incomplete"
+                if not catalog_ok or not model_ok
+                else "delegated Codex readiness requires e07s03 inspection"
+            )
+        elif (
+            catalog_ok
+            and model_ok
+            and profile.auth_kind is AuthKind.API_KEY
+            and credential is CredentialState.PRESENT
+        ):
+            readiness = LocalReadiness.LOCAL_READY
+            detail = None
+        elif credential is CredentialState.ABSENT:
+            readiness = LocalReadiness.NOT_READY
+            detail = "API key is absent"
+        else:
+            readiness = LocalReadiness.NOT_READY
+            detail = "connection is not locally executable"
+        return ProviderReadiness(
+            provider=definition.identifier.value,
+            configured=True,
+            selected=is_selected,
+            catalog=definition.identifier.value,
+            model=model,
+            auth_kind=profile.auth_kind.value,
+            credential=credential,
+            readiness=readiness,
+            detail=detail,
+        )
+
+    def _credential_state(self, profile: ProviderProfile) -> CredentialState:
+        if not profile.requires_secret:
+            return CredentialState.NOT_APPLICABLE
+        try:
+            store = self._credential_store()
+        except CredentialStoreError:
+            return CredentialState.UNAVAILABLE
+        key = self._repository.credential_key(profile.name)
+        try:
+            secret = store.get_secret(key)
+        except CredentialNotFoundError:
+            return CredentialState.ABSENT
+        except CredentialStoreError:
+            return CredentialState.UNAVAILABLE
+        if not isinstance(secret, str) or not secret:
+            return CredentialState.ABSENT
+        return CredentialState.PRESENT
 
     def disconnect(self, identifier: ProviderId | str) -> None:
         profile = self.profile_for_provider(identifier)

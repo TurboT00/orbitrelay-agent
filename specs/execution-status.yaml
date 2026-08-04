@@ -8,8 +8,8 @@ development_status:
   e06s03: todo
   e06s04: todo
   e06s05: done
-  e07: todo
-  e07s01: todo
+  e07: in_progress
+  e07s01: in_progress
   e07s02: todo
   e07s03: todo
   e07s04: todo
@@ -44,7 +44,7 @@ epics:
     total_bcps: 34
     capsule_dir: specs/epics/e06-workspace-privacy-cli-trust
   e07:
-    status: todo
+    status: in_progress
     title: Provider and Codex Lifecycle
     wsjf: 4.8
     total_bcps: 26

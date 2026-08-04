@@ -93,5 +93,80 @@ class ProviderCliTests(unittest.TestCase):
                 ProviderId.CODEX
             )
 
+
+
+    def test_status_reports_offline_readiness_facts(self) -> None:
+        self.assertEqual(self.execute(["connect", "openai", "--method", "api_key"]), 0)
+        self.output.seek(0)
+        self.output.truncate(0)
+        self.assertEqual(self.execute(["status", "openai"]), 0)
+        text = self.output.getvalue()
+        self.assertIn("provider: openai", text)
+        self.assertIn("configured: yes", text)
+        self.assertIn("selected: yes", text)
+        self.assertIn("credential: present", text)
+        self.assertIn("readiness: local-ready", text)
+        self.assertNotIn("test-key", text)
+        self.assertNotIn("is connected as", text)
+
+    def test_status_selected_without_argument(self) -> None:
+        self.assertEqual(self.execute(["connect", "deepseek", "--method", "api_key"]), 0)
+        self.output.seek(0)
+        self.output.truncate(0)
+        self.assertEqual(self.execute(["status"]), 0)
+        text = self.output.getvalue()
+        self.assertIn("provider: deepseek", text)
+        self.assertIn("readiness: local-ready", text)
+
+    def test_status_credential_unavailable_without_traceback(self) -> None:
+        self.assertEqual(self.execute(["connect", "gemini", "--method", "api_key"]), 0)
+        self.output.seek(0)
+        self.output.truncate(0)
+
+        class UnavailableStore:
+            def set_secret(self, key: str, secret: str) -> None:
+                raise AssertionError("unused")
+
+            def get_secret(self, key: str) -> str:
+                from orbitrelay.credentials import CredentialStoreError
+
+                raise CredentialStoreError("Native credential store is unavailable")
+
+            def delete_secret(self, key: str) -> None:
+                raise AssertionError("unused")
+
+        code = run_provider_cli(
+            ["status", "gemini"],
+            self.repository,
+            UnavailableStore(),
+            lambda _prompt: "x",
+            output=self.output,
+        )
+        self.assertEqual(code, 0)
+        text = self.output.getvalue()
+        self.assertIn("credential: unavailable", text)
+        self.assertIn("readiness: unknown", text)
+        self.assertNotIn("Traceback", text)
+
+    def test_list_does_not_initialize_credential_backend(self) -> None:
+        class BoomStore:
+            def __init__(self) -> None:
+                raise AssertionError("credential backend must stay lazy for list")
+
+        with patch(
+            "orbitrelay.connection_service.credential_store_or_default",
+            side_effect=AssertionError("credential backend must stay lazy for list"),
+        ):
+            code = run_provider_cli(
+                ["list"],
+                self.repository,
+                None,
+                lambda _prompt: "x",
+                output=self.output,
+            )
+        self.assertEqual(code, 0)
+        self.assertIn("openai", self.output.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()

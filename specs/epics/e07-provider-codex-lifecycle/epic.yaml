@@ -2,14 +2,14 @@ id: e07
 title: Provider and Codex Lifecycle
 wsjf: 4.8
 total_bcps: 26
-status: todo
+status: in_progress
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.6.0"
 stories:
   - id: e07s01
     title: Inspect API-provider readiness offline
     bcps: 8
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e07s01-offline-provider-readiness.md
     tasks: e07s01-tasks.yaml

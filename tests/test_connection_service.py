@@ -174,5 +174,63 @@ class ConnectionServiceTests(unittest.TestCase):
         self.assertEqual(self.store.get_secret(key), "legacy-refresh-token")
 
 
+
+
+class ProviderReadinessTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.directory = tempfile.TemporaryDirectory()
+        self.repository = ProfileRepository(Path(self.directory.name) / "profiles.json")
+        self.store = FakeCredentialStore()
+        self.service = ConnectionService(self.repository, self.store)
+
+    def tearDown(self) -> None:
+        self.directory.cleanup()
+
+    def test_api_provider_local_ready_when_configured_selected_and_present(self) -> None:
+        self.service.connect_api_key(ProviderId.OPENAI, "openai-secret")
+        status = self.service.inspect_provider(ProviderId.OPENAI)
+        self.assertTrue(status.configured)
+        self.assertTrue(status.selected)
+        self.assertEqual(status.credential.value, "present")
+        self.assertEqual(status.readiness.value, "local-ready")
+        self.assertNotIn("openai-secret", "\n".join(status.lines()))
+
+    def test_credential_absent_is_not_ready(self) -> None:
+        self.service.connect_api_key(ProviderId.DEEPSEEK, "temp")
+        key = self.repository.credential_key("deepseek")
+        self.store.delete_secret(key)
+        status = self.service.inspect_provider(ProviderId.DEEPSEEK)
+        self.assertTrue(status.configured)
+        self.assertEqual(status.credential.value, "absent")
+        self.assertEqual(status.readiness.value, "not-ready")
+
+    def test_credential_backend_unavailable_is_unknown(self) -> None:
+        self.service.connect_api_key(ProviderId.GEMINI, "temp")
+
+        class UnavailableStore:
+            def set_secret(self, key: str, secret: str) -> None:
+                raise AssertionError("set should not run")
+
+            def get_secret(self, key: str) -> str:
+                from orbitrelay.credentials import CredentialStoreError
+
+                raise CredentialStoreError("Native credential store is unavailable")
+
+            def delete_secret(self, key: str) -> None:
+                raise AssertionError("delete should not run")
+
+        service = ConnectionService(self.repository, UnavailableStore())
+        status = service.inspect_provider(ProviderId.GEMINI)
+        self.assertTrue(status.configured)
+        self.assertEqual(status.credential.value, "unavailable")
+        self.assertEqual(status.readiness.value, "unknown")
+        self.assertNotIn("temp", "\n".join(status.lines()))
+
+    def test_unconfigured_provider_is_not_ready(self) -> None:
+        status = self.service.inspect_provider(ProviderId.GROK)
+        self.assertFalse(status.configured)
+        self.assertEqual(status.readiness.value, "not-ready")
+
+
 if __name__ == "__main__":
     unittest.main()
