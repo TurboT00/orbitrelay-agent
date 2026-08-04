@@ -1,4 +1,5 @@
 # story: e04s04
+# story: e08s03
 
 from __future__ import annotations
 
@@ -8,7 +9,13 @@ import sys
 from collections.abc import Mapping, Sequence
 from typing import TextIO
 
-from .sessions import SessionError, SessionNotFoundError, SessionStore
+from .sessions import (
+    SessionError,
+    SessionHealth,
+    SessionNotFoundError,
+    SessionStore,
+    SessionSummary,
+)
 
 
 def parse_session_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
@@ -47,27 +54,18 @@ def run_session_cli(
             if not sessions:
                 print("No sessions stored.", file=stream)
                 return 0
-            for metadata in sessions:
-                busy = "yes" if active.is_session_active(metadata.id) else "no"
-                sensitive = "yes" if metadata.sensitive else "no"
-                print(
-                    f"{metadata.id} updated={metadata.updated_at}"
-                    f" model={metadata.model or '-'}"
-                    f" workspace={metadata.workspace or '-'}"
-                    f" active={busy}"
-                    f" sensitive={sensitive}",
-                    file=stream,
-                )
+            for summary in sessions:
+                print(_format_list_line(summary, active), file=stream)
             return 0
         if args.session_action == "show":
-            metadata = active.get_metadata(args.id)
-            payload = metadata.to_dict()
+            summary = active.inspect_session(args.id)
+            payload = summary.to_dict()
             payload["active"] = active.is_session_active(args.id)
-            # include message count only, not contents dump with secrets risk
-            messages = active.load_messages(args.id)
-            payload["message_count"] = len(messages)
+            if summary.health is SessionHealth.OK:
+                # Count only; never dump message content.
+                payload["message_count"] = len(active.load_messages(args.id))
             print(json.dumps(payload, indent=2, sort_keys=True), file=stream)
-            return 0
+            return 0 if summary.health is SessionHealth.OK else 1
         if args.session_action == "delete":
             active.delete(args.id)
             print(f'Deleted session "{args.id}".', file=stream)
@@ -75,9 +73,21 @@ def run_session_cli(
         if args.session_action == "delete-all":
             if not args.confirm:
                 raise SessionError("delete-all requires --confirm")
-            count = active.delete_all()
-            print(f"Deleted {count} session(s).", file=stream)
-            return 0
+            result = active.delete_all()
+            for session_id in result.deleted:
+                print(f'Deleted session "{session_id}".', file=stream)
+            for session_id, reason in result.failed:
+                print(f'Failed session "{session_id}": {reason}', file=error_stream)
+            print(
+                f"Deleted {result.deleted_count} session(s)"
+                + (
+                    f"; {len(result.failed)} failed."
+                    if result.failed
+                    else "."
+                ),
+                file=stream if result.complete else error_stream,
+            )
+            return 0 if result.complete else 1
     except SessionNotFoundError as exc:
         print(str(exc), file=error_stream)
         return 1
@@ -85,3 +95,22 @@ def run_session_cli(
         print(str(exc), file=error_stream)
         return 1
     raise AssertionError(f"Unknown session action: {args.session_action}")
+
+
+def _format_list_line(summary: SessionSummary, store: SessionStore) -> str:
+    busy = "yes" if store.is_session_active(summary.id) else "no"
+    sensitive = "yes" if summary.sensitive else "no"
+    updated = "-" if summary.updated_at is None else str(summary.updated_at)
+    model = summary.model or "-"
+    workspace = summary.workspace or "-"
+    line = (
+        f"{summary.id} state={summary.health.value}"
+        f" updated={updated}"
+        f" model={model}"
+        f" workspace={workspace}"
+        f" active={busy}"
+        f" sensitive={sensitive}"
+    )
+    if summary.diagnostic:
+        line += f" diagnostic={summary.diagnostic}"
+    return line

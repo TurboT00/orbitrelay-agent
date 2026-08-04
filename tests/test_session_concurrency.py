@@ -119,5 +119,20 @@ class SessionConcurrencyTests(unittest.TestCase):
             holder.release()
 
 
+    def test_delete_active_session_fails_closed(self) -> None:
+        holder = self.store.acquire_lease("shared")
+        messages = self.root / "shared" / "messages.jsonl"
+        before = messages.read_bytes()
+        try:
+            with self.assertRaises(SessionBusyError):
+                self.store.delete("shared")
+            self.assertEqual(messages.read_bytes(), before)
+            self.assertTrue((self.root / "shared").is_dir())
+        finally:
+            holder.release()
+        self.store.delete("shared")
+        self.assertFalse((self.root / "shared").exists())
+
+
 if __name__ == "__main__":
     unittest.main()

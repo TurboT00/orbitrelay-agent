@@ -14,6 +14,7 @@ import uuid
 from collections.abc import Callable, Mapping, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -44,6 +45,64 @@ class SessionCorruptionError(SessionError):
 class SessionBusyError(SessionError):
     """Another process already owns the session lease."""
 
+
+class SessionHealth(StrEnum):
+    OK = "ok"
+    CORRUPT = "corrupt"
+    INACCESSIBLE = "inaccessible"
+
+
+@dataclass(frozen=True, slots=True)
+class SessionSummary:
+    """Secret-free inspection view for valid or corrupt sessions."""
+
+    id: str
+    health: SessionHealth
+    updated_at: float | None = None
+    model: str | None = None
+    workspace: str | None = None
+    sensitive: bool = False
+    diagnostic: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "id": self.id,
+            "state": self.health.value,
+        }
+        if self.updated_at is not None:
+            payload["updated_at"] = self.updated_at
+        if self.model is not None:
+            payload["model"] = self.model
+        if self.workspace is not None:
+            payload["workspace"] = self.workspace
+        if self.sensitive:
+            payload["sensitive"] = True
+        if self.diagnostic:
+            payload["diagnostic"] = self.diagnostic
+        return payload
+
+
+@dataclass(frozen=True, slots=True)
+class DeleteAllResult:
+    deleted: tuple[str, ...]
+    failed: tuple[tuple[str, str], ...]
+
+    @property
+    def complete(self) -> bool:
+        return not self.failed
+
+    @property
+    def deleted_count(self) -> int:
+        return len(self.deleted)
+
+
+def _safe_diagnostic(exc: BaseException) -> str:
+    """Return a short secret-free reason string for CLI/inspection."""
+    text = str(exc).strip() or exc.__class__.__name__
+    first = text.splitlines()[0].strip()
+    if len(first) > 200:
+        first = first[:197] + "..."
+    return first
 
 
 def default_sessions_root(environ: Mapping[str, str] | None = None) -> Path:
@@ -423,21 +482,140 @@ class SessionStore:
         directory = self._require_session_dir(session_id)
         return self._read_metadata(directory)
 
-    def list_sessions(self) -> tuple[SessionMetadata, ...]:
+    def inspect_session(self, session_id: str) -> SessionSummary:
+        """Return secret-free health for one session without loading history content."""
+        try:
+            directory = self._session_dir(session_id)
+        except SessionError as exc:
+            return SessionSummary(
+                id=str(session_id),
+                health=SessionHealth.INACCESSIBLE,
+                diagnostic=_safe_diagnostic(exc),
+            )
+        if not directory.exists():
+            raise SessionNotFoundError(f'Session "{session_id}" does not exist')
+        return self._summarize_directory(directory)
+
+    def list_sessions(self) -> tuple[SessionSummary, ...]:
+        """List all session directories, including corrupt ones (never silent omit)."""
         if not self.root.exists():
             return ()
         self.ensure_root()
-        sessions: list[SessionMetadata] = []
+        summaries: list[SessionSummary] = []
         for child in sorted(self.root.iterdir()):
-            if not child.is_dir() or child.is_symlink():
+            if child.is_symlink():
+                summaries.append(
+                    SessionSummary(
+                        id=child.name,
+                        health=SessionHealth.INACCESSIBLE,
+                        diagnostic="session path is a symbolic link",
+                    )
+                )
                 continue
-            try:
-                sessions.append(self._read_metadata(child))
-            except SessionError:
+            if not child.is_dir():
                 continue
-        return tuple(sessions)
+            summaries.append(self._summarize_directory(child))
+        return tuple(summaries)
+
+    def _summarize_directory(self, directory: Path) -> SessionSummary:
+        name = directory.name
+        try:
+            _validate_session_id(name)
+        except SessionError:
+            return SessionSummary(
+                id=name,
+                health=SessionHealth.INACCESSIBLE,
+                diagnostic="unsafe session id",
+            )
+        try:
+            _validate_path(directory)
+        except SessionError as exc:
+            return SessionSummary(
+                id=name,
+                health=SessionHealth.INACCESSIBLE,
+                diagnostic=_safe_diagnostic(exc),
+            )
+        try:
+            metadata = self._read_metadata(directory)
+        except SessionCorruptionError as exc:
+            return SessionSummary(
+                id=name,
+                health=SessionHealth.CORRUPT,
+                diagnostic=_safe_diagnostic(exc) or "invalid metadata",
+            )
+        except SessionNotFoundError:
+            return SessionSummary(
+                id=name,
+                health=SessionHealth.INACCESSIBLE,
+                diagnostic="session metadata is missing",
+            )
+        except SessionError as exc:
+            return SessionSummary(
+                id=name,
+                health=SessionHealth.INACCESSIBLE,
+                diagnostic=_safe_diagnostic(exc),
+            )
+        try:
+            self._validate_messages_file(directory / MESSAGES_NAME)
+        except SessionCorruptionError as exc:
+            return SessionSummary(
+                id=metadata.id,
+                health=SessionHealth.CORRUPT,
+                updated_at=metadata.updated_at,
+                model=metadata.model,
+                workspace=metadata.workspace,
+                sensitive=metadata.sensitive,
+                diagnostic=_safe_diagnostic(exc) or "invalid messages",
+            )
+        except SessionError as exc:
+            return SessionSummary(
+                id=metadata.id,
+                health=SessionHealth.INACCESSIBLE,
+                updated_at=metadata.updated_at,
+                model=metadata.model,
+                workspace=metadata.workspace,
+                sensitive=metadata.sensitive,
+                diagnostic=_safe_diagnostic(exc),
+            )
+        return SessionSummary(
+            id=metadata.id,
+            health=SessionHealth.OK,
+            updated_at=metadata.updated_at,
+            model=metadata.model,
+            workspace=metadata.workspace,
+            sensitive=metadata.sensitive,
+        )
+
+    def _validate_messages_file(self, path: Path) -> None:
+        """Fail closed on truncated/malformed JSONL without retaining payloads."""
+        if not path.exists():
+            return
+        _validate_path(path)
+        try:
+            with path.open(encoding="utf-8") as stream:
+                for line_number, line in enumerate(stream, start=1):
+                    if not line.strip():
+                        continue
+                    try:
+                        payload = json.loads(line)
+                    except json.JSONDecodeError as exc:
+                        raise SessionCorruptionError(
+                            f"session messages line {line_number} is not valid JSON"
+                        ) from exc
+                    if not isinstance(payload, dict):
+                        raise SessionCorruptionError(
+                            f"session messages line {line_number} must be an object"
+                        )
+                    del payload
+        except OSError as exc:
+            raise SessionError(f'Could not read session messages: "{path.name}"') from exc
 
     def delete(self, session_id: str) -> None:
+        """Delete one inactive session directory. Never repairs content."""
+        if self.is_session_active(session_id):
+            raise SessionBusyError(
+                f'Session "{session_id}" is already in use by another process'
+            )
         lease = self.acquire_lease(session_id)
         try:
             directory = self._require_session_dir(session_id)
@@ -457,12 +635,18 @@ class SessionStore:
                     child.unlink(missing_ok=True)
             directory.rmdir()
 
-    def delete_all(self) -> int:
-        count = 0
-        for metadata in self.list_sessions():
-            self.delete(metadata.id)
-            count += 1
-        return count
+    def delete_all(self) -> DeleteAllResult:
+        """Delete every listed session; report each failure without hiding remains."""
+        deleted: list[str] = []
+        failed: list[tuple[str, str]] = []
+        for summary in self.list_sessions():
+            try:
+                self.delete(summary.id)
+            except SessionError as exc:
+                failed.append((summary.id, _safe_diagnostic(exc)))
+            else:
+                deleted.append(summary.id)
+        return DeleteAllResult(deleted=tuple(deleted), failed=tuple(failed))
 
     def load_messages(self, session_id: str) -> list[dict[str, Any]]:
         directory = self._require_session_dir(session_id)

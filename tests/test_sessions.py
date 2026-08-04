@@ -22,8 +22,10 @@ from orbitrelay.events import EventCollector, EventType
 from orbitrelay.profile_store import ProfileRepository
 from orbitrelay.providers import ProviderId
 from orbitrelay.sessions import (
+    SessionBusyError,
     SessionCorruptionError,
     SessionError,
+    SessionHealth,
     SessionNotFoundError,
     SessionStore,
 )
@@ -264,12 +266,14 @@ class SessionStoreTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("one", out.getvalue())
         self.assertIn("two", out.getvalue())
+        self.assertIn("state=ok", out.getvalue())
 
         show = StringIO()
         code = run_session_cli(["show", "one"], store=self.store, output=show)
         self.assertEqual(code, 0)
         payload = json.loads(show.getvalue())
         self.assertEqual(payload["id"], "one")
+        self.assertEqual(payload["state"], "ok")
         self.assertEqual(payload["message_count"], 1)
         self.assertNotIn("hi", show.getvalue())  # show is metadata-only
 
@@ -287,6 +291,88 @@ class SessionStoreTests(unittest.TestCase):
         )
         self.assertEqual(code, 0)
         self.assertEqual(self.store.list_sessions(), ())
+
+    def test_corrupt_sessions_remain_visible_and_deletable(self) -> None:
+        from orbitrelay.session_cli import run_session_cli
+
+        self.store.create(session_id="good", model="m")
+        self.store.create(session_id="badmeta", model="m")
+        (self.home / "sessions" / "badmeta" / "metadata.json").write_text(
+            "{not-json\n", encoding="utf-8"
+        )
+        self.store.create(session_id="badmsg", model="m")
+        (self.home / "sessions" / "badmsg" / "messages.jsonl").write_text(
+            '{"role":"user","content":"SECRET_PAYLOAD"}\n{truncated\n',
+            encoding="utf-8",
+        )
+
+        summaries = self.store.list_sessions()
+        by_id = {item.id: item for item in summaries}
+        self.assertEqual(by_id["good"].health, SessionHealth.OK)
+        self.assertEqual(by_id["badmeta"].health, SessionHealth.CORRUPT)
+        self.assertEqual(by_id["badmsg"].health, SessionHealth.CORRUPT)
+        self.assertIn("metadata", (by_id["badmeta"].diagnostic or "").lower())
+        self.assertIn("json", (by_id["badmsg"].diagnostic or "").lower())
+
+        out = StringIO()
+        code = run_session_cli(["list"], store=self.store, output=out)
+        self.assertEqual(code, 0)
+        text = out.getvalue()
+        self.assertIn("badmeta state=corrupt", text)
+        self.assertIn("badmsg state=corrupt", text)
+        self.assertNotIn("SECRET_PAYLOAD", text)
+
+        show = StringIO()
+        code = run_session_cli(["show", "badmsg"], store=self.store, output=show)
+        self.assertEqual(code, 1)
+        payload = json.loads(show.getvalue())
+        self.assertEqual(payload["state"], "corrupt")
+        self.assertNotIn("SECRET_PAYLOAD", show.getvalue())
+        self.assertNotIn("message_count", payload)
+
+        deleted = StringIO()
+        code = run_session_cli(["delete", "badmeta"], store=self.store, output=deleted)
+        self.assertEqual(code, 0)
+        self.assertNotIn("badmeta", {item.id for item in self.store.list_sessions()})
+
+    def test_active_session_delete_fails_without_modifying(self) -> None:
+        self.store.create(session_id="held", model="m")
+        marker = self.home / "sessions" / "held" / "messages.jsonl"
+        before = marker.read_text(encoding="utf-8")
+        lease = self.store.acquire_lease("held")
+        try:
+            with self.assertRaises(SessionBusyError):
+                self.store.delete("held")
+            self.assertEqual(marker.read_text(encoding="utf-8"), before)
+            self.assertTrue((self.home / "sessions" / "held").exists())
+        finally:
+            lease.release()
+
+    def test_delete_all_reports_partial_failures(self) -> None:
+        from orbitrelay.session_cli import run_session_cli
+
+        self.store.create(session_id="free", model="m")
+        self.store.create(session_id="busy", model="m")
+        lease = self.store.acquire_lease("busy")
+        try:
+            out = StringIO()
+            err = StringIO()
+            # run_session_cli uses one stream; call store + format via CLI with patched stderr
+            from unittest.mock import patch
+
+            with patch("sys.stderr", err):
+                code = run_session_cli(
+                    ["delete-all", "--confirm"], store=self.store, output=out
+                )
+            self.assertEqual(code, 1)
+            combined = out.getvalue() + err.getvalue()
+            self.assertIn('Deleted session "free"', combined)
+            self.assertIn('Failed session "busy"', combined)
+            self.assertIn("1 failed", combined)
+            self.assertTrue((self.home / "sessions" / "busy").exists())
+            self.assertFalse((self.home / "sessions" / "free").exists())
+        finally:
+            lease.release()
 
 
 if __name__ == "__main__":
