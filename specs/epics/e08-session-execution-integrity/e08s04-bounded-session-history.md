@@ -2,7 +2,7 @@ STORY KEY: e08s04
 TITLE:     Bound resumable history without splitting tool pairs
 TYPE:      Story
 PARENT:    e08
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      L

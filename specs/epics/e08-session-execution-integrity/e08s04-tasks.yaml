@@ -4,7 +4,7 @@ spec: e08s04-bounded-session-history.md
 type: fix
 context: domain
 risk: P0
-status: failing
+status: passing
 bcps: 8
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_sessions tests.test_events tests.test_context_budget -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -22,7 +22,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_sessions tests.test_events tests.test_context_budget tests.test_streaming -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -32,7 +32,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_sessions tests.test_context_budget tests.test_cli_errors -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
