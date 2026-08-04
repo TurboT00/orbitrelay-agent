@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+    "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 223,
+      "project_tests": 231,
       "example_tests": 9
     }
   },
@@ -19,8 +19,8 @@
     "counts": {
       "accepted": 1,
       "deferred": 2,
-      "fixed": 10,
-      "open": 13
+      "fixed": 11,
+      "open": 12
     },
     "release_blockers": [
       "MAJ-08",
@@ -31,7 +31,6 @@
       "MED-05",
       "MED-06",
       "MED-08",
-      "MED-10",
       "MIN-02",
       "MIN-03",
       "MIN-06",
@@ -42,7 +41,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "references": [
         {
@@ -68,7 +67,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -86,7 +85,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -104,7 +103,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "references": [
         {
@@ -126,7 +125,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -144,7 +143,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -162,7 +161,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "references": [
         {
@@ -188,7 +187,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -204,7 +203,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -224,7 +223,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -240,7 +239,7 @@
     {
       "id": "MED-03-current",
       "kind": "source-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -256,7 +255,7 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -272,7 +271,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -288,7 +287,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -308,7 +307,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -326,7 +325,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -342,7 +341,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -357,24 +356,34 @@
     },
     {
       "id": "MED-10-current",
-      "kind": "source-and-test-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
+      "outcome": "passed",
       "references": [
         {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "ProviderReadiness and inspect_provider/inspect_selected"
+        },
+        {
           "path": "src/orbitrelay/provider_cli.py",
-          "locator": "metadata-only connected status"
+          "locator": "structured offline status output"
         },
         {
           "path": "tests/test_provider_cli.py",
-          "locator": "current provider status coverage"
+          "locator": "status matrix and list keyring-free contract"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "credential present/absent/unavailable readiness"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_provider_cli tests.test_connection_service -v",
+      "exit_code": 0
     },
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -390,7 +399,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -408,7 +417,7 @@
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -428,7 +437,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -444,7 +453,7 @@
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "passed",
       "references": [
         {
@@ -470,7 +479,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -486,7 +495,7 @@
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "references": [
         {
@@ -502,7 +511,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "revision": "7d59d9a291e8325e88c19cfd5e7a8d943b4a55e1",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
@@ -746,14 +755,14 @@
       "id": "MED-10",
       "severity": "medium",
       "title": "Provider status reports metadata, not readiness",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-10-current"
       ],
-      "rationale": "Status still labels stored metadata as connected without separate credential, installation, authentication, or local-readiness facts.",
-      "release_effect": "Blocks e07s01 and e07s03 truthful offline readiness.",
+      "rationale": "provider status reports independent offline facts (configured, selected, catalog/model, credential present/absent/unavailable) and derives only local-ready, not-ready, or unknown without network access or secret values.",
+      "release_effect": "No independent release block remains for API-provider offline readiness vocabulary.",
       "owner": "e07-provider-codex-lifecycle",
-      "residual_risk": "Users can mistake configuration metadata for executable readiness."
+      "residual_risk": "Codex delegated readiness remains e07s03; explicit live verification remains e07s02."
     },
     {
       "id": "MED-11",
