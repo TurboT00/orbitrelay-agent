@@ -18,7 +18,6 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
-
 DEFAULT_MAX_CONTEXT_CHARS = 200_000
 
 
@@ -38,10 +37,7 @@ def message_size(message: Any) -> int:
 
 
 def _role(message: Any) -> str | None:
-    if isinstance(message, Mapping):
-        role = message.get("role")
-    else:
-        role = getattr(message, "role", None)
+    role = message.get("role") if isinstance(message, Mapping) else getattr(message, "role", None)
     return role if isinstance(role, str) else None
 
 
@@ -64,10 +60,7 @@ def _tool_call_id(message: Any) -> str | None:
 def _call_ids(tool_calls: Sequence[Any]) -> set[str]:
     ids: set[str] = set()
     for call in tool_calls:
-        if isinstance(call, Mapping):
-            call_id = call.get("id")
-        else:
-            call_id = getattr(call, "id", None)
+        call_id = call.get("id") if isinstance(call, Mapping) else getattr(call, "id", None)
         if isinstance(call_id, str) and call_id:
             ids.add(call_id)
     return ids

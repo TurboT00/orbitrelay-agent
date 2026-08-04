@@ -1,7 +1,7 @@
 initiative: post-0.5.0-stabilization
 roadmap_priority: stabilization
 status: scoped
-target_version: null
+target_version: "0.6.0"
 codename: Trustworthy Stabilization
 release_intent: standalone_post_0_5_0
 predecessor: conversations-and-streaming (released as 0.5.0)

@@ -4,7 +4,7 @@ wsjf: 6.8
 total_bcps: 10
 status: in_progress
 scope: specs/product/SCOPE_LATEST.yaml
-release_target: "TBD"
+release_target: "0.6.0"
 stories:
   - id: e05s01
     title: Publish a current finding disposition

@@ -4,7 +4,7 @@ wsjf: 6.0
 total_bcps: 34
 status: todo
 scope: specs/product/SCOPE_LATEST.yaml
-release_target: "TBD"
+release_target: "0.6.0"
 stories:
   - id: e06s01
     title: Block protected workspace content before disclosure

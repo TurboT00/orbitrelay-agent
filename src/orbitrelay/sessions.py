@@ -14,9 +14,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .events import EventCollector, RunEvent
+from .events import EventCollector, EventType, RunEvent
 from .redaction import redact_secrets
-
 
 SESSION_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 METADATA_NAME = "metadata.json"
@@ -316,7 +315,7 @@ class SessionStore:
         store = self
         start = len(collector.events)
 
-        def emit(event_type, **data):  # type: ignore[no-untyped-def]
+        def emit(event_type: EventType | str, **data: Any) -> RunEvent:
             event = original_emit(event_type, **data)
             # append only the newly emitted event
             store.append_events(session_id, (event,))

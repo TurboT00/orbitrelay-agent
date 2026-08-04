@@ -1,8 +1,8 @@
 # OrbitRelay Product Status and Roadmap
 
-**Last reviewed:** 2026-08-02
+**Last reviewed:** 2026-08-03
 **Latest tagged release:** 0.5.0
-**Development status:** post-0.5.0 sustain work; no next release selected
+**Development status:** post-0.5.0 stabilization toward 0.6.0; next story approval required
 
 ## Current baseline
 
@@ -14,9 +14,11 @@ Its current interface is a CLI with stored hosted-provider connections,
 workspace-confined tools, explicit approval controls, streaming output, and
 resumable local sessions.
 
-The project is on `main`. Releases 0.3.0 through 0.5.0 are complete. The source
-tree contains post-release provider-connection and maintenance work but still
-declares package version 0.5.0 until a new release is approved.
+The project is on `main`. Releases 0.3.0 through 0.5.0 are complete. The next
+standalone stabilization target is 0.6.0, with 1.0.0 reserved for a later
+milestone. The source tree contains post-release provider-connection and
+maintenance work but still declares package version 0.5.0 until e05s02 applies
+the selected identity.
 
 Use the [architecture guide](architecture.md) for implementation boundaries and
 the [README](../README.md) for installation and operation.
@@ -33,8 +35,9 @@ plans define 72 tasks across the 24 stories. e05s01 is complete with 3 passing
 tasks and a revision-bound disposition for all 26 July findings; the remaining
 69 tasks are failing. Automated verification is the release gate; user-run side
 testing remains optional and non-blocking.
-The project is paused only for the release-version and next-story approval
-checkpoint. No later remediation task or P5 work is approved for execution yet.
+Release target 0.6.0 is selected. The project is paused only for explicit
+next-story approval before Wave 0 continues (recommended: e09s01, then e05s02).
+No later remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities
 

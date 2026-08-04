@@ -7,9 +7,8 @@ import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import TypeVar, cast
+from typing import cast
 from urllib.parse import urlsplit
-
 
 PROFILE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
@@ -37,10 +36,7 @@ REQUIRED_CAPABILITIES = frozenset(
         ProviderCapability.ASSISTANT_MESSAGE_PASSTHROUGH,
     }
 )
-EnumValue = TypeVar("EnumValue", bound=StrEnum)
-
-
-def _enum_value(
+def _enum_value[EnumValue: StrEnum](
     enum_type: type[EnumValue], value: object, field: str
 ) -> EnumValue:
     try:
@@ -79,7 +75,8 @@ def _validated_endpoint(value: object, auth_kind: AuthKind) -> str:
         raise ProfileValidationError("base_url cannot contain whitespace or controls")
     try:
         parsed = urlsplit(base_url)
-        parsed.port
+        # Access .port so urlsplit validates numeric ports before other checks.
+        _ = parsed.port
     except ValueError as exc:
         raise ProfileValidationError("base_url port or authority is invalid") from exc
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:

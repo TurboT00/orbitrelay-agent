@@ -34,8 +34,8 @@ from .connection_service import (
 )
 from .credentials import CredentialStore
 from .events import EventCollector, EventType, RunEvent
-from .provider_cli import run_provider_cli
 from .profile_store import ProfileRepository, default_profile_path
+from .provider_cli import run_provider_cli
 from .run_summary import format_run_summary, summarize_run
 from .session_cli import run_session_cli
 from .sessions import (

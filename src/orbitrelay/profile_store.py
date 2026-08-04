@@ -2,19 +2,18 @@
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import stat
 import tempfile
 import threading
 from collections.abc import Iterator, Mapping
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
 from typing import TextIO, cast
-
-import fcntl
 
 from .profiles import ProfileValidationError, ProviderProfile
 
@@ -173,10 +172,8 @@ def _write_json_atomically(path: Path, value: dict[str, object]) -> None:
             f'Could not write profile metadata at "{path}": {exc}'
         ) from exc
     finally:
-        try:
+        with suppress(OSError):
             Path(temporary_path).unlink(missing_ok=True)
-        except OSError:
-            pass
 
 
 class ProfileRepository:

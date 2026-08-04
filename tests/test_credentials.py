@@ -25,7 +25,6 @@ from orbitrelay.profiles import (
     ProviderProfile,
 )
 
-
 CAPABILITIES = {
     ProviderCapability.TOOL_CALLING,
     ProviderCapability.ASSISTANT_MESSAGE_PASSTHROUGH,

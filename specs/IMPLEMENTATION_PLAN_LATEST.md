@@ -8,7 +8,7 @@
 **Tasks:** 72  
 **BCP:** 151  
 **Implementation status:** e05s01 complete; 3 tasks passing and 69 tasks failing;
-release-version and next-story approval required before later work
+release target 0.6.0 selected; next-story approval still required before later work
 
 ## Purpose
 
@@ -251,11 +251,13 @@ candidate passes; candidate production is not publish authorization.
 
 **e05s01 is complete.** Its executable disposition oracle is
 `specs/verifications/current-finding-disposition.json`. The user has accepted
-automated verification as the release gate. Do not proceed to e09s01, e05s02,
-or any behavior story until the release implications are reviewed and the next
-story is explicitly approved.
+automated verification as the release gate. **Release target 0.6.0 is selected**
+(1.0.0 reserved for later). Package, module, CLI, and wheel identity remain
+0.5.0 until e05s02 applies the selected version. Do not proceed to e09s01,
+e05s02, or any behavior story until the next story is explicitly approved.
 
 ## Handoff
 
-Next action: hold the release-version and next-story checkpoint. Obtain explicit
-story approval before beginning e09s01, e05s02, or any later stabilization work.
+Next action: hold the next-story checkpoint. Recommended Wave 0 remainder is
+e09s01 then e05s02. Obtain explicit story approval before beginning e09s01,
+e05s02, or any later stabilization work.

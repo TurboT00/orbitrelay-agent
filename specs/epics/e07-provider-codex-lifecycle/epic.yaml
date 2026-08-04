@@ -4,7 +4,7 @@ wsjf: 4.8
 total_bcps: 26
 status: todo
 scope: specs/product/SCOPE_LATEST.yaml
-release_target: "TBD"
+release_target: "0.6.0"
 stories:
   - id: e07s01
     title: Inspect API-provider readiness offline

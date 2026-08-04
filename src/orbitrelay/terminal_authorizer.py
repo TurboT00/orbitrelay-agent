@@ -6,9 +6,9 @@ from typing import Any, Protocol, TextIO, cast
 
 from .approval_format import format_approval_request
 from .approvals import (
+    MAX_APPROVAL_ATTEMPTS,
     ApprovalDecision,
     ApprovalRequest,
-    MAX_APPROVAL_ATTEMPTS,
     ToolCategory,
 )
 

@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 CODEX_BINARY_NAME = "codex"
 CODEX_INSTALL_GUIDANCE = (
     "Install the official Codex CLI separately and ensure `codex` is on PATH. "
@@ -237,7 +236,11 @@ def _final_message_from_jsonl(stdout: str) -> str:
         if not isinstance(event, dict):
             continue
         item = event.get("item")
-        if event.get("type") == "item.completed" and isinstance(item, dict):
-            if item.get("type") == "agent_message" and isinstance(item.get("text"), str):
-                final_message = item["text"]
+        if (
+            event.get("type") == "item.completed"
+            and isinstance(item, dict)
+            and item.get("type") == "agent_message"
+            and isinstance(item.get("text"), str)
+        ):
+            final_message = item["text"]
     return final_message

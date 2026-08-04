@@ -4,7 +4,7 @@ wsjf: 3.6
 total_bcps: 15
 status: todo
 scope: specs/product/SCOPE_LATEST.yaml
-release_target: "TBD"
+release_target: "0.6.0"
 stories:
   - id: e10s01
     title: Record automated macOS readiness evidence

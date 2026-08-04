@@ -1,22 +1,22 @@
-active_flow: none
-active_epic_id: null
-active_story_id: null
+active_flow: build_epic
+active_epic_id: e09
+active_story_id: e09s01
 release:
   current_version: 0.5.0
   last_completed_release: 0.5.0
   last_completed_tag: v0.5.0
-  next_target: null
-  status: complete
+  next_target: 0.6.0
+  status: stabilization_in_progress
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 188
+  project_tests: 192
   example_tests: 9
 planning:
   phase: build
-  status: e05s01_complete_checkpoint_required
+  status: e09s01_in_progress
   entry_skill: kickoff-branch
-  next_skill: human-checkpoint
+  next_skill: develop-tdd
   epic_ids: [e05, e06, e07, e08, e09, e10]
   story_count: 24
   total_bcps: 151
@@ -26,9 +26,9 @@ planning:
     report: specs/IMPACT_LATEST.md
     risk: high
   next_action: >-
-    Review the release-version implications and explicitly approve the next
-    automated stabilization story. Do not begin e05s02, e09s01, another
-    stabilization story, or P5 without explicit approval.
+    Implement and verify e09s01 terminal Ruff/mypy gates. Keep package
+    identity at 0.5.0 until e05s02. Do not begin later stories or P5 without
+    explicit approval.
 handoff:
   required_reading:
     - README.md
@@ -41,14 +41,14 @@ handoff:
     - specs/IMPACT_LATEST.md
     - specs/IMPLEMENTATION_PLAN_LATEST.md
   open_decisions:
-    - Select the post-0.5.0 stabilization release identifier after scope is approved.
+    - Explicitly approve the next automated stabilization story (recommended: e09s01).
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
-    e05s01 is complete with 26 revision-bound finding dispositions. Automated
-    verification is the release gate; user-run side testing is optional and
-    non-blocking. Make the required human release-version decision and explicitly
-    approve the next story. Keep P5 blocked.
+    Release target 0.6.0 is selected. e05s01 remains complete with 26 revision-bound
+    finding dispositions. Automated verification is the release gate; user-run side
+    testing is optional and non-blocking. Approve the next story, then begin only
+    that story. Keep P5 blocked and keep package identity at 0.5.0 until e05s02.
   next_skill: human-checkpoint
 decisions:
   product_identity: >-
@@ -100,6 +100,10 @@ decisions:
     separate, with an explicit logout-first --disconnect combination. Never
     inspect Codex credentials or auto-select another provider.
   remote_push: Do not push without an explicit user request.
+  stabilization_release_target: >-
+    The standalone post-0.5.0 stabilization release is 0.6.0. Keep 1.0.0 reserved
+    for a later product milestone. Package, module, CLI, and wheel identity stay
+    at 0.5.0 until e05s02 applies the selected version across all surfaces.
 preferences:
   - Ask before making product, auth, security, persistence, or platform-support assumptions.
   - Prefer verification over inference when intent is ambiguous.

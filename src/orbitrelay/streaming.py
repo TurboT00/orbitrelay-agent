@@ -120,7 +120,7 @@ def _tool_call_object(bucket: dict[str, Any]) -> Any:
             return {key: value for key, value in payload.items() if value is not None}
         return payload
 
-    tool_call.model_dump = model_dump  # type: ignore[attr-defined]
+    tool_call.model_dump = model_dump
     return tool_call
 
 
@@ -155,7 +155,7 @@ def _assistant_message(
             }
         return serialized
 
-    message.model_dump = model_dump  # type: ignore[attr-defined]
+    message.model_dump = model_dump
     return message
 
 

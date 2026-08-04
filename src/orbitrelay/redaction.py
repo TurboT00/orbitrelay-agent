@@ -3,7 +3,6 @@
 from collections.abc import Mapping
 from typing import Any
 
-
 REDACTED = "<redacted>"
 SENSITIVE_KEY_PARTS = (
     "api_key",

@@ -11,7 +11,6 @@ from .profile_store import (
 )
 from .profiles import ProviderProfile
 
-
 KEYRING_SERVICE = "orbitrelay-agent"
 APPROVED_KEYRING_MODULES = (
     "keyring.backends.macOS",

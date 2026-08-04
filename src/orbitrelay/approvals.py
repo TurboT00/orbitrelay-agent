@@ -47,15 +47,15 @@ class ApprovalDecision:
         return self.disposition is ApprovalDisposition.APPROVED
 
     @classmethod
-    def approve(cls, *, reason: str) -> "ApprovalDecision":
+    def approve(cls, *, reason: str) -> ApprovalDecision:
         return cls(disposition=ApprovalDisposition.APPROVED, reason=reason)
 
     @classmethod
-    def deny(cls, *, reason: str) -> "ApprovalDecision":
+    def deny(cls, *, reason: str) -> ApprovalDecision:
         return cls(disposition=ApprovalDisposition.DENIED, reason=reason)
 
     @classmethod
-    def disable_tool(cls) -> "ApprovalDecision":
+    def disable_tool(cls) -> ApprovalDecision:
         return cls.deny(reason="user_disabled_tool")
 
 
@@ -105,7 +105,7 @@ class ApprovalSession:
 
     def authorize(
         self,
-        requests: tuple["ApprovalRequest", ...],
+        requests: tuple[ApprovalRequest, ...],
     ) -> tuple[ApprovalDecision, ...]:
         outcomes = self._decisions_for(requests)
         for request, decision in zip(requests, outcomes, strict=True):
@@ -113,7 +113,7 @@ class ApprovalSession:
         return outcomes
 
     def _decisions_for(
-        self, requests: tuple["ApprovalRequest", ...]
+        self, requests: tuple[ApprovalRequest, ...]
     ) -> tuple[ApprovalDecision, ...]:
         pending_indexes = tuple(
             index
@@ -131,7 +131,7 @@ class ApprovalSession:
 
     @staticmethod
     def _validate_decisions(
-        requests: tuple["ApprovalRequest", ...],
+        requests: tuple[ApprovalRequest, ...],
         decisions: tuple[ApprovalDecision, ...],
     ) -> None:
         if len(decisions) != len(requests):
@@ -141,7 +141,7 @@ class ApprovalSession:
 
     def _apply_policy(
         self,
-        request: "ApprovalRequest",
+        request: ApprovalRequest,
         candidate: ApprovalDecision | None,
     ) -> ApprovalDecision:
         if request.tool_name in self._disabled_tools:
@@ -154,7 +154,7 @@ class ApprovalSession:
 
     def _authorize_pre_approved(
         self,
-        requests: tuple["ApprovalRequest", ...],
+        requests: tuple[ApprovalRequest, ...],
     ) -> tuple[ApprovalDecision, ...]:
         return tuple(
             ApprovalDecision.approve(reason="read_allowed")
@@ -180,7 +180,7 @@ class ApprovalRequest:
         call_id: str,
         target: str,
         content_length: int,
-    ) -> "ApprovalRequest":
+    ) -> ApprovalRequest:
         return cls(
             call_id=call_id,
             tool_name="write_file",
@@ -199,7 +199,7 @@ class ApprovalRequest:
         workspace: str,
         target: str,
         arguments: Sequence[str],
-    ) -> "ApprovalRequest":
+    ) -> ApprovalRequest:
         return cls(
             call_id=call_id,
             tool_name="run_python_file",

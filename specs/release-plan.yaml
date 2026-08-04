@@ -1,16 +1,17 @@
 release:
-  version: "TBD"
+  version: "0.6.0"
   codename: Trustworthy Stabilization
   status: planning
   semantic_release: false
-  bump_hint: major
+  bump_hint: minor
   baseline_version: "0.5.0"
   baseline_tag: v0.5.0
   scope: specs/product/SCOPE_LATEST.yaml
   note: >-
-    The version is intentionally selected by e05 after the current baseline is
-    revalidated. The major hint records post-0.5.0 breaking provider commits;
-    it is not an approved release number.
+    Release-owner decision on 2026-08-03: ship this stabilization as 0.6.0 and
+    reserve 1.0.0 for a later milestone. Post-0.5.0 breaking provider commits
+    remain in scope; they do not force a major bump for this release. Package
+    metadata stays 0.5.0 until e05s02 applies the selected identity.
 
 previous_release:
   version: "0.5.0"
@@ -22,7 +23,7 @@ epics:
   - id: e05
     title: Baseline and Release Identity
     capsule_dir: epics/e05-baseline-release-identity
-    status: todo
+    status: in_progress
     wsjf: 6.8
     bcps: 10
     note: >-

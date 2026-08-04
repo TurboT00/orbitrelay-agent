@@ -1,10 +1,10 @@
 # story: e01s01
 
-import unittest
 import json
 import subprocess
 import sys
 import tempfile
+import unittest
 from collections.abc import Iterable
 from pathlib import Path
 from typing import cast
@@ -17,11 +17,10 @@ from orbitrelay.profile_store import (
 )
 from orbitrelay.profiles import (
     AuthKind,
+    ProfileValidationError,
     ProviderCapability,
     ProviderProfile,
-    ProfileValidationError,
 )
-
 
 CAPABILITIES = frozenset(
     {

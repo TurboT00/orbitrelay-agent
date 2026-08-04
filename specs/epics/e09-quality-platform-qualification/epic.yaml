@@ -2,14 +2,14 @@ id: e09
 title: Quality and Platform Qualification
 wsjf: 4.2
 total_bcps: 24
-status: todo
+status: in_progress
 scope: specs/product/SCOPE_LATEST.yaml
-release_target: "TBD"
+release_target: "0.6.0"
 stories:
   - id: e09s01
     title: Run lint and typing as terminal release gates
     bcps: 5
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e09s01-lint-type-gates.md
     tasks: e09s01-tasks.yaml

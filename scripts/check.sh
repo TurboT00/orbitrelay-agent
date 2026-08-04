@@ -25,6 +25,12 @@ uv lock --check
 section "Synchronizing locked environment"
 uv sync --locked
 
+section "Running Ruff"
+uv run ruff check .
+
+section "Running mypy"
+uv run mypy src/orbitrelay
+
 section "Running OrbitRelay tests"
 uv run python -m unittest discover -s tests -v
 

@@ -32,3 +32,54 @@ Issues = "https://github.com/TurboT00/orbitrelay-agent/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/orbitrelay"]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17,<3",
+    "ruff>=0.12,<1",
+]
+
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+src = ["src", "tests", "scripts"]
+extend-exclude = [
+    ".bigpowers",
+    "specs/archive",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501", # line length is not a release-blocking style gate
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Nested with/subTest blocks are intentionally readable in tests.
+"tests/**/*.py" = ["SIM117"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["orbitrelay"]
+
+[tool.mypy]
+python_version = "3.14"
+mypy_path = "src"
+packages = ["orbitrelay"]
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+pretty = true
+show_error_codes = true
