@@ -30,7 +30,7 @@ stories:
   - id: e06s04
     title: Resume an explicitly persisted sensitive session safely
     bcps: 8
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e06s04-sensitive-session-resume.md
     tasks: e06s04-tasks.yaml

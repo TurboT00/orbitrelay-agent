@@ -155,22 +155,37 @@ class SessionMetadata:
     workspace: str | None = None
     model: str | None = None
     title: str | None = None
+    sensitive: bool = False
+    sensitive_authority: tuple[str, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "id": self.id,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
             "workspace": self.workspace,
             "model": self.model,
             "title": self.title,
+            "sensitive": self.sensitive,
         }
+        if self.sensitive_authority:
+            payload["sensitive_authority"] = list(self.sensitive_authority)
+        return payload
 
     @classmethod
     def from_dict(cls, value: object) -> SessionMetadata:
         if not isinstance(value, dict):
             raise SessionCorruptionError("session metadata must be an object")
         try:
+            authority_raw = value.get("sensitive_authority", ())
+            if authority_raw in (None, (), []):
+                authority: tuple[str, ...] = ()
+            elif isinstance(authority_raw, (list, tuple)) and all(
+                isinstance(item, str) for item in authority_raw
+            ):
+                authority = tuple(authority_raw)
+            else:
+                raise SessionCorruptionError("sensitive_authority must be a string list")
             return cls(
                 id=_validate_session_id(str(value["id"])),
                 created_at=float(value["created_at"]),
@@ -184,6 +199,8 @@ class SessionMetadata:
                 title=value.get("title")
                 if isinstance(value.get("title"), str) or value.get("title") is None
                 else None,
+                sensitive=bool(value.get("sensitive", False)),
+                sensitive_authority=authority,
             )
         except (KeyError, TypeError, ValueError, SessionError) as exc:
             raise SessionCorruptionError("session metadata is invalid") from exc
@@ -353,6 +370,54 @@ class SessionStore:
             path = directory / name
             _write_text_secure(path, "")
         return metadata
+
+
+    def mark_sensitive(
+        self,
+        session_id: str,
+        authority: Sequence[str],
+    ) -> SessionMetadata:
+        """Mark a session as sensitive with secret-free authority descriptors."""
+        directory = self._require_session_dir(session_id)
+        metadata = self._read_metadata(directory)
+        cleaned = tuple(
+            sorted({item.strip() for item in authority if isinstance(item, str) and item.strip()})
+        )
+        if not cleaned:
+            raise SessionError("sensitive authority descriptors cannot be empty")
+        updated = SessionMetadata(
+            id=metadata.id,
+            created_at=metadata.created_at,
+            updated_at=float(self._clock()),
+            workspace=metadata.workspace,
+            model=metadata.model,
+            title=metadata.title,
+            sensitive=True,
+            sensitive_authority=cleaned,
+        )
+        self._write_metadata(directory, updated)
+        return updated
+
+    def require_sensitive_resume_authority(
+        self,
+        session_id: str,
+        *,
+        covers: Callable[[str], bool],
+    ) -> None:
+        """Fail closed when a sensitive session resumes without renewed authority."""
+        metadata = self.get_metadata(session_id)
+        if not metadata.sensitive:
+            return
+        missing = [
+            descriptor
+            for descriptor in metadata.sensitive_authority
+            if not covers(descriptor)
+        ]
+        if missing:
+            raise SessionError(
+                f'Session "{session_id}" contains sensitive history; renew matching '
+                "--allow-sensitive-read/--allow-sensitive-subtree authority before resume"
+            )
 
     def get_metadata(self, session_id: str) -> SessionMetadata:
         directory = self._require_session_dir(session_id)

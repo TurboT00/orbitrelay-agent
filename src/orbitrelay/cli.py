@@ -52,8 +52,11 @@ from .sessions import (
 )
 from .terminal_authorizer import TerminalAuthorizer
 from .tools.workspace_privacy import (
+    authority_covers,
+    authority_descriptors,
     clear_privacy_authorization,
     declare_run_exception,
+    has_sensitive_authority,
 )
 
 DEFAULT_APPROVAL_TIMEOUT = 60.0
@@ -117,6 +120,14 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help=(
             "Authorize one workspace-relative sensitive subtree for this process only "
             "(repeatable; absolute-deny entries remain denied)"
+        ),
+    )
+    parser.add_argument(
+        "--persist-sensitive-session",
+        action="store_true",
+        help=(
+            "Persist authorized sensitive turns into the session (default: ephemeral). "
+            "Sensitive sessions require renewed authority on every resume."
         ),
     )
     _add_approval_options(parser)
@@ -220,6 +231,11 @@ def _prepare_session(
             return session_id, None, store, lease
         lease = store.acquire_lease(session_id, wait_seconds=wait_seconds)
         try:
+            metadata = store.get_metadata(session_id)
+            if metadata.sensitive:
+                store.require_sensitive_resume_authority(
+                    session_id, covers=authority_covers
+                )
             messages = store.load_messages(session_id)
         except Exception:
             lease.release()
@@ -271,14 +287,23 @@ def _invoke_agent(
     if store is not None and session_id is not None and collector is not None:
         store.bind_collector(session_id, collector)
 
+    persist_sensitive = bool(getattr(args, "persist_sensitive_session", False))
+    sensitive_run = has_sensitive_authority()
+
     def on_messages_update(messages: list) -> None:
-        if store is not None and session_id is not None:
-            event_batch = collector.events if collector is not None else None
-            store.commit_checkpoint(
-                session_id,
-                messages,
-                events=event_batch,
-            )
+        if store is None or session_id is None:
+            return
+        # Authorized sensitive turns stay ephemeral unless separately consented.
+        if sensitive_run and not persist_sensitive:
+            return
+        event_batch = collector.events if collector is not None else None
+        store.commit_checkpoint(
+            session_id,
+            messages,
+            events=event_batch,
+        )
+        if sensitive_run and persist_sensitive:
+            store.mark_sensitive(session_id, authority_descriptors())
 
     run_kwargs: dict[str, object] = {
         "working_directory": workspace,
@@ -293,8 +318,11 @@ def _invoke_agent(
         run_kwargs["stream"] = True
     if initial_messages is not None:
         run_kwargs["initial_messages"] = initial_messages
-    if store is not None:
+    if store is not None and (not sensitive_run or persist_sensitive):
         run_kwargs["on_messages_update"] = on_messages_update
+    elif store is not None and sensitive_run and not persist_sensitive:
+        # Session exists but sensitive turns are not checkpointed this run.
+        pass
     try:
         try:
             final_text = run_agent(

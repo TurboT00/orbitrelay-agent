@@ -654,5 +654,204 @@ class CliSensitiveExceptionTests(unittest.TestCase):
         self.assertNotIn("Traceback", err.getvalue())
 
 
+
+class SensitiveSessionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        clear_privacy_authorization()
+        clear_workspace_policy_cache()
+        self.directory = tempfile.TemporaryDirectory()
+        self.home = Path(self.directory.name) / "home"
+        self.home.mkdir()
+        self.workspace = Path(self.directory.name) / "ws"
+        self.workspace.mkdir()
+        (self.workspace / ".env").write_text("TOP=1\n", encoding="utf-8")
+        self.sessions = SessionStore(root=self.home / "sessions")
+        self.meta = self.sessions.create(
+            session_id="sens1", workspace=str(self.workspace), model="m"
+        )
+
+    def tearDown(self) -> None:
+        clear_privacy_authorization()
+        clear_workspace_policy_cache()
+        self.directory.cleanup()
+
+    def test_default_sensitive_run_is_ephemeral(self) -> None:
+        import io
+        import os
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+
+        from orbitrelay import cli
+        from orbitrelay.connection_service import ConnectionService
+        from orbitrelay.profile_store import ProfileRepository
+        from orbitrelay.providers import ProviderId
+
+        repository = ProfileRepository(self.home / "profiles.json")
+        class Fake:
+            def __init__(self):
+                self.values = {}
+            def set_secret(self, k, v):
+                self.values[k] = v
+            def get_secret(self, k):
+                from orbitrelay.credentials import CredentialNotFoundError
+                try:
+                    return self.values[k]
+                except KeyError as exc:
+                    raise CredentialNotFoundError(k) from exc
+            def delete_secret(self, k):
+                self.values.pop(k, None)
+        store = Fake()
+        ConnectionService(repository, store).connect_api_key(ProviderId.OPENAI, "k")
+        final = SimpleNamespace(
+            role="assistant",
+            content="done",
+            tool_calls=None,
+            model_dump=lambda exclude_none=True: {"role": "assistant", "content": "done"},
+        )
+        client = Mock()
+        client.chat.completions.create = Mock(
+            return_value=SimpleNamespace(choices=[SimpleNamespace(message=final)], usage=None)
+        )
+        out, err = io.StringIO(), io.StringIO()
+        with (
+            patch.dict(os.environ, {"ORBITRELAY_HOME": str(self.home)}, clear=False),
+            patch("orbitrelay.cli.OpenAI", return_value=client),
+            patch("sys.stdout", out),
+            patch("sys.stderr", err),
+        ):
+            code = cli.main(
+                [
+                    "use secrets",
+                    "--workspace",
+                    str(self.workspace),
+                    "--session",
+                    "sens1",
+                    "--allow-sensitive-read",
+                    ".env",
+                ],
+                profile_repository=repository,
+                credential_store=store,
+            )
+        self.assertEqual(code, 0)
+        # Without persist consent, messages stay empty (ephemeral).
+        self.assertEqual(self.sessions.load_messages("sens1"), [])
+        self.assertFalse(self.sessions.get_metadata("sens1").sensitive)
+
+    def test_persist_consent_marks_session_and_requires_renewed_authority(self) -> None:
+        import io
+        import os
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+
+        from orbitrelay import cli
+        from orbitrelay.connection_service import ConnectionService
+        from orbitrelay.profile_store import ProfileRepository
+        from orbitrelay.providers import ProviderId
+
+        repository = ProfileRepository(self.home / "profiles.json")
+        class Fake:
+            def __init__(self):
+                self.values = {}
+            def set_secret(self, k, v):
+                self.values[k] = v
+            def get_secret(self, k):
+                from orbitrelay.credentials import CredentialNotFoundError
+                try:
+                    return self.values[k]
+                except KeyError as exc:
+                    raise CredentialNotFoundError(k) from exc
+            def delete_secret(self, k):
+                self.values.pop(k, None)
+        store = Fake()
+        ConnectionService(repository, store).connect_api_key(ProviderId.OPENAI, "k")
+        final = SimpleNamespace(
+            role="assistant",
+            content="done",
+            tool_calls=None,
+            model_dump=lambda exclude_none=True: {"role": "assistant", "content": "done"},
+        )
+        client = Mock()
+        client.chat.completions.create = Mock(
+            return_value=SimpleNamespace(choices=[SimpleNamespace(message=final)], usage=None)
+        )
+        out, err = io.StringIO(), io.StringIO()
+        with (
+            patch.dict(os.environ, {"ORBITRELAY_HOME": str(self.home)}, clear=False),
+            patch("orbitrelay.cli.OpenAI", return_value=client),
+            patch("sys.stdout", out),
+            patch("sys.stderr", err),
+        ):
+            code = cli.main(
+                [
+                    "use secrets",
+                    "--workspace",
+                    str(self.workspace),
+                    "--session",
+                    "sens1",
+                    "--allow-sensitive-read",
+                    ".env",
+                    "--persist-sensitive-session",
+                ],
+                profile_repository=repository,
+                credential_store=store,
+            )
+        self.assertEqual(code, 0)
+        meta = self.sessions.get_metadata("sens1")
+        self.assertTrue(meta.sensitive)
+        self.assertIn(".env", meta.sensitive_authority)
+        self.assertTrue(self.sessions.load_messages("sens1"))
+
+        # Resume without renewed authority fails before provider.
+        out2, err2 = io.StringIO(), io.StringIO()
+        with (
+            patch.dict(os.environ, {"ORBITRELAY_HOME": str(self.home)}, clear=False),
+            patch("orbitrelay.cli.OpenAI") as openai,
+            patch("sys.stdout", out2),
+            patch("sys.stderr", err2),
+        ):
+            code2 = cli.main(
+                [
+                    "continue",
+                    "--workspace",
+                    str(self.workspace),
+                    "--session",
+                    "sens1",
+                ],
+                profile_repository=repository,
+                credential_store=store,
+            )
+        self.assertEqual(code2, 1)
+        self.assertEqual(out2.getvalue(), "")
+        self.assertIn("renew", err2.getvalue().lower())
+        openai.assert_not_called()
+
+        # Resume with matching authority succeeds.
+        client2 = Mock()
+        client2.chat.completions.create = Mock(
+            return_value=SimpleNamespace(choices=[SimpleNamespace(message=final)], usage=None)
+        )
+        out3, err3 = io.StringIO(), io.StringIO()
+        with (
+            patch.dict(os.environ, {"ORBITRELAY_HOME": str(self.home)}, clear=False),
+            patch("orbitrelay.cli.OpenAI", return_value=client2),
+            patch("sys.stdout", out3),
+            patch("sys.stderr", err3),
+        ):
+            code3 = cli.main(
+                [
+                    "continue",
+                    "--workspace",
+                    str(self.workspace),
+                    "--session",
+                    "sens1",
+                    "--allow-sensitive-read",
+                    ".env",
+                ],
+                profile_repository=repository,
+                credential_store=store,
+            )
+        self.assertEqual(code3, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

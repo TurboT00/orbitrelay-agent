@@ -87,6 +87,35 @@ def set_privacy_authorization(authorization: PrivacyAuthorization) -> None:
 def clear_privacy_authorization() -> None:
     set_privacy_authorization(PrivacyAuthorization())
 
+def authority_descriptors() -> tuple[str, ...]:
+    """Secret-free descriptors for the current process authority set."""
+    auth = get_privacy_authorization()
+    items = set(auth.exact_files)
+    for subtree in auth.subtrees:
+        items.add(f"{subtree}/")
+    return tuple(sorted(items))
+
+
+def authority_covers(descriptor: str) -> bool:
+    """Return True when current process authority satisfies a stored descriptor."""
+    auth = get_privacy_authorization()
+    text = _normalize_relative(descriptor)
+    folded = text.casefold()
+    if folded.endswith("/"):
+        root = folded.rstrip("/")
+        return root in auth.subtrees or any(
+            root == item or root.startswith(f"{item}/") for item in auth.subtrees
+        )
+    if folded in auth.exact_files:
+        return True
+    return auth.authorizes(folded)
+
+
+def has_sensitive_authority() -> bool:
+    auth = get_privacy_authorization()
+    return bool(auth.exact_files or auth.subtrees)
+
+
 
 def authorize_exact_path(relative_path: str) -> None:
     path = _normalize_relative(relative_path).casefold()

@@ -49,11 +49,13 @@ def run_session_cli(
                 return 0
             for metadata in sessions:
                 busy = "yes" if active.is_session_active(metadata.id) else "no"
+                sensitive = "yes" if metadata.sensitive else "no"
                 print(
                     f"{metadata.id} updated={metadata.updated_at}"
                     f" model={metadata.model or '-'}"
                     f" workspace={metadata.workspace or '-'}"
-                    f" active={busy}",
+                    f" active={busy}"
+                    f" sensitive={sensitive}",
                     file=stream,
                 )
             return 0
