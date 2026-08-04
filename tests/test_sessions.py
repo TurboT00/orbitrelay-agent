@@ -230,6 +230,8 @@ class SessionStoreTests(unittest.TestCase):
             ConnectionService(repository, credentials).connect_api_key(
                 ProviderId.OPENAI, "secret"
             )
+            stderr = StringIO()
+            stdout = StringIO()
             with (
                 patch.dict(
                     os.environ,
@@ -237,13 +239,18 @@ class SessionStoreTests(unittest.TestCase):
                     clear=True,
                 ),
                 patch("orbitrelay.cli.OpenAI") as openai,
+                patch("sys.stderr", stderr),
+                patch("sys.stdout", stdout),
             ):
-                with self.assertRaisesRegex(ValueError, "not valid JSON|corrupt|invalid"):
-                    cli.main(
-                        ["resume", "--session", "bad", "--workspace", workspace],
-                        profile_repository=repository,
-                        credential_store=credentials,
-                    )
+                code = cli.main(
+                    ["resume", "--session", "bad", "--workspace", workspace],
+                    profile_repository=repository,
+                    credential_store=credentials,
+                )
+        self.assertEqual(code, 1)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertRegex(stderr.getvalue(), r"not valid JSON|corrupt|invalid|error:")
+        self.assertNotIn("Traceback", stderr.getvalue())
         openai.assert_not_called()
 
     def test_session_cli_list_show_delete(self) -> None:

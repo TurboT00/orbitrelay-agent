@@ -1,6 +1,6 @@
-active_flow: none
-active_epic_id: null
-active_story_id: null
+active_flow: build_epic
+active_epic_id: e06
+active_story_id: e06s05
 release:
   current_version: 0.6.0
   last_completed_release: 0.5.0
@@ -14,7 +14,7 @@ verification:
   example_tests: 9
 planning:
   phase: build
-  status: e06s02_complete_next_story_checkpoint
+  status: e06s05_in_progress
   entry_skill: kickoff-branch
   next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]

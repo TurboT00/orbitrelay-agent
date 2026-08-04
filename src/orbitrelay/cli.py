@@ -15,6 +15,7 @@ import argparse
 import getpass
 import math
 import os
+import re
 import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
@@ -25,6 +26,7 @@ from openai import APIStatusError, OpenAI
 from . import __version__
 from .agent import run_agent
 from .approvals import ApprovalMode, ApprovalSession
+from .codex_bridge import CodexBridgeError
 from .codex_cli import run_codex_cli
 from .config import ApiConfig
 from .connection_service import (
@@ -33,9 +35,10 @@ from .connection_service import (
     ConnectionService,
     OpenAICompatibleConnection,
 )
-from .credentials import CredentialStore
+from .credentials import CredentialNotFoundError, CredentialStore, CredentialStoreError
 from .events import EventCollector, EventType, RunEvent
-from .profile_store import ProfileRepository, default_profile_path
+from .profile_store import ProfileRepository, ProfileStorageError, default_profile_path
+from .profiles import ProfileValidationError
 from .provider_cli import run_provider_cli
 from .run_summary import format_run_summary, summarize_run
 from .session_cli import run_session_cli
@@ -350,6 +353,52 @@ def _dispatch_cli(
     )
 
 
+EXPECTED_CLI_EXCEPTIONS = (
+    ConnectionError,
+    ValueError,
+    CredentialStoreError,
+    CredentialNotFoundError,
+    SessionError,
+    SessionNotFoundError,
+    SessionCorruptionError,
+    ProfileStorageError,
+    ProfileValidationError,
+    CodexBridgeError,
+    APIStatusError,
+)
+
+
+def format_cli_error(exc: BaseException) -> str:
+    """Return one concise, secret-free stderr diagnostic for an expected failure."""
+    if isinstance(exc, APIStatusError):
+        text = _provider_http_error_message(exc)
+    else:
+        text = str(exc).strip() or exc.__class__.__name__
+    text = _scrub_cli_error_text(text)
+    if not text:
+        text = "command failed"
+    if text.lower().startswith("error:"):
+        return text
+    return f"error: {text}"
+
+
+def _scrub_cli_error_text(text: str) -> str:
+    scrubbed = text
+    scrubbed = re.sub(r"(?i)\b(?:sk|pk|ghp|glpat)-[a-z0-9_-]{8,}", "<redacted>", scrubbed)
+    scrubbed = re.sub(r"(?i)\bbearer\s+[a-z0-9._~+/=-]{8,}", "Bearer <redacted>", scrubbed)
+    scrubbed = re.sub(
+        r"(?i)\b(api[_-]?key|password|secret|token)\s*[:=]\s*\S+",
+        r"\1=<redacted>",
+        scrubbed,
+    )
+    if any(marker in scrubbed for marker in ("BEGIN ", "PRIVATE KEY", "AKIA")):
+        return "operation failed"
+    # Drop obvious pasted secrets when the exception message is only the secret.
+    if re.fullmatch(r"[A-Za-z0-9_\-]{24,}", scrubbed):
+        return "operation failed"
+    return scrubbed
+
+
 def main(
     argv: Sequence[str] | None = None,
     *,
@@ -363,14 +412,18 @@ def main(
         default_profile_path(process_environment)
     )
     raw_argv = list(sys.argv[1:] if argv is None else argv)
-    return _dispatch_cli(
-        raw_argv,
-        repository,
-        credential_store,
-        secret_prompt,
-        input_stream,
-        process_environment,
-    )
+    try:
+        return _dispatch_cli(
+            raw_argv,
+            repository,
+            credential_store,
+            secret_prompt,
+            input_stream,
+            process_environment,
+        )
+    except EXPECTED_CLI_EXCEPTIONS as exc:
+        print(format_cli_error(exc), file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
