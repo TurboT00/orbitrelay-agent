@@ -7,7 +7,7 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** Wave 0 complete; e06s01/s02/s05 and e07s01 complete; 21 tasks passing and 51 tasks failing;
+**Implementation status:** Wave 0 complete; e06s01/s02/s05 and e07s01/s03 complete; 24 tasks passing and 48 tasks failing;
 release identity 0.6.0 applied; next-story approval required before later work
 
 ## Purpose
@@ -249,13 +249,14 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**Wave 0 plus e06s01/s02/s05 and e07s01 are complete.** The disposition oracle
-remains at `specs/verifications/current-finding-disposition.json`, records
-selected identity **0.6.0**, and marks MAJ-01, MAJ-04, and MED-10 fixed. Do not
-proceed to e07s03 or later stories until the next story is explicitly approved.
+**Wave 0 plus e06s01/s02/s05 and e07s01/s03 are complete.** The disposition
+oracle remains at `specs/verifications/current-finding-disposition.json` and
+records selected identity **0.6.0** with offline API and delegated Codex
+readiness. Do not proceed to e08s01 or later stories until the next story is
+explicitly approved.
 
 ## Handoff
 
 Next action: hold the next-story checkpoint. Recommended Wave 1 next story is
-e07s03 (delegated Codex readiness). Obtain explicit story approval before
-beginning e07s03 or any later stabilization work.
+e08s01 (exclusive session owner). Obtain explicit story approval before
+beginning e08s01 or any later stabilization work.

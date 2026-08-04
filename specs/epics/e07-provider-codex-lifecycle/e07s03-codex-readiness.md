@@ -2,7 +2,7 @@ STORY KEY: e07s03
 TITLE:     Inspect delegated Codex readiness without account leakage
 TYPE:      Story
 PARENT:    e07
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M
