@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+    "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 217,
+      "project_tests": 223,
       "example_tests": 9
     }
   },
@@ -19,11 +19,10 @@
     "counts": {
       "accepted": 1,
       "deferred": 2,
-      "fixed": 9,
-      "open": 14
+      "fixed": 10,
+      "open": 13
     },
     "release_blockers": [
-      "MAJ-04",
       "MAJ-08",
       "MED-01",
       "MED-02",
@@ -43,7 +42,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "references": [
         {
@@ -69,7 +68,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -87,7 +86,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -104,24 +103,30 @@
     },
     {
       "id": "MAJ-04-current",
-      "kind": "source-and-test-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/cli.py",
-          "locator": "main dispatch lacks a general expected-error boundary"
+          "locator": "main catches EXPECTED_CLI_EXCEPTIONS and format_cli_error"
+        },
+        {
+          "path": "tests/test_cli_errors.py",
+          "locator": "process-level failure stream contracts"
         },
         {
           "path": "tests/test_sessions.py",
-          "locator": "corrupt session error propagation"
+          "locator": "corrupt session fails before tools without traceback"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_cli_errors -v",
+      "exit_code": 0
     },
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -139,7 +144,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -157,7 +162,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "references": [
         {
@@ -183,7 +188,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -199,7 +204,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -219,7 +224,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -235,7 +240,7 @@
     {
       "id": "MED-03-current",
       "kind": "source-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -251,7 +256,7 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -267,7 +272,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -283,7 +288,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -303,7 +308,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -321,7 +326,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -337,7 +342,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -353,7 +358,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -369,7 +374,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -385,7 +390,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -403,7 +408,7 @@
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -423,7 +428,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -439,7 +444,7 @@
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "passed",
       "references": [
         {
@@ -465,7 +470,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -481,7 +486,7 @@
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "references": [
         {
@@ -497,7 +502,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "5df4c29186ef89eee1da4a242b51fcef0940f9a7",
+      "revision": "d22e1ba55ba7fb7ac04c641715f045d7e9239793",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
@@ -557,14 +562,14 @@
       "id": "MAJ-04",
       "severity": "major",
       "title": "Expected CLI failures escape as tracebacks",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MAJ-04-current"
       ],
-      "rationale": "Expected connection and session failures still lack one top-level translation boundary.",
-      "release_effect": "Blocks release until e06s05 defines concise stderr failures and stable nonzero exits.",
+      "rationale": "cli.main translates expected connection, session, credential, provider, and validation failures into one secret-free stderr diagnostic with nonzero exit and no traceback; final-answer stdout stays empty on those failures.",
+      "release_effect": "No independent release block remains for expected CLI traceback leakage.",
       "owner": "e06-workspace-privacy-cli-trust",
-      "residual_risk": "Routine user errors can expose internal tracebacks and unstable failure behavior."
+      "residual_risk": "Unexpected programming defects can still raise; only expected operational failures are translated at the CLI boundary."
     },
     {
       "id": "MAJ-05",
