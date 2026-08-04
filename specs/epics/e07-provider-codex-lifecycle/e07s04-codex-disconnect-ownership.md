@@ -2,7 +2,7 @@ STORY KEY: e07s04
 TITLE:     Disconnect and log out of Codex with explicit ownership
 TYPE:      Story
 PARENT:    e07
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      L

@@ -1,6 +1,6 @@
-active_flow: build_epic
-active_epic_id: e07
-active_story_id: e07s04
+active_flow: none
+active_epic_id: null
+active_story_id: null
 release:
   current_version: 0.6.0
   last_completed_release: 0.5.0
@@ -10,11 +10,11 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 264
+  project_tests: 271
   example_tests: 9
 planning:
   phase: build
-  status: e07s04_in_progress
+  status: e07s04_complete_next_story_checkpoint
   entry_skill: kickoff-branch
   next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]
@@ -26,9 +26,9 @@ planning:
     report: specs/IMPACT_LATEST.md
     risk: high
   next_action: >-
-    e07s02 is complete. Explicitly approve the next automated story before
-    implementation. Recommended next: e07s04 (Codex disconnect ownership).
-    Do not begin later stories or P5 without explicit approval.
+    e07s04 is complete (e07 epic complete). Explicitly approve the next automated
+    story before implementation. Recommended next: e08s03 (corrupt session
+    lifecycle). Do not begin later stories or P5 without explicit approval.
 handoff:
   required_reading:
     - README.md
@@ -41,15 +41,15 @@ handoff:
     - specs/IMPACT_LATEST.md
     - specs/IMPLEMENTATION_PLAN_LATEST.md
   open_decisions:
-    - Explicitly approve the next automated stabilization story (recommended: e07s04).
+    - Explicitly approve the next automated stabilization story (recommended: e08s03).
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
-    Release identity 0.6.0 is applied. e06 privacy epic, e07s01/s02/s03, and
-    session foundations through e08s02 are complete. Automated verification is
-    the release gate; user-run side testing is optional and non-blocking. Approve
-    the next story (recommended: e07s04), then begin only that story. Keep P5
-    blocked. Tagging/publishing still require separate approval.
+    Release identity 0.6.0 is applied. e06 and e07 epics plus session foundations
+    through e08s02 are complete. Automated verification is the release gate;
+    user-run side testing is optional and non-blocking. Approve the next story
+    (recommended: e08s03), then begin only that story. Keep P5 blocked.
+    Tagging/publishing still require separate approval.
   next_skill: human-checkpoint
 decisions:
   product_identity: >-

@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-08-03
 **Latest tagged release:** 0.5.0
-**Development status:** post-0.5.0 stabilization at identity 0.6.0; e07s02 complete; next story approval required
+**Development status:** post-0.5.0 stabilization at identity 0.6.0; e07 complete; next story approval required
 
 ## Current baseline
 
@@ -30,16 +30,16 @@ post-0.5.0 stabilization scope now covers current release blockers and their
 coupled correctness work. It is sliced into 24 vertical stories across epics e05
 through e10. A full impact assessment rates the cross-epic blast radius High and
 records shared-module, migration, test, and sequencing constraints. Detailed
-plans define 72 tasks across the 24 stories. Wave 0 plus the full e06 privacy
-epic, e07s01/s02/s03, and e08s01/s02 are complete with 39 passing tasks; the
-revision-bound disposition still covers all 26 July findings; the remaining 33
-tasks are failing. Automated verification is the release gate; user-run side
-testing remains optional and non-blocking.
+plans define 72 tasks across the 24 stories. Wave 0 plus the full e06 and e07
+epics and e08s01/s02 are complete with 42 passing tasks; the revision-bound
+disposition still covers all 26 July findings; the remaining 30 tasks are
+failing. Automated verification is the release gate; user-run side testing
+remains optional and non-blocking.
 Release identity 0.6.0 is applied; protected I/O fails closed with optional
 one-run exceptions and gated sensitive-session resume; expected CLI failures are
-concise; provider status is offline-truthful with explicit verify; sessions have
-exclusive owners and replay-safe checkpoints. The project is paused only for
-explicit next-story approval (recommended: e07s04).
+concise; provider/Codex lifecycle ownership is explicit; sessions have exclusive
+owners and replay-safe checkpoints. The project is paused only for explicit
+next-story approval (recommended: e08s03).
 No later remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities
