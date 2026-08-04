@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "0df7e685885ba133412c9554849312ada33f614f",
+    "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 237,
+      "project_tests": 243,
       "example_tests": 9
     }
   },
@@ -19,14 +19,13 @@
     "counts": {
       "accepted": 1,
       "deferred": 2,
-      "fixed": 11,
-      "open": 12
+      "fixed": 12,
+      "open": 11
     },
     "release_blockers": [
       "MAJ-08",
       "MED-01",
       "MED-02",
-      "MED-03",
       "MED-04",
       "MED-05",
       "MED-06",
@@ -41,7 +40,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "references": [
         {
@@ -67,7 +66,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -85,7 +84,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -103,7 +102,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "references": [
         {
@@ -125,7 +124,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -143,7 +142,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -161,7 +160,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "references": [
         {
@@ -187,7 +186,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -203,7 +202,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -223,7 +222,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -238,24 +237,34 @@
     },
     {
       "id": "MED-03-current",
-      "kind": "source-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
-          "locator": "fixed temporary path and whole-history replacement"
+          "locator": "SessionLease acquire_lease is_session_active"
         },
         {
           "path": "src/orbitrelay/cli.py",
-          "locator": "session load-to-save flow without ownership lock"
+          "locator": "run holds lease via _prepare_session/_invoke_agent"
+        },
+        {
+          "path": "src/orbitrelay/session_cli.py",
+          "locator": "list/show active status; delete takes lease"
+        },
+        {
+          "path": "tests/test_session_concurrency.py",
+          "locator": "multi-process conflict wait timeout crash"
         }
-      ]
+      ],
+      "exit_code": 0,
+      "command": "uv run python -m unittest tests.test_session_concurrency -v"
     },
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -271,7 +280,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -287,7 +296,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -307,7 +316,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -325,7 +334,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -341,7 +350,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -357,7 +366,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "references": [
         {
@@ -387,7 +396,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -403,7 +412,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -421,7 +430,7 @@
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -441,7 +450,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -457,7 +466,7 @@
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "passed",
       "references": [
         {
@@ -483,7 +492,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -499,7 +508,7 @@
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "references": [
         {
@@ -515,7 +524,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "0df7e685885ba133412c9554849312ada33f614f",
+      "revision": "f132b0aa43d819135304282a8c7f55cc2ecc4dc9",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
@@ -668,14 +677,14 @@
       "id": "MED-03",
       "severity": "medium",
       "title": "Session persistence is not safe for concurrent processes",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-03-current"
       ],
-      "rationale": "The session load-to-save lifecycle has no bounded exclusive owner and uses a shared replacement path.",
-      "release_effect": "Blocks e08s01 and e08s02.",
+      "rationale": "SessionStore acquires a kernel-backed exclusive lease before history load and holds it through the run; concurrent owners fail or boundedly wait, and crash releases the lock. List/show report secret-free active status.",
+      "release_effect": "No independent release block remains for missing exclusive session ownership.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "Concurrent processes can overwrite or corrupt session history."
+      "residual_risk": "Replay-safe checkpoints and corrupt-session lifecycle remain e08s02/e08s03."
     },
     {
       "id": "MED-04",

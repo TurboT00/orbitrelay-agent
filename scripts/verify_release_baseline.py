@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSESSED_REVISION = "0df7e685885ba133412c9554849312ada33f614f"
-EXPECTED_CONTRACT_SHA256 = "b8091e84b9a13f2485a142160bd62ef82088fb2db71f3e0b3557f8785b05405d"
+ASSESSED_REVISION = "f132b0aa43d819135304282a8c7f55cc2ecc4dc9"
+EXPECTED_CONTRACT_SHA256 = "07e8fd11d153aeba929745049699457da2439556d9f8aba5ff60628fc289399e"
 CANONICAL_FINDING_IDS = tuple(
     [f"MAJ-{number:02d}" for number in range(1, 9)]
     + [f"MED-{number:02d}" for number in range(1, 12)]
@@ -26,6 +26,7 @@ APPROVED_PASSED_COMMANDS = {
     "uv run python -m unittest tests.test_cli_errors -v",
     "uv run python -m unittest tests.test_provider_cli tests.test_connection_service -v",
     "uv run python -m unittest tests.test_codex_bridge tests.test_provider_cli -v",
+    "uv run python -m unittest tests.test_session_concurrency -v",
     "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
     "uv run ruff check .",
     "uv run mypy src/orbitrelay",
@@ -53,7 +54,7 @@ EXPECTED_FINDING_STATUSES = {
     "MAJ-08": "open",
     "MED-01": "open",
     "MED-02": "open",
-    "MED-03": "open",
+    "MED-03": "fixed",
     "MED-04": "open",
     "MED-05": "open",
     "MED-06": "open",
