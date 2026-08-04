@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+    "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 258,
+      "project_tests": 264,
       "example_tests": 9
     }
   },
@@ -40,7 +40,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "references": [
         {
@@ -74,7 +74,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -92,7 +92,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -110,7 +110,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "references": [
         {
@@ -132,7 +132,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -144,13 +144,21 @@
         {
           "path": "tests/test_connection_service.py",
           "locator": "metadata and Codex operations avoid keyring initialization"
+        },
+        {
+          "path": "src/orbitrelay/provider_verification.py",
+          "locator": "explicit verification outcomes without content retention"
+        },
+        {
+          "path": "tests/test_provider_verification.py",
+          "locator": "fake probe contracts and historical persistence"
         }
       ]
     },
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -162,13 +170,25 @@
         {
           "path": "tests/test_provider_cli.py",
           "locator": "failed Codex login rollback regression"
+        },
+        {
+          "path": "src/orbitrelay/provider_verification.py",
+          "locator": "explicit verification outcomes without content retention"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "verify_provider explicit live boundary"
+        },
+        {
+          "path": "tests/test_provider_verification.py",
+          "locator": "fake probe contracts and historical persistence"
         }
       ]
     },
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "references": [
         {
@@ -194,7 +214,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -210,7 +230,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -230,7 +250,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -246,7 +266,7 @@
     {
       "id": "MED-03-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "references": [
         {
@@ -272,6 +292,18 @@
         {
           "path": "tests/test_session_transactions.py",
           "locator": "interruption and complete-group contracts"
+        },
+        {
+          "path": "src/orbitrelay/provider_verification.py",
+          "locator": "explicit verification outcomes without content retention"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "verify_provider explicit live boundary"
+        },
+        {
+          "path": "tests/test_provider_verification.py",
+          "locator": "fake probe contracts and historical persistence"
         }
       ],
       "exit_code": 0,
@@ -280,7 +312,7 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -296,7 +328,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -312,7 +344,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -332,7 +364,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -350,7 +382,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -366,7 +398,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -382,7 +414,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "references": [
         {
@@ -404,6 +436,14 @@
         {
           "path": "tests/test_provider_cli.py",
           "locator": "codex status presentation contracts"
+        },
+        {
+          "path": "src/orbitrelay/provider_verification.py",
+          "locator": "explicit verification outcomes without content retention"
+        },
+        {
+          "path": "tests/test_provider_verification.py",
+          "locator": "fake probe contracts and historical persistence"
         }
       ],
       "command": "uv run python -m unittest tests.test_codex_bridge tests.test_provider_cli -v",
@@ -412,7 +452,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -428,7 +468,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -446,7 +486,7 @@
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -466,7 +506,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -476,13 +516,21 @@
         {
           "path": "src/orbitrelay/cli.py",
           "locator": "legacy profile command rejection"
+        },
+        {
+          "path": "src/orbitrelay/provider_verification.py",
+          "locator": "explicit verification outcomes without content retention"
+        },
+        {
+          "path": "tests/test_provider_verification.py",
+          "locator": "fake probe contracts and historical persistence"
         }
       ]
     },
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "passed",
       "references": [
         {
@@ -500,6 +548,18 @@
         {
           "path": "tests/test_release_identity.py",
           "locator": "package, CLI, and wheel identity contracts"
+        },
+        {
+          "path": "src/orbitrelay/provider_verification.py",
+          "locator": "explicit verification outcomes without content retention"
+        },
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "verify_provider explicit live boundary"
+        },
+        {
+          "path": "tests/test_provider_verification.py",
+          "locator": "fake probe contracts and historical persistence"
         }
       ],
       "command": "uv run python -m unittest tests.test_release_identity -v",
@@ -508,7 +568,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -524,7 +584,7 @@
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "references": [
         {
@@ -540,7 +600,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "cefa8bbb85a3ba6db9085e5c12b680953dfe0fa5",
+      "revision": "5f7614eafba5f84c1b47586ec6cf74d36a259d4d",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
