@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
     "keyring>=25.7.0,<26",
     "openai>=2.45.0",
+    "pathspec>=1.1.1",
 ]
 
 [project.scripts]

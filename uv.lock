@@ -429,6 +429,7 @@ source = { editable = "." }
 dependencies = [
     { name = "keyring" },
     { name = "openai" },
+    { name = "pathspec" },
 ]
 
 [package.dev-dependencies]
@@ -441,6 +442,7 @@ dev = [
 requires-dist = [
     { name = "keyring", specifier = ">=25.7.0,<26" },
     { name = "openai", specifier = ">=2.45.0" },
+    { name = "pathspec", specifier = ">=1.1.1" },
 ]
 
 [package.metadata.requires-dev]

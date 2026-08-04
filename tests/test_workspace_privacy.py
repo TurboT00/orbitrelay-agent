@@ -13,10 +13,16 @@ from orbitrelay.run_summary import summarize_run
 from orbitrelay.sessions import SessionStore
 from orbitrelay.tools import execute_tool, prepare_tool
 from orbitrelay.tools.get_file_content import get_file_content
+from orbitrelay.tools.get_files_info import get_files_info
 from orbitrelay.tools.workspace_privacy import (
+    OMITTED_ENTRIES_LINE,
     PRIVACY_DENIED_MESSAGE,
     PathSensitivity,
+    authorize_exact_path,
+    authorize_subtree,
     classify_relative_path,
+    clear_privacy_authorization,
+    clear_workspace_policy_cache,
 )
 
 # Every AP/SP family with a representative relative path and expected rule.
@@ -266,6 +272,185 @@ class WorkspacePrivacySideChannelTests(unittest.TestCase):
         dumped = json.dumps(messages)
         self.assertNotIn(self.secret, dumped)
         self.assertNotIn("id_rsa", dumped)
+
+
+
+class WorkspacePrivacyDiscoveryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        clear_privacy_authorization()
+        clear_workspace_policy_cache()
+        self.directory = tempfile.TemporaryDirectory()
+        self.workspace = Path(self.directory.name)
+        (self.workspace / "README.md").write_text("hello\n", encoding="utf-8")
+        (self.workspace / ".gitignore").write_text("*.log\n!keep.log\nsecret-dir/\n", encoding="utf-8")
+        (self.workspace / "noise.log").write_text("log-secret\n", encoding="utf-8")
+        (self.workspace / "keep.log").write_text("keep-me\n", encoding="utf-8")
+        (self.workspace / "secret-dir").mkdir()
+        (self.workspace / "secret-dir" / "hidden.txt").write_text("hidden\n", encoding="utf-8")
+        (self.workspace / ".env").write_text("ENV=1\n", encoding="utf-8")
+        (self.workspace / "id_rsa").write_text("KEY\n", encoding="utf-8")
+        (self.workspace / "notes.txt").write_text("ok\n", encoding="utf-8")
+        (self.workspace / ".orbitrelayignore").write_text("private.dat\n", encoding="utf-8")
+        (self.workspace / "private.dat").write_text("orbit-secret\n", encoding="utf-8")
+
+    def tearDown(self) -> None:
+        clear_privacy_authorization()
+        clear_workspace_policy_cache()
+        self.directory.cleanup()
+
+    def test_sp08_gitignore_and_negation(self) -> None:
+        ignored = classify_relative_path("noise.log", workspace_root=str(self.workspace))
+        kept = classify_relative_path("keep.log", workspace_root=str(self.workspace))
+        nested = classify_relative_path(
+            "secret-dir/hidden.txt", workspace_root=str(self.workspace)
+        )
+        self.assertEqual(ignored.rule_id, "SP-08")
+        self.assertFalse(ignored.allowed)
+        self.assertTrue(kept.allowed)
+        self.assertEqual(nested.rule_id, "SP-08")
+        self.assertFalse(nested.allowed)
+        self.assertNotIn(
+            "log-secret",
+            get_file_content(str(self.workspace), "noise.log"),
+        )
+        self.assertEqual(get_file_content(str(self.workspace), "keep.log"), "keep-me\n")
+
+    def test_orbitrelayignore_deny_only(self) -> None:
+        result = classify_relative_path(
+            "private.dat", workspace_root=str(self.workspace)
+        )
+        self.assertEqual(result.rule_id, "SP-08")
+        self.assertFalse(result.allowed)
+        denial = get_file_content(str(self.workspace), "private.dat")
+        self.assertTrue(denial.startswith(PRIVACY_DENIED_MESSAGE))
+        self.assertNotIn("orbit-secret", denial)
+
+    def test_orbitrelayignore_rejects_negation(self) -> None:
+        (self.workspace / ".orbitrelayignore").write_text("*.tmp\n!keep.tmp\n", encoding="utf-8")
+        clear_workspace_policy_cache()
+        (self.workspace / "x.tmp").write_text("tmp\n", encoding="utf-8")
+        result = get_file_content(str(self.workspace), "x.tmp")
+        self.assertIn("invalid .orbitrelayignore", result)
+        self.assertIn("negation", result)
+        listing = get_files_info(str(self.workspace))
+        self.assertIn("invalid .orbitrelayignore", listing)
+
+    def test_listing_omits_protected_names_and_sizes(self) -> None:
+        listing = get_files_info(str(self.workspace))
+        self.assertIn("README.md", listing)
+        self.assertIn("notes.txt", listing)
+        self.assertIn("keep.log", listing)
+        self.assertIn(".gitignore", listing)
+        for banned in (
+            "noise.log",
+            "private.dat",
+            ".env",
+            "id_rsa",
+            "secret-dir",
+            "log-secret",
+            "orbit-secret",
+            "ENV=1",
+            "KEY",
+        ):
+            self.assertNotIn(banned, listing)
+        self.assertIn(OMITTED_ENTRIES_LINE, listing)
+        # sizes of omitted entries must not appear via those names
+        self.assertNotRegex(listing, r"noise\.log: file_size=")
+
+    def test_direct_read_and_discovery_share_classification(self) -> None:
+        for relative in (
+            "notes.txt",
+            "noise.log",
+            "keep.log",
+            "private.dat",
+            ".env",
+            "id_rsa",
+            "secret-dir/hidden.txt",
+        ):
+            with self.subTest(relative=relative):
+                classification = classify_relative_path(
+                    relative, workspace_root=str(self.workspace)
+                )
+                if classification.allowed:
+                    content = get_file_content(str(self.workspace), relative)
+                    self.assertFalse(content.startswith(PRIVACY_DENIED_MESSAGE))
+                else:
+                    content = get_file_content(str(self.workspace), relative)
+                    self.assertTrue(
+                        content.startswith(PRIVACY_DENIED_MESSAGE)
+                        or content.startswith("Error: invalid .orbitrelayignore"),
+                        content,
+                    )
+                parent = str(Path(relative).parent).replace("\\", "/")
+                if parent == ".":
+                    listing = get_files_info(str(self.workspace), ".")
+                    name = Path(relative).name
+                    if classification.discoverable:
+                        self.assertIn(name, listing)
+                    else:
+                        self.assertNotIn(name, listing)
+
+    def test_authorized_exact_file_is_discoverable_and_readable(self) -> None:
+        authorize_exact_path(".env")
+        classification = classify_relative_path(
+            ".env", workspace_root=str(self.workspace)
+        )
+        self.assertTrue(classification.allowed)
+        self.assertEqual(classification.sensitivity, PathSensitivity.SENSITIVE)
+        self.assertEqual(get_file_content(str(self.workspace), ".env"), "ENV=1\n")
+        listing = get_files_info(str(self.workspace))
+        self.assertIn(".env", listing)
+        # absolute deny still omitted even if somehow authorized
+        authorize_exact_path("id_rsa")
+        self.assertFalse(
+            classify_relative_path("id_rsa", workspace_root=str(self.workspace)).allowed
+        )
+        self.assertNotIn("id_rsa", get_files_info(str(self.workspace)))
+        self.assertNotIn("KEY", get_file_content(str(self.workspace), "id_rsa"))
+
+    def test_authorized_subtree_reveals_non_absolute_deny_only(self) -> None:
+        sensitive_dir = self.workspace / "vault"
+        sensitive_dir.mkdir()
+        (sensitive_dir / "note.txt").write_text("visible\n", encoding="utf-8")
+        (sensitive_dir / "id_ed25519").write_text("ABS\n", encoding="utf-8")
+        # Make the subtree sensitive via orbitrelayignore
+        (self.workspace / ".orbitrelayignore").write_text("vault/\n", encoding="utf-8")
+        clear_workspace_policy_cache()
+        self.assertFalse(
+            classify_relative_path(
+                "vault/note.txt", workspace_root=str(self.workspace)
+            ).allowed
+        )
+        authorize_subtree("vault")
+        self.assertTrue(
+            classify_relative_path(
+                "vault/note.txt", workspace_root=str(self.workspace)
+            ).allowed
+        )
+        self.assertFalse(
+            classify_relative_path(
+                "vault/id_ed25519", workspace_root=str(self.workspace)
+            ).allowed
+        )
+        listing = get_files_info(str(self.workspace), "vault")
+        self.assertIn("note.txt", listing)
+        self.assertNotIn("id_ed25519", listing)
+        self.assertIn(OMITTED_ENTRIES_LINE, listing)
+        self.assertEqual(
+            get_file_content(str(self.workspace), "vault/note.txt"), "visible\n"
+        )
+        self.assertNotIn(
+            "ABS", get_file_content(str(self.workspace), "vault/id_ed25519")
+        )
+
+    def test_listing_protected_directory_fails_closed(self) -> None:
+        listing = get_files_info(str(self.workspace), "secret-dir")
+        self.assertTrue(
+            listing.startswith(PRIVACY_DENIED_MESSAGE)
+            or "protected path denied" in listing,
+            listing,
+        )
+        self.assertNotIn("hidden.txt", listing)
 
 
 if __name__ == "__main__":
