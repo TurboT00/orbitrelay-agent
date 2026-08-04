@@ -168,5 +168,107 @@ class ProviderCliTests(unittest.TestCase):
         self.assertIn("openai", self.output.getvalue())
 
 
+
+
+    def test_codex_status_reports_delegated_readiness(self) -> None:
+        from types import SimpleNamespace
+
+        from orbitrelay.codex_bridge import CodexBridge
+        from orbitrelay.connection_service import ConnectionService
+
+        def _completed(returncode=0, stdout="", stderr=""):
+            return SimpleNamespace(returncode=returncode, stdout=stdout, stderr=stderr)
+
+        class RecordingRunner:
+            def __init__(self, behaviors=None) -> None:
+                self.behaviors = list(behaviors or [])
+
+            def __call__(self, argv, **kwargs):
+                if self.behaviors:
+                    return self.behaviors.pop(0)
+                return _completed()
+
+        service = ConnectionService(self.repository, self.store)
+        service.connect_subscription(ProviderId.CODEX)
+        runner = RecordingRunner(
+            behaviors=[
+                _completed(stdout="codex-cli 9.9.9\n"),
+                _completed(returncode=0, stdout="account: leak@example.com\n"),
+            ]
+        )
+        bridge = CodexBridge(
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+            runner=runner,
+        )
+        service = ConnectionService(self.repository, self.store, codex_bridge=bridge)
+        # monkeypatch ConnectionService used by CLI
+        def factory(repository, credential_store):
+            return ConnectionService(repository, credential_store, codex_bridge=bridge)
+
+        with patch("orbitrelay.provider_cli.ConnectionService", side_effect=factory):
+            code = run_provider_cli(
+                ["status", "codex"],
+                self.repository,
+                self.store,
+                lambda _prompt: "x",
+                output=self.output,
+            )
+        self.assertEqual(code, 0)
+        text = self.output.getvalue()
+        self.assertIn("provider: codex", text)
+        self.assertIn("configured: yes", text)
+        self.assertIn("installation: available", text)
+        self.assertIn("authentication: authenticated", text)
+        self.assertIn("readiness: local-ready", text)
+        self.assertNotIn("leak@example.com", text)
+        self.assertNotIn("account:", text)
+
+    def test_codex_status_unknown_does_not_claim_ready(self) -> None:
+        from types import SimpleNamespace
+
+        from orbitrelay.codex_bridge import CodexBridge
+        from orbitrelay.connection_service import ConnectionService
+
+        def _completed(returncode=0, stdout="", stderr=""):
+            return SimpleNamespace(returncode=returncode, stdout=stdout, stderr=stderr)
+
+        class RecordingRunner:
+            def __init__(self, behaviors=None) -> None:
+                self.behaviors = list(behaviors or [])
+
+            def __call__(self, argv, **kwargs):
+                if self.behaviors:
+                    return self.behaviors.pop(0)
+                return _completed()
+
+        ConnectionService(self.repository, self.store).connect_subscription(ProviderId.CODEX)
+        runner = RecordingRunner(
+            behaviors=[
+                _completed(stdout="codex-cli 1.0.0\n"),
+                _completed(returncode=99, stderr="unexpected failure mode\n"),
+            ]
+        )
+        bridge = CodexBridge(
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+            runner=runner,
+        )
+
+        def factory(repository, credential_store):
+            return ConnectionService(repository, credential_store, codex_bridge=bridge)
+
+        with patch("orbitrelay.provider_cli.ConnectionService", side_effect=factory):
+            code = run_provider_cli(
+                ["status", "codex"],
+                self.repository,
+                self.store,
+                lambda _prompt: "x",
+                output=self.output,
+            )
+        self.assertEqual(code, 0)
+        text = self.output.getvalue()
+        self.assertIn("authentication: unknown", text)
+        self.assertIn("readiness: unknown", text)
+        self.assertNotIn("local-ready", text)
+
 if __name__ == "__main__":
     unittest.main()

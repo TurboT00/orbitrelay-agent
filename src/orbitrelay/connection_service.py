@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import StrEnum
 
+from .codex_bridge import CodexAuthentication, CodexBridge
 from .config import ApiConfig
 from .credentials import (
     CredentialNotFoundError,
@@ -74,6 +75,8 @@ class ProviderReadiness:
     credential: CredentialState
     readiness: LocalReadiness
     detail: str | None = None
+    installation: str | None = None
+    authentication: str | None = None
 
     def lines(self) -> tuple[str, ...]:
         rows = [
@@ -84,8 +87,12 @@ class ProviderReadiness:
             f"model: {self.model or '-'}",
             f"auth: {self.auth_kind or '-'}",
             f"credential: {self.credential.value}",
-            f"readiness: {self.readiness.value}",
         ]
+        if self.installation is not None:
+            rows.append(f"installation: {self.installation}")
+        if self.authentication is not None:
+            rows.append(f"authentication: {self.authentication}")
+        rows.append(f"readiness: {self.readiness.value}")
         if self.detail:
             rows.append(f"detail: {self.detail}")
         return tuple(rows)
@@ -108,10 +115,18 @@ class ConnectionService:
         self,
         repository: ProfileRepository,
         credential_store: CredentialStore | None = None,
+        *,
+        codex_bridge: CodexBridge | None = None,
     ) -> None:
         self._repository = repository
         self._store = credential_store
+        self._codex_bridge = codex_bridge
         self._repository.migrate()
+
+    def _codex(self) -> CodexBridge:
+        if self._codex_bridge is None:
+            self._codex_bridge = CodexBridge()
+        return self._codex_bridge
 
     def _credential_store(self) -> CredentialStore:
         if self._store is None:
@@ -309,12 +324,13 @@ class ConnectionService:
             readiness = LocalReadiness.UNKNOWN
             detail = "credential backend unavailable"
         elif definition.route is ExecutionRoute.CODEX_CLI:
-            # Codex local CLI/login facts belong to e07s03; metadata alone is not ready.
-            readiness = LocalReadiness.NOT_READY
-            detail = (
-                "catalog or model metadata incomplete"
-                if not catalog_ok or not model_ok
-                else "delegated Codex readiness requires e07s03 inspection"
+            return self._codex_readiness(
+                profile,
+                definition,
+                is_selected=is_selected,
+                catalog_ok=catalog_ok,
+                model_ok=model_ok,
+                model=model,
             )
         elif (
             catalog_ok
@@ -340,6 +356,49 @@ class ConnectionService:
             credential=credential,
             readiness=readiness,
             detail=detail,
+        )
+
+
+    def _codex_readiness(
+        self,
+        profile: ProviderProfile,
+        definition: ProviderDefinition,
+        *,
+        is_selected: bool,
+        catalog_ok: bool,
+        model_ok: bool,
+        model: str | None,
+    ) -> ProviderReadiness:
+        delegated = self._codex().inspect_readiness()
+        installation = "available" if delegated.installed else "unavailable"
+        authentication = delegated.authentication.value
+        if not catalog_ok or not model_ok:
+            readiness = LocalReadiness.NOT_READY
+            detail = "catalog or model metadata incomplete"
+        elif delegated.authentication is CodexAuthentication.MISSING_CLI:
+            readiness = LocalReadiness.NOT_READY
+            detail = delegated.detail or "official Codex CLI is not available"
+        elif delegated.authentication is CodexAuthentication.AUTHENTICATED:
+            readiness = LocalReadiness.LOCAL_READY
+            detail = None
+        elif delegated.authentication is CodexAuthentication.NOT_AUTHENTICATED:
+            readiness = LocalReadiness.NOT_READY
+            detail = delegated.detail or "run: orbitrelay codex login"
+        else:
+            readiness = LocalReadiness.UNKNOWN
+            detail = delegated.detail or "login status was inconclusive"
+        return ProviderReadiness(
+            provider=definition.identifier.value,
+            configured=True,
+            selected=is_selected,
+            catalog=definition.identifier.value,
+            model=model,
+            auth_kind=profile.auth_kind.value,
+            credential=CredentialState.NOT_APPLICABLE,
+            readiness=readiness,
+            detail=detail,
+            installation=installation,
+            authentication=authentication,
         )
 
     def _credential_state(self, profile: ProviderProfile) -> CredentialState:

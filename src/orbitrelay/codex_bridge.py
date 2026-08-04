@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,24 @@ FORBIDDEN_EXEC_FLAGS = frozenset(
 
 class CodexBridgeError(RuntimeError):
     """User-facing Codex bridge failure."""
+
+class CodexAuthentication(StrEnum):
+    AUTHENTICATED = "authenticated"
+    NOT_AUTHENTICATED = "not-authenticated"
+    UNKNOWN = "unknown"
+    MISSING_CLI = "missing-cli"
+
+
+@dataclass(frozen=True, slots=True)
+class CodexDelegatedStatus:
+    """Normalized Codex installation/auth facts with no raw account output."""
+
+    installed: bool
+    path: str | None
+    version: str | None
+    authentication: CodexAuthentication
+    detail: str | None = None
+
 
 
 Runner = Callable[..., subprocess.CompletedProcess[str]]
@@ -141,6 +160,60 @@ class CodexBridge:
         completed = self._runner(argv, capture_output=False, text=True)
         return int(completed.returncode)
 
+
+    def inspect_readiness(self, *, timeout: float = 10.0) -> CodexDelegatedStatus:
+        """Return sanitized installation and login facts for provider status.
+
+        Official CLI stdout/stderr is classified and discarded. Account-bearing
+        text never leaves this method.
+        """
+        installation = self.detect()
+        if not installation.available or not installation.path:
+            return CodexDelegatedStatus(
+                installed=False,
+                path=installation.path,
+                version=None,
+                authentication=CodexAuthentication.MISSING_CLI,
+                detail="official Codex CLI is not available",
+            )
+        try:
+            completed = self._runner(
+                [installation.path, "login", "status"],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return CodexDelegatedStatus(
+                installed=True,
+                path=installation.path,
+                version=installation.version,
+                authentication=CodexAuthentication.UNKNOWN,
+                detail="login status timed out",
+            )
+        except OSError:
+            return CodexDelegatedStatus(
+                installed=True,
+                path=installation.path,
+                version=installation.version,
+                authentication=CodexAuthentication.UNKNOWN,
+                detail="login status could not be executed",
+            )
+        authentication = _normalize_login_status(completed)
+        detail = {
+            CodexAuthentication.AUTHENTICATED: None,
+            CodexAuthentication.NOT_AUTHENTICATED: "run: orbitrelay codex login",
+            CodexAuthentication.UNKNOWN: "login status was inconclusive",
+            CodexAuthentication.MISSING_CLI: CODEX_INSTALL_GUIDANCE,
+        }[authentication]
+        return CodexDelegatedStatus(
+            installed=True,
+            path=installation.path,
+            version=installation.version,
+            authentication=authentication,
+            detail=detail,
+        )
+
     def login_status(self) -> int:
         installation = self.require_available()
         assert installation.path is not None
@@ -221,6 +294,34 @@ class CodexBridge:
                 version_warning=installation.warning,
                 argv=tuple(argv),
             )
+
+
+def _normalize_login_status(
+    completed: subprocess.CompletedProcess[str],
+) -> CodexAuthentication:
+    """Map official login status to a coarse auth fact without retaining output."""
+    code = int(completed.returncode)
+    stdout = completed.stdout or ""
+    stderr = completed.stderr or ""
+    text = f"{stdout}\n{stderr}".casefold()
+    if code == 0:
+        return CodexAuthentication.AUTHENTICATED
+    not_auth_markers = (
+        "not logged in",
+        "not authenticated",
+        "please log in",
+        "run codex login",
+        "no account",
+        "logged out",
+    )
+    if any(marker in text for marker in not_auth_markers):
+        return CodexAuthentication.NOT_AUTHENTICATED
+    stripped = text.strip()
+    if code == 1 and (not stripped or "login" in stripped):
+        return CodexAuthentication.NOT_AUTHENTICATED
+    if code != 0:
+        return CodexAuthentication.UNKNOWN
+    return CodexAuthentication.UNKNOWN
 
 
 def _final_message_from_jsonl(stdout: str) -> str:

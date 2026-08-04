@@ -17,6 +17,7 @@ from orbitrelay import cli
 from orbitrelay.codex_bridge import (
     CODEX_INSTALL_GUIDANCE,
     FORBIDDEN_EXEC_FLAGS,
+    CodexAuthentication,
     CodexBridge,
     CodexBridgeError,
 )
@@ -227,6 +228,64 @@ class CodexBridgeTests(unittest.TestCase):
         self.assertNotIn("auth.json", source)
         self.assertNotIn("CODEX_HOME", source)
 
+
+
+
+    def test_inspect_readiness_missing_cli(self) -> None:
+        bridge = CodexBridge(which=lambda _name: None, runner=RecordingRunner())
+        status = bridge.inspect_readiness()
+        self.assertFalse(status.installed)
+        self.assertEqual(status.authentication, CodexAuthentication.MISSING_CLI)
+
+    def test_inspect_readiness_authenticated_discards_account_output(self) -> None:
+        account = "account: user@example.com plan=pro token=sk-secret-account"
+        runner = RecordingRunner(
+            behaviors=[
+                _completed(stdout="codex-cli 1.2.3\n"),  # detect
+                _completed(returncode=0, stdout=account + "\n"),  # login status
+            ]
+        )
+        bridge = CodexBridge(
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+            runner=runner,
+        )
+        status = bridge.inspect_readiness()
+        self.assertTrue(status.installed)
+        self.assertEqual(status.authentication, CodexAuthentication.AUTHENTICATED)
+        self.assertEqual(status.version, "codex-cli 1.2.3")
+        blob = repr(status)
+        self.assertNotIn("user@example.com", blob)
+        self.assertNotIn("sk-secret-account", blob)
+        self.assertNotIn(account, blob)
+
+    def test_inspect_readiness_not_authenticated(self) -> None:
+        runner = RecordingRunner(
+            behaviors=[
+                _completed(stdout="codex-cli 1.0.0\n"),
+                _completed(returncode=1, stderr="Not logged in\n"),
+            ]
+        )
+        bridge = CodexBridge(
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+            runner=runner,
+        )
+        status = bridge.inspect_readiness()
+        self.assertEqual(status.authentication, CodexAuthentication.NOT_AUTHENTICATED)
+        self.assertIn("orbitrelay codex login", status.detail or "")
+
+    def test_inspect_readiness_unknown_on_unrecognized_failure(self) -> None:
+        runner = RecordingRunner(
+            behaviors=[
+                _completed(stdout="codex-cli 1.0.0\n"),
+                _completed(returncode=2, stderr="weird internal error boom\n"),
+            ]
+        )
+        bridge = CodexBridge(
+            which=lambda name: "/bin/codex" if name == "codex" else None,
+            runner=runner,
+        )
+        status = bridge.inspect_readiness()
+        self.assertEqual(status.authentication, CodexAuthentication.UNKNOWN)
 
 if __name__ == "__main__":
     unittest.main()

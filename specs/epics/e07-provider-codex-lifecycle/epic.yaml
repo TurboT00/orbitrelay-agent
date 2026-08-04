@@ -23,7 +23,7 @@ stories:
   - id: e07s03
     title: Inspect delegated Codex readiness without account leakage
     bcps: 5
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e07s03-codex-readiness.md
     tasks: e07s03-tasks.yaml
