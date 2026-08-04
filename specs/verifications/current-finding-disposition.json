@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+    "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 175,
+      "project_tests": 192,
       "example_tests": 9
     }
   },
@@ -46,280 +46,451 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/terminal_authorizer.py", "locator": "TerminalAuthorizer.authorize read branch"},
-        {"path": "src/orbitrelay/agent.py", "locator": "tool results appended before the next provider request"},
-        {"path": "tests/test_approvals.py", "locator": "read_allowed policy regressions"}
+        {
+          "path": "src/orbitrelay/terminal_authorizer.py",
+          "locator": "TerminalAuthorizer.authorize read branch"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "tool results appended before the next provider request"
+        },
+        {
+          "path": "tests/test_approvals.py",
+          "locator": "read_allowed policy regressions"
+        }
       ]
     },
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
       "references": [
-        {"path": "src/orbitrelay/streaming.py", "locator": "extension-field assembly"},
-        {"path": "tests/test_streaming.py", "locator": "provider extension replay regressions"}
+        {
+          "path": "src/orbitrelay/streaming.py",
+          "locator": "extension-field assembly"
+        },
+        {
+          "path": "tests/test_streaming.py",
+          "locator": "provider extension replay regressions"
+        }
       ]
     },
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
       "references": [
-        {"path": "src/orbitrelay/agent.py", "locator": "audit_stream defaults to stderr"},
-        {"path": "tests/test_run_summary.py", "locator": "final-answer-only stdout regressions"}
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "audit_stream defaults to stderr"
+        },
+        {
+          "path": "tests/test_run_summary.py",
+          "locator": "final-answer-only stdout regressions"
+        }
       ]
     },
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/cli.py", "locator": "main dispatch lacks a general expected-error boundary"},
-        {"path": "tests/test_sessions.py", "locator": "corrupt session error propagation"}
+        {
+          "path": "src/orbitrelay/cli.py",
+          "locator": "main dispatch lacks a general expected-error boundary"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt session error propagation"
+        }
       ]
     },
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
       "references": [
-        {"path": "src/orbitrelay/connection_service.py", "locator": "lazy credential-store construction"},
-        {"path": "tests/test_connection_service.py", "locator": "metadata and Codex operations avoid keyring initialization"}
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "lazy credential-store construction"
+        },
+        {
+          "path": "tests/test_connection_service.py",
+          "locator": "metadata and Codex operations avoid keyring initialization"
+        }
       ]
     },
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
       "references": [
-        {"path": "src/orbitrelay/provider_cli.py", "locator": "Codex login precedes metadata mutation"},
-        {"path": "tests/test_provider_cli.py", "locator": "failed Codex login rollback regression"}
+        {
+          "path": "src/orbitrelay/provider_cli.py",
+          "locator": "Codex login precedes metadata mutation"
+        },
+        {
+          "path": "tests/test_provider_cli.py",
+          "locator": "failed Codex login rollback regression"
+        }
       ]
     },
     {
       "id": "MAJ-07-current",
       "kind": "release-behavior-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "pyproject.toml", "locator": "project version remains 0.5.0"},
-        {"path": "scripts/check.sh", "locator": "build and isolated-wheel behavior"}
+        {
+          "path": "pyproject.toml",
+          "locator": "project version remains 0.5.0"
+        },
+        {
+          "path": "scripts/check.sh",
+          "locator": "build and isolated-wheel behavior"
+        }
       ]
     },
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "scripts/check.sh", "locator": "tests, imports, build, and wheel checks only"},
-        {"path": "specs/epics/e09-quality-platform-qualification/e09s01-lint-type-gates.md", "locator": "planned terminal lint and type gates"}
+        {
+          "path": "scripts/check.sh",
+          "locator": "Ruff and mypy terminal stages added; coverage, dependency, and security gates still absent"
+        },
+        {
+          "path": "specs/epics/e09-quality-platform-qualification/e09s01-lint-type-gates.md",
+          "locator": "planned terminal lint and type gates"
+        }
       ]
     },
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/agent.py", "locator": "string-based tool-error inference"},
-        {"path": "src/orbitrelay/tools/run_python_file.py", "locator": "nonzero exit result text"},
-        {"path": "src/orbitrelay/run_summary.py", "locator": "event status counts"}
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "string-based tool-error inference"
+        },
+        {
+          "path": "src/orbitrelay/tools/run_python_file.py",
+          "locator": "nonzero exit result text"
+        },
+        {
+          "path": "src/orbitrelay/run_summary.py",
+          "locator": "event status counts"
+        }
       ]
     },
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/sessions.py", "locator": "list suppression and delete_all behavior"},
-        {"path": "tests/test_sessions.py", "locator": "corrupt message and healthy deletion coverage"}
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "list suppression and delete_all behavior"
+        },
+        {
+          "path": "tests/test_sessions.py",
+          "locator": "corrupt message and healthy deletion coverage"
+        }
       ]
     },
     {
       "id": "MED-03-current",
       "kind": "source-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/sessions.py", "locator": "fixed temporary path and whole-history replacement"},
-        {"path": "src/orbitrelay/cli.py", "locator": "session load-to-save flow without ownership lock"}
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "fixed temporary path and whole-history replacement"
+        },
+        {
+          "path": "src/orbitrelay/cli.py",
+          "locator": "session load-to-save flow without ownership lock"
+        }
       ]
     },
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/sessions.py", "locator": "unbounded JSONL load and full-history rewrite"},
-        {"path": "src/orbitrelay/context_budget.py", "locator": "outbound-only character budget"}
+        {
+          "path": "src/orbitrelay/sessions.py",
+          "locator": "unbounded JSONL load and full-history rewrite"
+        },
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "outbound-only character budget"
+        }
       ]
     },
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/tools/run_python_file.py", "locator": "unbounded capture_output"},
-        {"path": "src/orbitrelay/codex_bridge.py", "locator": "captured process output and final-file read"}
+        {
+          "path": "src/orbitrelay/tools/run_python_file.py",
+          "locator": "unbounded capture_output"
+        },
+        {
+          "path": "src/orbitrelay/codex_bridge.py",
+          "locator": "captured process output and final-file read"
+        }
       ]
     },
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/tools/write_file.py", "locator": "direct destination truncation"},
-        {"path": "src/orbitrelay/tools/path_safety.py", "locator": "name-based realpath validation"},
-        {"path": "tests/test_sandbox.py", "locator": "pre-existing symlink coverage"}
+        {
+          "path": "src/orbitrelay/tools/write_file.py",
+          "locator": "direct destination truncation"
+        },
+        {
+          "path": "src/orbitrelay/tools/path_safety.py",
+          "locator": "name-based realpath validation"
+        },
+        {
+          "path": "tests/test_sandbox.py",
+          "locator": "pre-existing symlink coverage"
+        }
       ]
     },
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
       "references": [
-        {"path": "src/orbitrelay/provider_cli.py", "locator": "supported provider subcommands"},
-        {"path": "tests/test_provider_cli.py", "locator": "removed import-env rejection"}
+        {
+          "path": "src/orbitrelay/provider_cli.py",
+          "locator": "supported provider subcommands"
+        },
+        {
+          "path": "tests/test_provider_cli.py",
+          "locator": "removed import-env rejection"
+        }
       ]
     },
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/agent.py", "locator": "unconditional executing event after authorization"},
-        {"path": "tests/test_events.py", "locator": "approval event coverage"}
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "unconditional executing event after authorization"
+        },
+        {
+          "path": "tests/test_events.py",
+          "locator": "approval event coverage"
+        }
       ]
     },
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/context_budget.py", "locator": "fixed serialized-character budget"},
-        {"path": "src/orbitrelay/agent.py", "locator": "tool schema added after history budgeting"}
+        {
+          "path": "src/orbitrelay/context_budget.py",
+          "locator": "fixed serialized-character budget"
+        },
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "tool schema added after history budgeting"
+        }
       ]
     },
     {
       "id": "MED-10-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/provider_cli.py", "locator": "metadata-only connected status"},
-        {"path": "tests/test_provider_cli.py", "locator": "current provider status coverage"}
+        {
+          "path": "src/orbitrelay/provider_cli.py",
+          "locator": "metadata-only connected status"
+        },
+        {
+          "path": "tests/test_provider_cli.py",
+          "locator": "current provider status coverage"
+        }
       ]
     },
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "pyproject.toml", "locator": "requires-python remains >=3.14"},
-        {"path": "uv.lock", "locator": "requires-python remains >=3.14"}
+        {
+          "path": "pyproject.toml",
+          "locator": "requires-python remains >=3.14"
+        },
+        {
+          "path": "uv.lock",
+          "locator": "requires-python remains >=3.14"
+        }
       ]
     },
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
       "references": [
-        {"path": "src/orbitrelay/cli.py", "locator": "historical unused-import locations removed"},
-        {"path": "src/orbitrelay/provider_cli.py", "locator": "historical unused local removed"}
+        {
+          "path": "src/orbitrelay/cli.py",
+          "locator": "historical unused-import locations removed"
+        },
+        {
+          "path": "src/orbitrelay/provider_cli.py",
+          "locator": "historical unused local removed"
+        }
       ]
     },
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/tools/get_file_content.py", "locator": "public function remains unannotated"},
-        {"path": "src/orbitrelay/streaming.py", "locator": "dynamic typing suppressions"},
-        {"path": "scripts/check.sh", "locator": "no terminal typing gate"}
+        {
+          "path": "src/orbitrelay/tools/get_file_content.py",
+          "locator": "public function remains unannotated"
+        },
+        {
+          "path": "src/orbitrelay/streaming.py",
+          "locator": "dynamic SimpleNamespace model_dump helpers remain intentionally untyped"
+        },
+        {
+          "path": "scripts/check.sh",
+          "locator": "terminal mypy stage present; public tool seams remain largely unannotated"
+        }
       ]
     },
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/connection_service.py", "locator": "legacy profile command guidance"},
-        {"path": "src/orbitrelay/cli.py", "locator": "legacy profile command rejection"}
+        {
+          "path": "src/orbitrelay/connection_service.py",
+          "locator": "legacy profile command guidance"
+        },
+        {
+          "path": "src/orbitrelay/cli.py",
+          "locator": "legacy profile command rejection"
+        }
       ]
     },
     {
       "id": "MIN-04-current",
       "kind": "release-behavior-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/cli.py", "locator": "parser has no version option"},
-        {"path": "pyproject.toml", "locator": "package version 0.5.0"},
-        {"path": "scripts/check.sh", "locator": "isolated wheel checks help only"}
+        {
+          "path": "src/orbitrelay/cli.py",
+          "locator": "parser has no version option"
+        },
+        {
+          "path": "pyproject.toml",
+          "locator": "package version 0.5.0"
+        },
+        {
+          "path": "scripts/check.sh",
+          "locator": "isolated wheel checks help only"
+        }
       ]
     },
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/agent.py", "locator": "module remains above the local size target"},
-        {"path": "src/orbitrelay/cli.py", "locator": "module remains above the local size target"}
+        {
+          "path": "src/orbitrelay/agent.py",
+          "locator": "module remains above the local size target"
+        },
+        {
+          "path": "src/orbitrelay/cli.py",
+          "locator": "module remains above the local size target"
+        }
       ]
     },
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "references": [
-        {"path": "src/orbitrelay/events.py", "locator": "collector retains raw RunEvent values before serialization"},
-        {"path": "tests/test_events.py", "locator": "dictionary redaction coverage"}
+        {
+          "path": "src/orbitrelay/events.py",
+          "locator": "collector retains raw RunEvent values before serialization"
+        },
+        {
+          "path": "tests/test_events.py",
+          "locator": "dictionary redaction coverage"
+        }
       ]
     },
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "6f2dc09f4382e7009e1ebadbe3cc4360e6d8bc41",
+      "revision": "0973c90d6214a737160c7c4ee1518103a82ef625",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
       "references": [
-        {"path": "uv.lock", "locator": "idna is 3.18 and the lock resolves offline"},
-        {"path": "scripts/check.sh", "locator": "no dependency freshness or advisory gate"}
+        {
+          "path": "uv.lock",
+          "locator": "idna is 3.18 and the lock resolves offline"
+        },
+        {
+          "path": "scripts/check.sh",
+          "locator": "no dependency freshness or advisory gate beyond lock check"
+        }
       ]
     }
   ],
@@ -329,7 +500,9 @@
       "severity": "major",
       "title": "Workspace reads can disclose secrets without confirmation",
       "status": "open",
-      "evidence_ids": ["MAJ-01-current"],
+      "evidence_ids": [
+        "MAJ-01-current"
+      ],
       "rationale": "Ordinary reads are still automatically allowed and their results can enter the next hosted-provider request; no protected-content policy exists yet.",
       "release_effect": "Blocks release until the e06 privacy boundary is implemented and verified.",
       "owner": "e06-workspace-privacy-cli-trust",
@@ -340,7 +513,9 @@
       "severity": "major",
       "title": "Streaming drops provider-required assistant fields",
       "status": "fixed",
-      "evidence_ids": ["MAJ-02-current"],
+      "evidence_ids": [
+        "MAJ-02-current"
+      ],
       "rationale": "Unknown streamed assistant extension fields are assembled and replayed across a tool round with offline regressions.",
       "release_effect": "No independent release block remains for the historical field-loss defect.",
       "owner": "orbitrelay-maintainers",
@@ -351,7 +526,9 @@
       "severity": "major",
       "title": "Stdout is not final-answer-only",
       "status": "fixed",
-      "evidence_ids": ["MAJ-03-current"],
+      "evidence_ids": [
+        "MAJ-03-current"
+      ],
       "rationale": "Normal, verbose, streaming, and tool-round regressions keep final answers on stdout and operational output on stderr.",
       "release_effect": "No independent release block remains for the historical stdout contamination defect.",
       "owner": "orbitrelay-maintainers",
@@ -362,7 +539,9 @@
       "severity": "major",
       "title": "Expected CLI failures escape as tracebacks",
       "status": "open",
-      "evidence_ids": ["MAJ-04-current"],
+      "evidence_ids": [
+        "MAJ-04-current"
+      ],
       "rationale": "Expected connection and session failures still lack one top-level translation boundary.",
       "release_effect": "Blocks release until e06s05 defines concise stderr failures and stable nonzero exits.",
       "owner": "e06-workspace-privacy-cli-trust",
@@ -373,7 +552,9 @@
       "severity": "major",
       "title": "Metadata-only and Codex operations unnecessarily require keyring",
       "status": "fixed",
-      "evidence_ids": ["MAJ-05-current"],
+      "evidence_ids": [
+        "MAJ-05-current"
+      ],
       "rationale": "Credential-store construction is lazy and metadata-only and Codex routes are regression-tested without keyring initialization.",
       "release_effect": "The historical eager-keyring defect no longer blocks release.",
       "owner": "orbitrelay-maintainers",
@@ -384,7 +565,9 @@
       "severity": "major",
       "title": "Failed Codex login leaves a selected connection",
       "status": "fixed",
-      "evidence_ids": ["MAJ-06-current"],
+      "evidence_ids": [
+        "MAJ-06-current"
+      ],
       "rationale": "Delegated login now completes before metadata mutation and failed-login rollback is regression-tested.",
       "release_effect": "The historical failed-login mutation no longer blocks release.",
       "owner": "orbitrelay-maintainers",
@@ -395,7 +578,9 @@
       "severity": "major",
       "title": "The reviewed implementation has no reproducible release baseline",
       "status": "open",
-      "evidence_ids": ["MAJ-07-current"],
+      "evidence_ids": [
+        "MAJ-07-current"
+      ],
       "rationale": "The refactor is committed and reproducible, but post-0.5.0 source still builds and reports version 0.5.0 without a matching release identity.",
       "release_effect": "Blocks a release artifact until e05s02 establishes an approved identity; this story does not select it.",
       "owner": "e05-baseline-release-identity",
@@ -406,18 +591,24 @@
       "severity": "major",
       "title": "The official quality gate passes while quality gates fail",
       "status": "open",
-      "evidence_ids": ["MAJ-08-current", "MIN-01-current", "MIN-07-current"],
-      "rationale": "Historical Ruff and vulnerable-lock symptoms changed, but the official check still omits lint, typing, coverage, dependency, and security gates.",
+      "evidence_ids": [
+        "MAJ-08-current",
+        "MIN-01-current",
+        "MIN-07-current"
+      ],
+      "rationale": "Ruff and mypy are now terminal in the official check, but coverage, dependency auditing, and security scanning remain outside scripts/check.sh.",
       "release_effect": "Blocks release until e09 establishes and enforces the approved terminal gates.",
       "owner": "e09-quality-platform-qualification",
-      "residual_risk": "The official check can report success while quality or supply-chain policy is unverified."
+      "residual_risk": "The official check can report success while coverage or supply-chain policy is unverified."
     },
     {
       "id": "MED-01",
       "severity": "medium",
       "title": "Tool failures are reported as successful events",
       "status": "open",
-      "evidence_ids": ["MED-01-current"],
+      "evidence_ids": [
+        "MED-01-current"
+      ],
       "rationale": "Plain-text error recognition improved, but nonzero process exits can still bypass string-based failure inference.",
       "release_effect": "Blocks truthful tool outcomes in e08s06.",
       "owner": "e08-session-execution-integrity",
@@ -428,7 +619,9 @@
       "severity": "medium",
       "title": "Corrupt sessions disappear and survive delete-all",
       "status": "open",
-      "evidence_ids": ["MED-02-current"],
+      "evidence_ids": [
+        "MED-02-current"
+      ],
       "rationale": "Corrupt metadata remains suppressed by listing and therefore omitted from delete-all.",
       "release_effect": "Blocks e08s03 and candidate session-corruption evidence.",
       "owner": "e08-session-execution-integrity",
@@ -439,7 +632,9 @@
       "severity": "medium",
       "title": "Session persistence is not safe for concurrent processes",
       "status": "open",
-      "evidence_ids": ["MED-03-current"],
+      "evidence_ids": [
+        "MED-03-current"
+      ],
       "rationale": "The session load-to-save lifecycle has no bounded exclusive owner and uses a shared replacement path.",
       "release_effect": "Blocks e08s01 and e08s02.",
       "owner": "e08-session-execution-integrity",
@@ -450,7 +645,9 @@
       "severity": "medium",
       "title": "Session history is unbounded and rewritten repeatedly",
       "status": "open",
-      "evidence_ids": ["MED-04-current"],
+      "evidence_ids": [
+        "MED-04-current"
+      ],
       "rationale": "Resume still loads all persisted messages and callbacks replace the complete history; outbound trimming does not bound local replay work.",
       "release_effect": "Blocks e08s04 bounded history and migration outcomes.",
       "owner": "e08-session-execution-integrity",
@@ -461,7 +658,9 @@
       "severity": "medium",
       "title": "Subprocess output capture is unbounded",
       "status": "open",
-      "evidence_ids": ["MED-05-current"],
+      "evidence_ids": [
+        "MED-05-current"
+      ],
       "rationale": "Python and Codex execution still retain process output without a byte limit.",
       "release_effect": "Blocks e08s05 bounded process-output behavior.",
       "owner": "e08-session-execution-integrity",
@@ -472,7 +671,9 @@
       "severity": "medium",
       "title": "File writes are non-atomic and have a path race",
       "status": "open",
-      "evidence_ids": ["MED-06-current"],
+      "evidence_ids": [
+        "MED-06-current"
+      ],
       "rationale": "Workspace writes still truncate the destination directly and do not commit through a crash-safe descriptor-level boundary.",
       "release_effect": "Blocks the write portion of e08s06.",
       "owner": "e08-session-execution-integrity",
@@ -483,7 +684,9 @@
       "severity": "medium",
       "title": "Import validation examines unrelated environment values",
       "status": "fixed",
-      "evidence_ids": ["MED-07-current"],
+      "evidence_ids": [
+        "MED-07-current"
+      ],
       "rationale": "Environment credential import was removed and the obsolete command is regression-tested as unsupported.",
       "release_effect": "The superseded environment-import defect does not block release.",
       "owner": "orbitrelay-maintainers",
@@ -494,7 +697,9 @@
       "severity": "medium",
       "title": "Denied tools emit an executing phase",
       "status": "open",
-      "evidence_ids": ["MED-08-current"],
+      "evidence_ids": [
+        "MED-08-current"
+      ],
       "rationale": "The event phase is still emitted for every approval record, including denial.",
       "release_effect": "Blocks truthful denial outcomes in e08s06.",
       "owner": "e08-session-execution-integrity",
@@ -505,7 +710,9 @@
       "severity": "medium",
       "title": "Context budgeting is not provider- or token-aware",
       "status": "deferred",
-      "evidence_ids": ["MED-09-current"],
+      "evidence_ids": [
+        "MED-09-current"
+      ],
       "rationale": "The current character budget is explicit and preserves tool pairs; provider-specific token accounting is deferred while e08s04 first establishes conservative bounded replay and overhead rules.",
       "release_effect": "Non-blocking only if e08s04 proves a conservative compatibility bound for the stabilization candidate.",
       "owner": "e08-session-execution-integrity",
@@ -516,7 +723,9 @@
       "severity": "medium",
       "title": "Provider status reports metadata, not readiness",
       "status": "open",
-      "evidence_ids": ["MED-10-current"],
+      "evidence_ids": [
+        "MED-10-current"
+      ],
       "rationale": "Status still labels stored metadata as connected without separate credential, installation, authentication, or local-readiness facts.",
       "release_effect": "Blocks e07s01 and e07s03 truthful offline readiness.",
       "owner": "e07-provider-codex-lifecycle",
@@ -527,7 +736,9 @@
       "severity": "medium",
       "title": "Python 3.14-only packaging narrows adoption without proven need",
       "status": "deferred",
-      "evidence_ids": ["MED-11-current"],
+      "evidence_ids": [
+        "MED-11-current"
+      ],
       "rationale": "The approved target is Python 3.12 through 3.14, but metadata must remain at 3.14 until the complete macOS matrix supplies evidence.",
       "release_effect": "The metadata change is deferred to e09s03 and remains a candidate gate rather than authority for an early edit.",
       "owner": "e09-quality-platform-qualification",
@@ -538,7 +749,9 @@
       "severity": "minor",
       "title": "Four Ruff findings remain",
       "status": "fixed",
-      "evidence_ids": ["MIN-01-current"],
+      "evidence_ids": [
+        "MIN-01-current"
+      ],
       "rationale": "The exact historical F401 and F841 categories pass an offline focused Ruff run.",
       "release_effect": "The four July hygiene findings no longer block release; terminal lint policy remains MAJ-08 and e09s01 work.",
       "owner": "orbitrelay-maintainers",
@@ -549,8 +762,10 @@
       "severity": "minor",
       "title": "Static typing is incomplete",
       "status": "open",
-      "evidence_ids": ["MIN-02-current"],
-      "rationale": "Historical errors were repaired, but public seams remain untyped and no pinned terminal typing boundary exists.",
+      "evidence_ids": [
+        "MIN-02-current"
+      ],
+      "rationale": "A pinned terminal mypy gate now runs over src/orbitrelay, but public tool seams remain largely unannotated and the policy is not fully strict.",
       "release_effect": "Gates e09s01 but is not independently a security blocker.",
       "owner": "e09-quality-platform-qualification",
       "residual_risk": "Dynamic interfaces can regress without an executable typing policy."
@@ -560,7 +775,9 @@
       "severity": "minor",
       "title": "A removed command is still recommended",
       "status": "open",
-      "evidence_ids": ["MIN-03-current"],
+      "evidence_ids": [
+        "MIN-03-current"
+      ],
       "rationale": "A migration error still recommends the rejected legacy profile command.",
       "release_effect": "Must be corrected with provider lifecycle work before candidate documentation is final.",
       "owner": "e07-provider-codex-lifecycle",
@@ -571,7 +788,9 @@
       "severity": "minor",
       "title": "The CLI has no version command",
       "status": "open",
-      "evidence_ids": ["MIN-04-current"],
+      "evidence_ids": [
+        "MIN-04-current"
+      ],
       "rationale": "Neither source nor isolated-wheel CLI exposes release identity, while package metadata still says 0.5.0.",
       "release_effect": "Blocks e05s02 release identity but does not authorize selecting a version here.",
       "owner": "e05-baseline-release-identity",
@@ -582,7 +801,9 @@
       "severity": "minor",
       "title": "Several modules exceed the local maintainability target",
       "status": "accepted",
-      "evidence_ids": ["MIN-05-current"],
+      "evidence_ids": [
+        "MIN-05-current"
+      ],
       "rationale": "Module size alone has no demonstrated failure; the approved scope rejects cosmetic splitting and permits refactoring only when a stabilization outcome proves the seam.",
       "release_effect": "Accepted as non-blocking for this release, with targeted deepening allowed only inside approved stories.",
       "owner": "release-owner",
@@ -593,7 +814,9 @@
       "severity": "minor",
       "title": "Event redaction naming overstates its guarantee",
       "status": "open",
-      "evidence_ids": ["MIN-06-current"],
+      "evidence_ids": [
+        "MIN-06-current"
+      ],
       "rationale": "EventCollector still retains raw event values while redaction occurs during dictionary conversion.",
       "release_effect": "Requires a truthful interface or documentation outcome before release evidence relies on collector-level redaction.",
       "owner": "e08-session-execution-integrity",
@@ -604,7 +827,9 @@
       "severity": "minor",
       "title": "Several dependencies are behind current releases",
       "status": "open",
-      "evidence_ids": ["MIN-07-current"],
+      "evidence_ids": [
+        "MIN-07-current"
+      ],
       "rationale": "The vulnerable July idna lock is no longer current, but no pinned dependency freshness and advisory policy is part of the official gate.",
       "release_effect": "Gates the dependency-policy portion of e09s02; being behind latest alone is not a defect.",
       "owner": "e09-quality-platform-qualification",
