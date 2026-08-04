@@ -236,7 +236,7 @@ def _prepare_session(
                 store.require_sensitive_resume_authority(
                     session_id, covers=authority_covers
                 )
-            messages = store.load_messages(session_id)
+            messages = store.load_replay_messages(session_id)
         except Exception:
             lease.release()
             raise

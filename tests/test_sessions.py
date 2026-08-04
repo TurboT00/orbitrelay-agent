@@ -93,8 +93,8 @@ class SessionStoreTests(unittest.TestCase):
                 {"role": "assistant", "content": "hello"},
             ],
         )
-        messages_path = self.home / "sessions" / "demo1" / "messages.jsonl"
-        events_path = self.home / "sessions" / "demo1" / "events.jsonl"
+        messages_path = self.home / "sessions" / "demo1" / "messages" / "000001.jsonl"
+        events_path = self.home / "sessions" / "demo1" / "events" / "000001.jsonl"
         self.assertEqual(stat.S_IMODE(messages_path.stat().st_mode), 0o600)
         self.assertEqual(stat.S_IMODE(events_path.stat().st_mode), 0o600)
         body = messages_path.read_text(encoding="utf-8")
@@ -114,7 +114,7 @@ class SessionStoreTests(unittest.TestCase):
 
     def test_corrupt_messages_fail_closed(self) -> None:
         self.store.create(session_id="broken")
-        path = self.home / "sessions" / "broken" / "messages.jsonl"
+        path = self.home / "sessions" / "broken" / "messages" / "000001.jsonl"
         path.write_text("{not-json\n", encoding="utf-8")
         with self.assertRaises(SessionCorruptionError):
             self.store.load_messages("broken")
@@ -216,8 +216,14 @@ class SessionStoreTests(unittest.TestCase):
             )
         )
         # no api key material in session files
-        session_text = (home / "sessions" / "demo" / "messages.jsonl").read_text()
-        events_text = (home / "sessions" / "demo" / "events.jsonl").read_text()
+        session_dir = home / "sessions" / "demo" / "messages"
+        session_text = "".join(
+            path.read_text(encoding="utf-8") for path in sorted(session_dir.glob("*.jsonl"))
+        )
+        events_dir = home / "sessions" / "demo" / "events"
+        events_text = "".join(
+            path.read_text(encoding="utf-8") for path in sorted(events_dir.glob("*.jsonl"))
+        )
         self.assertNotIn("secret", session_text)
         self.assertNotIn("secret", events_text)
 
@@ -225,7 +231,7 @@ class SessionStoreTests(unittest.TestCase):
         home = self.home
         store = SessionStore(root=home / "sessions")
         store.create(session_id="bad")
-        (home / "sessions" / "bad" / "messages.jsonl").write_text("{bad\n", encoding="utf-8")
+        (home / "sessions" / "bad" / "messages" / "000001.jsonl").write_text("{bad\n", encoding="utf-8")
         with tempfile.TemporaryDirectory() as workspace:
             repository = ProfileRepository(Path(workspace) / "profiles.json")
             credentials = _CredentialStore()
@@ -301,7 +307,7 @@ class SessionStoreTests(unittest.TestCase):
             "{not-json\n", encoding="utf-8"
         )
         self.store.create(session_id="badmsg", model="m")
-        (self.home / "sessions" / "badmsg" / "messages.jsonl").write_text(
+        (self.home / "sessions" / "badmsg" / "messages" / "000001.jsonl").write_text(
             '{"role":"user","content":"SECRET_PAYLOAD"}\n{truncated\n',
             encoding="utf-8",
         )
@@ -337,7 +343,7 @@ class SessionStoreTests(unittest.TestCase):
 
     def test_active_session_delete_fails_without_modifying(self) -> None:
         self.store.create(session_id="held", model="m")
-        marker = self.home / "sessions" / "held" / "messages.jsonl"
+        marker = self.home / "sessions" / "held" / "messages" / "000001.jsonl"
         before = marker.read_text(encoding="utf-8")
         lease = self.store.acquire_lease("held")
         try:
@@ -373,6 +379,104 @@ class SessionStoreTests(unittest.TestCase):
             self.assertFalse((self.home / "sessions" / "free").exists())
         finally:
             lease.release()
+
+
+    def test_bounded_segments_and_current_system_on_resume(self) -> None:
+        from orbitrelay.context_budget import message_size
+        from orbitrelay.prompts import system_prompt
+
+        self.store.create(session_id="long", model="m")
+        messages = []
+        for index in range(20):
+            messages.append({"role": "user", "content": f"u-{index}-" + ("x" * 40)})
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": f"a-{index}",
+                    "provider_extra": f"keep-{index}",
+                }
+            )
+        # Include a legacy system message that must not be durable/replayed as current.
+        with_system = [{"role": "system", "content": "OLD_SYSTEM_INSTRUCTION"}, *messages]
+        self.store.commit_checkpoint(
+            "long", with_system, max_segment_chars=500
+        )
+        segment_dir = self.home / "sessions" / "long" / "messages"
+        segment_files = sorted(segment_dir.glob("*.jsonl"))
+        self.assertGreater(len(segment_files), 1)
+        durable = self.store.load_messages("long")
+        self.assertTrue(all(item.get("role") != "system" for item in durable))
+        self.assertIn("provider_extra", durable[1])
+        # Replay memory keeps only newest complete groups.
+        replay = self.store.load_replay_messages("long", max_chars=800)
+        self.assertLess(len(replay), len(durable))
+        self.assertTrue(all(item.get("role") != "system" for item in replay))
+        self.assertLessEqual(sum(message_size(m) for m in replay), 800)
+        # Agent resume injects current system prompt.
+        import tempfile
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+
+        from orbitrelay.agent import run_agent
+
+        final = SimpleNamespace(
+            role="assistant",
+            content="done",
+            tool_calls=None,
+            model_dump=lambda exclude_none=True: {"role": "assistant", "content": "done"},
+        )
+        client = Mock()
+        client.chat.completions.create = Mock(
+            return_value=SimpleNamespace(choices=[SimpleNamespace(message=final)], usage=None)
+        )
+        with tempfile.TemporaryDirectory() as workspace:
+            run_agent(
+                client,
+                "continue",
+                "m",
+                working_directory=workspace,
+                initial_messages=replay,
+            )
+        sent = client.chat.completions.create.call_args.kwargs["messages"]
+        self.assertEqual(sent[0]["role"], "system")
+        self.assertEqual(sent[0]["content"], system_prompt)
+        self.assertNotIn("OLD_SYSTEM_INSTRUCTION", str(sent))
+
+    def test_future_history_format_fails_before_load(self) -> None:
+        self.store.create(session_id="future", model="m")
+        path = self.home / "sessions" / "future" / "metadata.json"
+        import json
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["history_format"] = 99
+        path.write_text(json.dumps(payload), encoding="utf-8")
+        with self.assertRaisesRegex(SessionError, "newer than supported"):
+            self.store.load_replay_messages("future")
+
+    def test_legacy_single_file_history_still_loads(self) -> None:
+        # Simulate pre-segment format: only messages.jsonl
+        directory = self.home / "sessions" / "legacy"
+        directory.mkdir(parents=True)
+        import json
+        meta = {
+            "id": "legacy",
+            "created_at": 1.0,
+            "updated_at": 1.0,
+            "workspace": None,
+            "model": "m",
+            "title": None,
+            "sensitive": False,
+            "history_format": 1,
+        }
+        (directory / "metadata.json").write_text(json.dumps(meta), encoding="utf-8")
+        (directory / "messages.jsonl").write_text(
+            json.dumps({"role": "user", "content": "hi"}) + "\n"
+            + json.dumps({"role": "assistant", "content": "yo"}) + "\n",
+            encoding="utf-8",
+        )
+        loaded = self.store.load_messages("legacy")
+        self.assertEqual(len(loaded), 2)
+        replay = self.store.load_replay_messages("legacy")
+        self.assertEqual(replay[-1]["content"], "yo")
 
 
 if __name__ == "__main__":

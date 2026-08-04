@@ -19,6 +19,10 @@ from dataclasses import dataclass
 from typing import Any
 
 DEFAULT_MAX_CONTEXT_CHARS = 200_000
+# Durable segment and resume-memory bounds (named contracts for e08s04).
+DEFAULT_MAX_SEGMENT_CHARS = 256_000
+DEFAULT_MAX_REPLAY_CHARS = DEFAULT_MAX_CONTEXT_CHARS
+HISTORY_FORMAT_VERSION = 2
 
 
 class ContextBudgetError(RuntimeError):
@@ -199,3 +203,71 @@ def replay_safe_prefix(messages: Sequence[Any]) -> list[Any]:
         # Drop trailing incomplete assistant/tool tail one message at a time.
         items.pop()
     return items
+
+
+def strip_system_messages(messages: Sequence[Any]) -> list[Any]:
+    """Remove system-role messages so current instructions can replace them."""
+    return [message for message in messages if _role(message) != "system"]
+
+
+def partition_history(messages: Sequence[Any]) -> list[tuple[Any, ...]]:
+    """Partition history into indivisible prefix/body segments (tool-pair safe)."""
+    prefix, body = _segmentize(messages)
+    return [segment.messages for segment in prefix + body]
+
+
+def pack_segments(
+    messages: Sequence[Any],
+    *,
+    max_segment_chars: int = DEFAULT_MAX_SEGMENT_CHARS,
+) -> list[list[Any]]:
+    """Pack complete groups into segment files without splitting tool pairs.
+
+    A single oversized group becomes its own segment (file may exceed the nominal
+    bound) rather than splitting the group.
+    """
+    if max_segment_chars <= 0:
+        raise ContextBudgetError("segment bound must be positive")
+    groups = partition_history(messages)
+    if not groups:
+        return []
+    segments: list[list[Any]] = []
+    current: list[Any] = []
+    current_size = 0
+    for group in groups:
+        group_list = list(group)
+        size = sum(message_size(item) for item in group_list)
+        if size > max_segment_chars:
+            if current:
+                segments.append(current)
+                current = []
+                current_size = 0
+            segments.append(group_list)
+            continue
+        if current and current_size + size > max_segment_chars:
+            segments.append(current)
+            current = []
+            current_size = 0
+        current.extend(group_list)
+        current_size += size
+    if current:
+        segments.append(current)
+    return segments
+
+
+def select_replay_messages(
+    messages: Sequence[Any],
+    *,
+    max_chars: int = DEFAULT_MAX_REPLAY_CHARS,
+) -> list[Any]:
+    """Return newest complete groups within the resume-memory bound.
+
+    System messages are stripped; callers inject current instructions separately.
+    """
+    if max_chars <= 0:
+        raise ContextBudgetError("replay memory bound must be positive")
+    body = strip_system_messages(messages)
+    if not body:
+        return []
+    # Reuse pair-preserving budget without a system prefix.
+    return apply_context_budget(body, max_chars=max_chars)

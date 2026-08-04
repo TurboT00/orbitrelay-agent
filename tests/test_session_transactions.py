@@ -79,10 +79,11 @@ class SessionTransactionTests(unittest.TestCase):
         collector.emit(EventType.TOOL_RESULT, tool_call_id="c1", status="ok")
         self.store.commit_checkpoint("tx1", complete, events=collector.events)
         loaded = self.store.load_messages("tx1")
-        self.assertEqual(loaded, complete)
-        # events rewritten fully
-        events_path = self.store._session_dir("tx1") / "events.jsonl"
-        text = events_path.read_text(encoding="utf-8")
+        expected = [m for m in complete if m.get("role") != "system"]
+        self.assertEqual(loaded, expected)
+        # events rewritten fully into bounded segments
+        events_dir = self.store._session_dir("tx1") / "events"
+        text = "".join(path.read_text(encoding="utf-8") for path in sorted(events_dir.glob("*.jsonl")))
         self.assertIn("tool.result", text)
         self.assertEqual(text.count("\n"), 1)
 
@@ -101,7 +102,7 @@ class SessionTransactionTests(unittest.TestCase):
         ]
         self.store.commit_checkpoint("tx1", prior)
         # Simulate crash by writing incomplete messages directly.
-        path = self.store._session_dir("tx1") / "messages.jsonl"
+        path = self.store._session_dir("tx1") / "messages" / "000001.jsonl"
         incomplete = [
             *prior,
             _assistant_tools("c1"),
@@ -134,13 +135,15 @@ class SessionTransactionTests(unittest.TestCase):
             _tool("t1", "tool-ok"),
         ]
         self.store.commit_checkpoint("tx1", batch)
-        self.assertEqual(self.store.load_messages("tx1"), batch)
+        expected = [m for m in batch if m.get("role") != "system"]
+        self.assertEqual(self.store.load_messages("tx1"), expected)
 
         # partial batch must not replace
         partial = [*batch, _assistant_tools("t2")]
         with self.assertRaises(SessionError):
             self.store.commit_checkpoint("tx1", partial)
-        self.assertEqual(self.store.load_messages("tx1"), batch)
+        expected = [m for m in batch if m.get("role") != "system"]
+        self.assertEqual(self.store.load_messages("tx1"), expected)
 
     def test_unique_temp_atomic_replace_leaves_no_tmp(self) -> None:
         messages = [{"role": "user", "content": "only"}]

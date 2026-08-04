@@ -13,6 +13,9 @@ from orbitrelay.context_budget import (
     apply_context_budget,
     assert_no_orphan_tool_results,
     message_size,
+    pack_segments,
+    select_replay_messages,
+    strip_system_messages,
 )
 
 
@@ -127,6 +130,31 @@ class ContextBudgetTests(unittest.TestCase):
         # new user prompt is present
         self.assertEqual(sent[-1]["role"], "user")
         self.assertEqual(sent[-1]["content"], "continue")
+
+
+
+class HistoryPartitionTests(unittest.TestCase):
+    def test_pack_segments_preserves_pairs(self) -> None:
+        history = _history_with_pairs(6, filler="z" * 30)
+        body = strip_system_messages(history)
+        segments = pack_segments(body, max_segment_chars=400)
+        self.assertGreater(len(segments), 1)
+        flat = [message for segment in segments for message in segment]
+        assert_no_orphan_tool_results(flat)
+        sample = {
+            "role": "assistant",
+            "content": "x",
+            "provider_extra": {"k": "v"},
+        }
+        packed = pack_segments([sample], max_segment_chars=100)
+        self.assertEqual(packed[0][0]["provider_extra"], {"k": "v"})
+
+    def test_select_replay_messages_strips_system_and_bounds(self) -> None:
+        history = _history_with_pairs(5, filler="w" * 60)
+        replay = select_replay_messages(history, max_chars=500)
+        self.assertTrue(all(m.get("role") != "system" for m in replay))
+        self.assertLessEqual(sum(message_size(m) for m in replay), 500)
+        assert_no_orphan_tool_results(replay)
 
 
 if __name__ == "__main__":

@@ -18,7 +18,16 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from .context_budget import is_replay_safe, replay_safe_prefix
+from .context_budget import (
+    DEFAULT_MAX_REPLAY_CHARS,
+    DEFAULT_MAX_SEGMENT_CHARS,
+    HISTORY_FORMAT_VERSION,
+    is_replay_safe,
+    pack_segments,
+    replay_safe_prefix,
+    select_replay_messages,
+    strip_system_messages,
+)
 from .events import EventCollector, RunEvent
 from .redaction import redact_secrets
 
@@ -26,6 +35,8 @@ SESSION_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 METADATA_NAME = "metadata.json"
 MESSAGES_NAME = "messages.jsonl"
 EVENTS_NAME = "events.jsonl"
+MESSAGES_DIR_NAME = "messages"
+EVENTS_DIR_NAME = "events"
 LOCK_NAME = "session.lock"
 ACTIVE_NAME = "active.json"
 
@@ -94,6 +105,18 @@ class DeleteAllResult:
     @property
     def deleted_count(self) -> int:
         return len(self.deleted)
+
+
+def _history_format_value(value: object) -> int:
+    if isinstance(value, bool):
+        raise SessionCorruptionError("history_format is invalid")
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.isdigit():
+        return int(value)
+    if value is None:
+        return 1
+    raise SessionCorruptionError("history_format is invalid")
 
 
 def _safe_diagnostic(exc: BaseException) -> str:
@@ -216,6 +239,7 @@ class SessionMetadata:
     title: str | None = None
     sensitive: bool = False
     sensitive_authority: tuple[str, ...] = ()
+    history_format: int = 1
 
     def to_dict(self) -> dict[str, Any]:
         payload = {
@@ -226,6 +250,7 @@ class SessionMetadata:
             "model": self.model,
             "title": self.title,
             "sensitive": self.sensitive,
+            "history_format": self.history_format,
         }
         if self.sensitive_authority:
             payload["sensitive_authority"] = list(self.sensitive_authority)
@@ -260,6 +285,7 @@ class SessionMetadata:
                 else None,
                 sensitive=bool(value.get("sensitive", False)),
                 sensitive_authority=authority,
+                history_format=_history_format_value(value.get("history_format", 1)),
             )
         except (KeyError, TypeError, ValueError, SessionError) as exc:
             raise SessionCorruptionError("session metadata is invalid") from exc
@@ -422,12 +448,13 @@ class SessionStore:
             workspace=workspace,
             model=model,
             title=title,
+            history_format=HISTORY_FORMAT_VERSION,
         )
         self._write_metadata(directory, metadata)
-        # touch empty append files with secure perms
-        for name in (MESSAGES_NAME, EVENTS_NAME):
-            path = directory / name
-            _write_text_secure(path, "")
+        _secure_mkdir(directory / MESSAGES_DIR_NAME)
+        _secure_mkdir(directory / EVENTS_DIR_NAME)
+        _write_text_secure(directory / MESSAGES_DIR_NAME / "000001.jsonl", "")
+        _write_text_secure(directory / EVENTS_DIR_NAME / "000001.jsonl", "")
         return metadata
 
 
@@ -453,6 +480,7 @@ class SessionStore:
             title=metadata.title,
             sensitive=True,
             sensitive_authority=cleaned,
+            history_format=metadata.history_format,
         )
         self._write_metadata(directory, updated)
         return updated
@@ -588,27 +616,17 @@ class SessionStore:
 
     def _validate_messages_file(self, path: Path) -> None:
         """Fail closed on truncated/malformed JSONL without retaining payloads."""
-        if not path.exists():
+        directory = path.parent
+        segmented = directory / MESSAGES_DIR_NAME
+        if segmented.exists() and segmented.is_dir() and not segmented.is_symlink():
+            self._read_jsonl_segments(segmented, kind="messages")
             return
-        _validate_path(path)
-        try:
-            with path.open(encoding="utf-8") as stream:
-                for line_number, line in enumerate(stream, start=1):
-                    if not line.strip():
-                        continue
-                    try:
-                        payload = json.loads(line)
-                    except json.JSONDecodeError as exc:
-                        raise SessionCorruptionError(
-                            f"session messages line {line_number} is not valid JSON"
-                        ) from exc
-                    if not isinstance(payload, dict):
-                        raise SessionCorruptionError(
-                            f"session messages line {line_number} must be an object"
-                        )
-                    del payload
-        except OSError as exc:
-            raise SessionError(f'Could not read session messages: "{path.name}"') from exc
+        if not path.exists():
+            # New sessions may only have segmented history.
+            if (directory / MESSAGES_DIR_NAME).exists():
+                self._read_jsonl_segments(directory / MESSAGES_DIR_NAME, kind="messages")
+            return
+        self._read_jsonl_file(path, label="messages")
 
     def delete(self, session_id: str) -> None:
         """Delete one inactive session directory. Never repairs content."""
@@ -631,8 +649,16 @@ class SessionStore:
         directory = self._session_dir(session_id)
         if directory.exists():
             for child in list(directory.iterdir()):
-                if child.is_file() and not child.is_symlink():
+                if child.is_symlink():
+                    continue
+                if child.is_file():
                     child.unlink(missing_ok=True)
+                elif child.is_dir():
+                    for nested in list(child.iterdir()):
+                        if nested.is_file() and not nested.is_symlink():
+                            nested.unlink(missing_ok=True)
+                    with suppress(OSError):
+                        child.rmdir()
             directory.rmdir()
 
     def delete_all(self) -> DeleteAllResult:
@@ -649,29 +675,27 @@ class SessionStore:
         return DeleteAllResult(deleted=tuple(deleted), failed=tuple(failed))
 
     def load_messages(self, session_id: str) -> list[dict[str, Any]]:
+        """Load full durable history (all segments). Prefer load_replay_messages for resume."""
         directory = self._require_session_dir(session_id)
-        path = directory / MESSAGES_NAME
-        _validate_path(path)
-        messages: list[dict[str, Any]] = []
-        try:
-            with path.open(encoding="utf-8") as stream:
-                for line_number, line in enumerate(stream, start=1):
-                    if not line.strip():
-                        continue
-                    try:
-                        payload = json.loads(line)
-                    except json.JSONDecodeError as exc:
-                        raise SessionCorruptionError(
-                            f"session messages line {line_number} is not valid JSON"
-                        ) from exc
-                    if not isinstance(payload, dict):
-                        raise SessionCorruptionError(
-                            f"session messages line {line_number} must be an object"
-                        )
-                    messages.append(payload)
-        except OSError as exc:
-            raise SessionError(f'Could not read session messages: "{path}"') from exc
+        self._ensure_history_migratable(directory)
+        messages = self._read_message_segments(directory)
         return replay_safe_prefix(messages)
+
+    def load_replay_messages(
+        self,
+        session_id: str,
+        *,
+        max_chars: int = DEFAULT_MAX_REPLAY_CHARS,
+    ) -> list[dict[str, Any]]:
+        """Load newest complete groups within the resume-memory bound.
+
+        System messages are omitted; callers inject current instructions.
+        """
+        directory = self._require_session_dir(session_id)
+        self._ensure_history_migratable(directory)
+        messages = self._read_message_segments(directory)
+        safe = replay_safe_prefix(messages)
+        return select_replay_messages(safe, max_chars=max_chars)
 
     def replace_messages(
         self, session_id: str, messages: Sequence[Mapping[str, Any]]
@@ -684,8 +708,9 @@ class SessionStore:
         messages: Sequence[Any],
         *,
         events: Sequence[RunEvent] | None = None,
+        max_segment_chars: int = DEFAULT_MAX_SEGMENT_CHARS,
     ) -> None:
-        """Persist one complete replay-safe generation atomically."""
+        """Persist one complete replay-safe generation into bounded segments."""
         directory = self._require_session_dir(session_id)
         normalized: list[Any] = []
         for message in messages:
@@ -698,24 +723,19 @@ class SessionStore:
                 f'Session "{session_id}" checkpoint refused: '
                 "incomplete tool-call/result group"
             )
-        newline = "\n"
-        body = "".join(
-            json.dumps(
-                redact_secrets(dict(message)),
-                sort_keys=True,
-                separators=(",", ":"),
-            )
-            + newline
-            for message in normalized
+        durable = strip_system_messages(normalized)
+        redacted = [
+            redact_secrets(dict(message)) if isinstance(message, Mapping) else message
+            for message in durable
+        ]
+        self._write_message_segments(
+            directory, redacted, max_segment_chars=max_segment_chars
         )
-        _write_text_secure(directory / MESSAGES_NAME, body)
         if events is not None:
-            event_body = "".join(
-                json.dumps(event.to_dict(), sort_keys=True, separators=(",", ":"))
-                + newline
-                for event in events
+            event_payloads = [event.to_dict() for event in events]
+            self._write_event_segments(
+                directory, event_payloads, max_segment_chars=max_segment_chars
             )
-            _write_text_secure(directory / EVENTS_NAME, event_body)
         metadata = self._read_metadata(directory)
         updated = SessionMetadata(
             id=metadata.id,
@@ -724,18 +744,179 @@ class SessionStore:
             workspace=metadata.workspace,
             model=metadata.model,
             title=metadata.title,
+            sensitive=metadata.sensitive,
+            sensitive_authority=metadata.sensitive_authority,
+            history_format=HISTORY_FORMAT_VERSION,
         )
         self._write_metadata(directory, updated)
+        self._remove_legacy_history_files(directory)
 
     def append_events(self, session_id: str, events: Sequence[RunEvent]) -> None:
         directory = self._require_session_dir(session_id)
         if not events:
             return
-        body = "".join(
-            json.dumps(event.to_dict(), sort_keys=True, separators=(",", ":")) + "\n"
-            for event in events
+        self._ensure_history_migratable(directory)
+        existing = self._read_jsonl_segments(directory / EVENTS_DIR_NAME, kind="events")
+        legacy = directory / EVENTS_NAME
+        if legacy.exists() and not existing:
+            existing = self._read_jsonl_file(legacy, label="events")
+        existing.extend(event.to_dict() for event in events)
+        self._write_event_segments(directory, existing)
+        self._remove_legacy_history_files(directory)
+
+    def _ensure_history_migratable(self, directory: Path) -> None:
+        metadata = self._read_metadata(directory)
+        if metadata.history_format > HISTORY_FORMAT_VERSION:
+            raise SessionError(
+                f'Session "{metadata.id}" history format '
+                f"{metadata.history_format} is newer than supported "
+                f"({HISTORY_FORMAT_VERSION}); upgrade OrbitRelay before resume"
+            )
+
+    def _remove_legacy_history_files(self, directory: Path) -> None:
+        for name in (MESSAGES_NAME, EVENTS_NAME):
+            path = directory / name
+            if path.exists() and path.is_file() and not path.is_symlink():
+                path.unlink(missing_ok=True)
+
+    def _write_message_segments(
+        self,
+        directory: Path,
+        messages: Sequence[Any],
+        *,
+        max_segment_chars: int = DEFAULT_MAX_SEGMENT_CHARS,
+    ) -> None:
+        segments = pack_segments(messages, max_segment_chars=max_segment_chars)
+        self._replace_jsonl_segments(
+            directory / MESSAGES_DIR_NAME, segments, kind="messages"
         )
-        _append_text_secure(directory / EVENTS_NAME, body)
+
+    def _write_event_segments(
+        self,
+        directory: Path,
+        events: Sequence[Mapping[str, Any]],
+        *,
+        max_segment_chars: int = DEFAULT_MAX_SEGMENT_CHARS,
+    ) -> None:
+        segments: list[list[Any]] = []
+        current: list[Any] = []
+        current_size = 0
+        for event in events:
+            payload = dict(event)
+            size = len(
+                json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+            )
+            if current and current_size + size > max_segment_chars:
+                segments.append(current)
+                current = []
+                current_size = 0
+            current.append(payload)
+            current_size += size
+        if current:
+            segments.append(current)
+        self._replace_jsonl_segments(
+            directory / EVENTS_DIR_NAME, segments, kind="events"
+        )
+
+    def _replace_jsonl_segments(
+        self,
+        target_dir: Path,
+        segments: Sequence[Sequence[Any]],
+        *,
+        kind: str,
+    ) -> None:
+        parent = target_dir.parent
+        _secure_mkdir(parent)
+        temporary = parent / f".{target_dir.name}.tmp-{uuid.uuid4().hex}"
+        if temporary.exists():
+            raise SessionError(f"could not stage {kind} segments")
+        _secure_mkdir(temporary)
+        try:
+            if not segments:
+                _write_text_secure(temporary / "000001.jsonl", "")
+            else:
+                for index, segment in enumerate(segments, start=1):
+                    body = "".join(
+                        json.dumps(
+                            dict(item) if isinstance(item, Mapping) else item,
+                            sort_keys=True,
+                            separators=(",", ":"),
+                            default=str,
+                        )
+                        + "\n"
+                        for item in segment
+                    )
+                    _write_text_secure(temporary / f"{index:06d}.jsonl", body)
+            backup = parent / f".{target_dir.name}.bak-{uuid.uuid4().hex}"
+            if target_dir.exists():
+                target_dir.rename(backup)
+            temporary.rename(target_dir)
+            if backup.exists():
+                for child in backup.iterdir():
+                    if child.is_file():
+                        child.unlink(missing_ok=True)
+                with suppress(OSError):
+                    backup.rmdir()
+        except OSError as exc:
+            if temporary.exists():
+                for child in temporary.iterdir():
+                    if child.is_file():
+                        child.unlink(missing_ok=True)
+                with suppress(OSError):
+                    temporary.rmdir()
+            raise SessionError(f"could not write {kind} segments: {exc}") from exc
+
+    def _read_message_segments(self, directory: Path) -> list[dict[str, Any]]:
+        segmented = directory / MESSAGES_DIR_NAME
+        legacy = directory / MESSAGES_NAME
+        if segmented.exists() and segmented.is_dir() and not segmented.is_symlink():
+            return self._read_jsonl_segments(segmented, kind="messages")
+        if legacy.exists():
+            return self._read_jsonl_file(legacy, label="messages")
+        return []
+
+    def _read_jsonl_segments(
+        self, directory: Path, *, kind: str
+    ) -> list[dict[str, Any]]:
+        if not directory.exists():
+            return []
+        _validate_path(directory)
+        if directory.is_symlink():
+            raise SessionError(f"{kind} segment directory cannot be a symbolic link")
+        paths = sorted(
+            path
+            for path in directory.iterdir()
+            if path.is_file()
+            and not path.is_symlink()
+            and path.name.endswith(".jsonl")
+        )
+        messages: list[dict[str, Any]] = []
+        for path in paths:
+            messages.extend(self._read_jsonl_file(path, label=kind))
+        return messages
+
+    def _read_jsonl_file(self, path: Path, *, label: str) -> list[dict[str, Any]]:
+        _validate_path(path)
+        rows: list[dict[str, Any]] = []
+        try:
+            with path.open(encoding="utf-8") as stream:
+                for line_number, line in enumerate(stream, start=1):
+                    if not line.strip():
+                        continue
+                    try:
+                        payload = json.loads(line)
+                    except json.JSONDecodeError as exc:
+                        raise SessionCorruptionError(
+                            f"session {label} line {line_number} is not valid JSON"
+                        ) from exc
+                    if not isinstance(payload, dict):
+                        raise SessionCorruptionError(
+                            f"session {label} line {line_number} must be an object"
+                        )
+                    rows.append(payload)
+        except OSError as exc:
+            raise SessionError(f'Could not read session {label}: "{path.name}"') from exc
+        return rows
 
     def bind_collector(
         self, session_id: str, collector: EventCollector

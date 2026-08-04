@@ -111,7 +111,7 @@ class CliErrorStreamTests(unittest.TestCase):
         self.connections.connect_api_key(ProviderId.OPENAI, "openai-secret")
         store = SessionStore(root=self.home / "sessions")
         store.create(session_id="bad")
-        (self.home / "sessions" / "bad" / "messages.jsonl").write_text(
+        (self.home / "sessions" / "bad" / "messages" / "000001.jsonl").write_text(
             "{bad\n", encoding="utf-8"
         )
         with patch("orbitrelay.cli.OpenAI") as openai:

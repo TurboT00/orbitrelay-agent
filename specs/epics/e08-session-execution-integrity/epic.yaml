@@ -30,7 +30,7 @@ stories:
   - id: e08s04
     title: Bound resumable history without splitting tool pairs
     bcps: 8
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e08s04-bounded-session-history.md
     tasks: e08s04-tasks.yaml

@@ -12,7 +12,11 @@ from typing import Any, TextIO
 
 from .approval_format import format_approval_record
 from .approvals import ApprovalDecision, ApprovalSession
-from .context_budget import DEFAULT_MAX_CONTEXT_CHARS, apply_context_budget
+from .context_budget import (
+    DEFAULT_MAX_CONTEXT_CHARS,
+    apply_context_budget,
+    strip_system_messages,
+)
 from .events import EventCollector, EventType
 from .prompts import system_prompt
 from .streaming import assemble_chat_completion
@@ -214,9 +218,13 @@ def _starting_messages(
 ) -> list[Any]:
     if initial_messages is None:
         return _initial_messages(user_prompt)
-    history = [message for message in initial_messages]
-    history.append({"role": "user", "content": user_prompt})
-    return history
+    # Current system instructions always win over any persisted system message.
+    history = strip_system_messages(initial_messages)
+    return [
+        {"role": "system", "content": system_prompt},
+        *history,
+        {"role": "user", "content": user_prompt},
+    ]
 
 
 def _create_model_response(

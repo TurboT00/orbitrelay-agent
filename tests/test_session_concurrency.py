@@ -121,7 +121,7 @@ class SessionConcurrencyTests(unittest.TestCase):
 
     def test_delete_active_session_fails_closed(self) -> None:
         holder = self.store.acquire_lease("shared")
-        messages = self.root / "shared" / "messages.jsonl"
+        messages = self.root / "shared" / "messages" / "000001.jsonl"
         before = messages.read_bytes()
         try:
             with self.assertRaises(SessionBusyError):
