@@ -23,6 +23,7 @@ from orbitrelay.tools.workspace_privacy import (
     classify_relative_path,
     clear_privacy_authorization,
     clear_workspace_policy_cache,
+    declare_run_exception,
 )
 
 # Every AP/SP family with a representative relative path and expected rule.
@@ -465,6 +466,192 @@ class WorkspacePrivacyDiscoveryTests(unittest.TestCase):
             listing,
         )
         self.assertNotIn("hidden.txt", listing)
+
+
+
+class OneRunExceptionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        clear_privacy_authorization()
+        clear_workspace_policy_cache()
+        self.directory = tempfile.TemporaryDirectory()
+        self.workspace = Path(self.directory.name)
+        (self.workspace / "notes.txt").write_text("ok\n", encoding="utf-8")
+        (self.workspace / ".env").write_text("SECRET=1\n", encoding="utf-8")
+        (self.workspace / ".env.local").write_text("OTHER=1\n", encoding="utf-8")
+        (self.workspace / "vault").mkdir()
+        (self.workspace / "vault" / "note.txt").write_text("v\n", encoding="utf-8")
+        (self.workspace / "vault" / "id_rsa").write_text("KEY\n", encoding="utf-8")
+        (self.workspace / "id_ed25519").write_text("ABS\n", encoding="utf-8")
+
+    def tearDown(self) -> None:
+        clear_privacy_authorization()
+        clear_workspace_policy_cache()
+        self.directory.cleanup()
+
+    def test_declare_exact_file_authorizes_only_that_path(self) -> None:
+        declare_run_exception(str(self.workspace), ".env", scope="file")
+        self.assertEqual(
+            get_file_content(str(self.workspace), ".env"), "SECRET=1\n"
+        )
+        sibling = get_file_content(str(self.workspace), ".env.local")
+        self.assertTrue(sibling.startswith(PRIVACY_DENIED_MESSAGE))
+        listing = get_files_info(str(self.workspace))
+        self.assertIn(".env", listing)
+        self.assertNotIn(".env.local", listing)
+
+    def test_declare_subtree_is_bounded_and_keeps_absolute_deny(self) -> None:
+        declare_run_exception(str(self.workspace), "vault", scope="subtree")
+        self.assertEqual(
+            get_file_content(str(self.workspace), "vault/note.txt"), "v\n"
+        )
+        denied = get_file_content(str(self.workspace), "vault/id_rsa")
+        self.assertTrue(denied.startswith(PRIVACY_DENIED_MESSAGE))
+        outside = get_file_content(str(self.workspace), ".env")
+        self.assertTrue(outside.startswith(PRIVACY_DENIED_MESSAGE))
+        listing = get_files_info(str(self.workspace), "vault")
+        self.assertIn("note.txt", listing)
+        self.assertNotIn("id_rsa", listing)
+
+    def test_declare_rejects_absolute_deny_and_escape(self) -> None:
+        with self.assertRaisesRegex(ValueError, "absolute-deny"):
+            declare_run_exception(str(self.workspace), "id_ed25519", scope="file")
+        with self.assertRaisesRegex(ValueError, "escapes"):
+            declare_run_exception(str(self.workspace), "../outside", scope="file")
+        with self.assertRaisesRegex(ValueError, "existing file"):
+            declare_run_exception(str(self.workspace), "missing.env", scope="file")
+
+    def test_authority_is_process_scoped_and_cleared(self) -> None:
+        declare_run_exception(str(self.workspace), ".env", scope="file")
+        self.assertEqual(get_file_content(str(self.workspace), ".env"), "SECRET=1\n")
+        clear_privacy_authorization()
+        denied = get_file_content(str(self.workspace), ".env")
+        self.assertTrue(denied.startswith(PRIVACY_DENIED_MESSAGE))
+
+
+class CliSensitiveExceptionTests(unittest.TestCase):
+    def setUp(self) -> None:
+        clear_privacy_authorization()
+        self.directory = tempfile.TemporaryDirectory()
+        self.home = Path(self.directory.name) / "home"
+        self.home.mkdir()
+        self.workspace = Path(self.directory.name) / "ws"
+        self.workspace.mkdir()
+        (self.workspace / ".env").write_text("CLI_SECRET=1\n", encoding="utf-8")
+        from orbitrelay.connection_service import ConnectionService
+        from orbitrelay.profile_store import ProfileRepository
+        from orbitrelay.providers import ProviderId
+
+        self.repository = ProfileRepository(self.home / "profiles.json")
+        self.store = type(
+            "S",
+            (),
+            {
+                "values": {},
+                "set_secret": lambda self, k, v: self.values.__setitem__(k, v),
+                "get_secret": lambda self, k: self.values[k],
+                "delete_secret": lambda self, k: self.values.pop(k, None),
+            },
+        )()
+        # proper fake store
+        class Fake:
+            def __init__(self):
+                self.values = {}
+            def set_secret(self, k, v):
+                self.values[k] = v
+            def get_secret(self, k):
+                from orbitrelay.credentials import CredentialNotFoundError
+                try:
+                    return self.values[k]
+                except KeyError as exc:
+                    raise CredentialNotFoundError(k) from exc
+            def delete_secret(self, k):
+                self.values.pop(k, None)
+        self.store = Fake()
+        ConnectionService(self.repository, self.store).connect_api_key(
+            ProviderId.OPENAI, "k"
+        )
+
+    def tearDown(self) -> None:
+        clear_privacy_authorization()
+        self.directory.cleanup()
+
+    def test_cli_applies_and_clears_sensitive_exception(self) -> None:
+        import io
+        import os
+        from types import SimpleNamespace
+        from unittest.mock import Mock, patch
+
+        from orbitrelay import cli
+
+        final = SimpleNamespace(
+            role="assistant",
+            content="done",
+            tool_calls=None,
+            model_dump=lambda exclude_none=True: {
+                "role": "assistant",
+                "content": "done",
+            },
+        )
+        client = Mock()
+        client.chat.completions.create = Mock(
+            return_value=SimpleNamespace(
+                choices=[SimpleNamespace(message=final)], usage=None
+            )
+        )
+        out = io.StringIO()
+        err = io.StringIO()
+        with (
+            patch.dict(os.environ, {"ORBITRELAY_HOME": str(self.home)}, clear=False),
+            patch("orbitrelay.cli.OpenAI", return_value=client),
+            patch("sys.stdout", out),
+            patch("sys.stderr", err),
+        ):
+            code = cli.main(
+                [
+                    "hello",
+                    "--workspace",
+                    str(self.workspace),
+                    "--allow-sensitive-read",
+                    ".env",
+                ],
+                profile_repository=self.repository,
+                credential_store=self.store,
+            )
+        self.assertEqual(code, 0)
+        # authority cleared after run
+        denied = get_file_content(str(self.workspace), ".env")
+        self.assertTrue(denied.startswith(PRIVACY_DENIED_MESSAGE))
+
+    def test_cli_rejects_absolute_deny_declaration(self) -> None:
+        import io
+        import os
+        from unittest.mock import patch
+
+        from orbitrelay import cli
+
+        (self.workspace / "id_rsa").write_text("K\n", encoding="utf-8")
+        out = io.StringIO()
+        err = io.StringIO()
+        with (
+            patch.dict(os.environ, {"ORBITRELAY_HOME": str(self.home)}, clear=False),
+            patch("sys.stdout", out),
+            patch("sys.stderr", err),
+        ):
+            code = cli.main(
+                [
+                    "hello",
+                    "--workspace",
+                    str(self.workspace),
+                    "--allow-sensitive-read",
+                    "id_rsa",
+                ],
+                profile_repository=self.repository,
+                credential_store=self.store,
+            )
+        self.assertEqual(code, 1)
+        self.assertEqual(out.getvalue(), "")
+        self.assertIn("absolute-deny", err.getvalue())
+        self.assertNotIn("Traceback", err.getvalue())
 
 
 if __name__ == "__main__":

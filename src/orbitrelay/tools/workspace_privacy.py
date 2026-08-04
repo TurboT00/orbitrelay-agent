@@ -110,6 +110,50 @@ def authorize_subtree(relative_path: str) -> None:
     )
 
 
+def declare_run_exception(
+    workspace: str,
+    relative_path: str,
+    *,
+    scope: str,
+) -> str:
+    """Validate and install one process-scoped sensitive-read exception.
+
+    Returns the normalized workspace-relative path that was authorized.
+    Absolute-deny paths, escapes, and missing targets fail closed.
+    """
+    if scope not in {"file", "subtree"}:
+        raise ValueError('sensitive exception scope must be "file" or "subtree"')
+    if not isinstance(relative_path, str) or not relative_path.strip():
+        raise ValueError("sensitive exception path cannot be empty")
+    working_real, target_real, valid = resolve_path_within(workspace, relative_path)
+    if not valid:
+        raise ValueError(
+            f'sensitive exception path escapes the workspace: "{relative_path}"'
+        )
+    # Reject symlink targets that resolved outside already handled; also reject
+    # declaring through a symlink leaf when the leaf itself is a symlink escape.
+    rel = os.path.relpath(target_real, working_real).replace(os.sep, "/")
+    if rel == os.curdir:
+        raise ValueError("sensitive exception cannot target the workspace root")
+    classification = classify_relative_path(rel, workspace_root=working_real)
+    if classification.sensitivity is PathSensitivity.ABSOLUTE_DENY:
+        raise ValueError(
+            "sensitive exception cannot authorize absolute-deny credential material"
+        )
+    if scope == "file":
+        if not os.path.isfile(target_real):
+            raise ValueError(
+                f'sensitive exception exact path must be an existing file: "{relative_path}"'
+            )
+        authorize_exact_path(rel)
+    else:
+        if not os.path.isdir(target_real):
+            raise ValueError(
+                f'sensitive exception subtree must be an existing directory: "{relative_path}"'
+            )
+        authorize_subtree(rel)
+    return rel
+
 _AP01 = re.compile(r"^id_(rsa|dsa|ecdsa|ed25519)([._-].+)?$")
 _AP02_SUFFIXES = (
     ".key",

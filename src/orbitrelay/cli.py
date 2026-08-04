@@ -51,6 +51,10 @@ from .sessions import (
     SessionStore,
 )
 from .terminal_authorizer import TerminalAuthorizer
+from .tools.workspace_privacy import (
+    clear_privacy_authorization,
+    declare_run_exception,
+)
 
 DEFAULT_APPROVAL_TIMEOUT = 60.0
 MAX_APPROVAL_TIMEOUT = 300.0
@@ -95,6 +99,26 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         metavar="SECONDS",
         help="Wait up to SECONDS for exclusive session ownership (default: fail immediately)",
     )
+    parser.add_argument(
+        "--allow-sensitive-read",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help=(
+            "Authorize one workspace-relative sensitive file for this process only "
+            "(repeatable; cannot override absolute-deny material)"
+        ),
+    )
+    parser.add_argument(
+        "--allow-sensitive-subtree",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help=(
+            "Authorize one workspace-relative sensitive subtree for this process only "
+            "(repeatable; absolute-deny entries remain denied)"
+        ),
+    )
     _add_approval_options(parser)
     return parser.parse_args(argv)
 
@@ -119,6 +143,15 @@ def _add_approval_options(parser: argparse.ArgumentParser) -> None:
         metavar="TOOL",
         help="Pre-approve one exact consequential tool (repeatable)",
     )
+
+
+def _apply_sensitive_exceptions(workspace: str, args: argparse.Namespace) -> None:
+    exact_paths = tuple(getattr(args, "allow_sensitive_read", None) or ())
+    subtree_paths = tuple(getattr(args, "allow_sensitive_subtree", None) or ())
+    for relative in exact_paths:
+        declare_run_exception(workspace, relative, scope="file")
+    for relative in subtree_paths:
+        declare_run_exception(workspace, relative, scope="subtree")
 
 
 def resolve_workspace(value: str | None) -> str:
@@ -223,6 +256,8 @@ def _invoke_agent(
     approved_tools = _approved_tools(args)
     stream = bool(getattr(args, "stream", False))
     env = environment or os.environ
+    clear_privacy_authorization()
+    _apply_sensitive_exceptions(workspace, args)
     session_id, initial_messages, store, lease = _prepare_session(
         args, workspace=workspace, model=api_config.model, environment=env
     )
@@ -282,6 +317,7 @@ def _invoke_agent(
     finally:
         if lease is not None:
             lease.release()
+        clear_privacy_authorization()
 
 
 def _approval_timeout(value: str) -> float:
