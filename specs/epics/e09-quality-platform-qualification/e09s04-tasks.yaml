@@ -4,7 +4,7 @@ spec: e09s04-platform-support-claims.md
 type: fix
 context: infra
 risk: P1
-status: failing
+status: passing
 bcps: 3
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_identity -v"
     risk: P1
     security: low
-    status: failing
+    status: passing
     allure:
       severity: high
       categories: ["Platform Claims", "consistency"]
@@ -21,7 +21,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_identity -v"
     risk: P1
     security: medium
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: high
@@ -31,7 +31,7 @@ tasks:
     verify: "./scripts/check-python-matrix.sh"
     risk: P1
     security: medium
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: high

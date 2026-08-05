@@ -2,7 +2,7 @@ STORY KEY: e09s04
 TITLE:     Publish truthful platform and installation support
 TYPE:      Story
 PARENT:    e09
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      S

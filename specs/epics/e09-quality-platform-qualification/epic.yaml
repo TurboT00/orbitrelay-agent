@@ -2,7 +2,7 @@ id: e09
 title: Quality and Platform Qualification
 wsjf: 4.2
 total_bcps: 24
-status: in_progress
+status: done
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.6.0"
 stories:
@@ -30,7 +30,7 @@ stories:
   - id: e09s04
     title: Publish truthful platform and installation support
     bcps: 3
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e09s04-platform-support-claims.md
     tasks: e09s04-tasks.yaml

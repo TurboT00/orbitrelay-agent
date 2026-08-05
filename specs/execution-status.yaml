@@ -20,11 +20,11 @@ development_status:
   e08s04: done
   e08s05: done
   e08s06: done
-  e09: in_progress
+  e09: done
   e09s01: done
   e09s02: done
   e09s03: done
-  e09s04: in_progress
+  e09s04: done
   e10: todo
   e10s01: todo
   e10s02: todo
@@ -56,7 +56,7 @@ epics:
     total_bcps: 42
     capsule_dir: specs/epics/e08-session-execution-integrity
   e09:
-    status: in_progress
+    status: done
     title: Quality and Platform Qualification
     wsjf: 4.2
     total_bcps: 24
