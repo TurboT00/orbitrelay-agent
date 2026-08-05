@@ -88,7 +88,7 @@
     "Explicit release-owner approval is still required before tag/push/publish.",
     "Accepted and deferred disposition findings remain residual risk under READY_WITH_EXPLICIT_ACCEPTANCE."
   ],
-  "revision": "9d71a11467e9f77d1aafda8f0cb6b07813162900",
+  "revision": "094330c32f327f1e1b2e9049b638ec27e410aef4",
   "schema_version": 1,
   "status": "accepted"
 }
