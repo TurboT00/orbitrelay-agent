@@ -9,7 +9,7 @@ stories:
   - id: e10s01
     title: Record automated macOS readiness evidence
     bcps: 5
-    status: todo
+    status: in_progress
     delta: MODIFIED
     spec: e10s01-automated-macos-evidence.md
     tasks: e10s01-tasks.yaml
