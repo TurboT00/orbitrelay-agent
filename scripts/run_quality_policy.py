@@ -182,16 +182,16 @@ def run_dependency_audit_stage(
         )
 
     unavailable_markers = (
-        "unable to",
-        "could not",
+        "unable to download",
+        "could not download",
         "failed to download",
-        "network",
+        "network unreachable",
+        "network is unreachable",
         "offline",
-        "no such file",
-        "connection",
-        "temporary failure",
         "name or service not known",
-        "cache",
+        "temporary failure in name resolution",
+        "connection refused",
+        "connection reset",
     )
     lowered = combined.lower()
     looks_unavailable = any(marker in lowered for marker in unavailable_markers)

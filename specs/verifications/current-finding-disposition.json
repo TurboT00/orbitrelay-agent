@@ -19,8 +19,7 @@
     "counts": {
       "accepted": 2,
       "deferred": 2,
-      "fixed": 22,
-      "open": 0
+      "fixed": 22
     },
     "release_blockers": []
   },

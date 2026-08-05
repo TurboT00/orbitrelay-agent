@@ -106,13 +106,16 @@ class ReleaseBaselineContractTests(unittest.TestCase):
 
     def test_required_disposition_cannot_be_reclassified_with_its_summary(self) -> None:
         contract = copy.deepcopy(self.contract)
-        finding = next(item for item in contract["findings"] if item["status"] == "open")
+        finding = next(item for item in contract["findings"] if item["status"] == "fixed")
         finding_id = finding["id"]
         previous = finding["status"]
         finding["status"] = "accepted"
-        contract["summary"]["counts"]["accepted"] += 1
+        contract["summary"]["counts"]["accepted"] = (
+            contract["summary"]["counts"].get("accepted", 0) + 1
+        )
         contract["summary"]["counts"][previous] -= 1
-        contract["summary"]["release_blockers"].remove(finding_id)
+        if contract["summary"]["counts"][previous] == 0:
+            del contract["summary"]["counts"][previous]
 
         with self.assertRaisesRegex(
             ContractError, f"unexpected disposition for {finding_id}"

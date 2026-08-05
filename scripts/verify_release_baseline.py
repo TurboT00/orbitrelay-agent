@@ -288,7 +288,11 @@ def _validate_summary(contract: dict[str, Any]) -> None:
         raise ContractError("summary must be an object")
     _require_fields(summary, {"counts", "release_blockers"}, "summary")
     findings = contract["findings"]
-    expected_counts = {status: sum(item["status"] == status for item in findings) for status in sorted(ALLOWED_STATUSES)}
+    expected_counts = {
+        status: total
+        for status in sorted(ALLOWED_STATUSES)
+        if (total := sum(item["status"] == status for item in findings))
+    }
     if summary.get("counts") != expected_counts:
         raise ContractError("summary disposition counts do not match findings")
     expected_blockers = sorted(item["id"] for item in findings if item["status"] == "open")
