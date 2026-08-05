@@ -21,17 +21,6 @@ RELEASE_EVIDENCE = ROOT / "specs" / "verifications" / "release-evidence.json"
 DEFAULT_VERDICT = ROOT / "specs" / "verifications" / "candidate-reaudit-verdict.json"
 DEFAULT_REVIEW = ROOT / "specs" / "verifications" / "candidate-review.json"
 
-FORBIDDEN = (
-    "api_key",
-    "apikey",
-    "password",
-    "secret",
-    "authorization:",
-    "bearer ",
-    "sk-",
-    "-----begin",
-)
-
 SEVERITY_RANK = {"critical": 0, "major": 1, "medium": 2, "minor": 3, "info": 4}
 ALLOWED_STATUSES = {"fixed", "accepted", "deferred", "open", "waived"}
 
@@ -41,8 +30,9 @@ class ReauditError(RuntimeError):
 
 
 def _scan(text: str) -> list[str]:
-    lowered = text.lower()
-    return [token for token in FORBIDDEN if token in lowered]
+    from release_evidence import scan_forbidden
+
+    return scan_forbidden(text)
 
 
 def git_revision(repo: Path = ROOT) -> str:

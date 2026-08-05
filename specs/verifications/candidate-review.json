@@ -1,0 +1,69 @@
+{
+  "code_review": {
+    "method": "automated-path-scope-plus-disposition-oracle",
+    "outcome": "approve_with_residual_risk",
+    "passed_automated_gates": [
+      "privacy-workspace",
+      "provider-readiness",
+      "codex-lifecycle",
+      "session-integrity",
+      "quality-policy",
+      "official-check",
+      "python-matrix",
+      "platform-claims",
+      "release-baseline"
+    ],
+    "scope": [
+      "src/orbitrelay",
+      "scripts/check.sh",
+      "scripts/run_quality_policy.py",
+      "scripts/check-python-matrix.sh",
+      "scripts/release_evidence.py",
+      "tests"
+    ],
+    "status": "completed",
+    "summary": "Independent code review evidence is bound to the automated gate set and disposition oracle for the candidate revision."
+  },
+  "kind": "orbitrelay-candidate-review",
+  "residual_treatments": [
+    {
+      "finding_id": "MED-09",
+      "residual_risk": "Some provider or model limits can still be exceeded despite the character bound.",
+      "severity": "medium",
+      "status": "deferred"
+    },
+    {
+      "finding_id": "MED-11",
+      "residual_risk": "Users on Python 3.12 and 3.13 cannot install the package until qualification completes.",
+      "severity": "medium",
+      "status": "deferred"
+    },
+    {
+      "finding_id": "MIN-05",
+      "residual_risk": "Large orchestration modules remain harder to reason about and can increase change risk.",
+      "severity": "minor",
+      "status": "accepted"
+    },
+    {
+      "finding_id": "MIN-06",
+      "residual_risk": "Custom EventCollector sinks must call to_dict()/redaction before persistence.",
+      "severity": "minor",
+      "status": "accepted"
+    }
+  ],
+  "revision": "dc94be6e0a3766273b932480b078fa2f0435a999",
+  "security_review": {
+    "controls": [
+      "quality-policy:dependency_audit",
+      "quality-policy:source_security",
+      "privacy-workspace",
+      "session-integrity",
+      "codex-lifecycle"
+    ],
+    "method": "bandit-pip-audit-privacy-session-tool-gates",
+    "outcome": "approve_with_residual_risk",
+    "status": "completed",
+    "summary": "Independent security review evidence is derived from terminal pip-audit/Bandit stages plus privacy/session/Codex automated contracts."
+  },
+  "version": 1
+}

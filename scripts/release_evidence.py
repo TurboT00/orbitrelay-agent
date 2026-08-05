@@ -30,17 +30,6 @@ EVIDENCE_KIND = "orbitrelay-release-evidence"
 EVIDENCE_VERSION = 1
 REQUIRED_SET_AUTOMATED = "automated"
 
-FORBIDDEN_SENTINELS = (
-    "api_key",
-    "apikey",
-    "secret",
-    "password",
-    "authorization:",
-    "bearer ",
-    "sk-",
-    "-----begin",
-)
-
 # Required automated readiness gates (D-01..D-05 + quality/release packaging).
 AUTOMATED_GATE_SPECS: tuple[dict[str, object], ...] = (
     {
@@ -226,8 +215,21 @@ def read_requires_python(repo: Path = ROOT) -> str:
 
 
 def scan_forbidden(text: str) -> list[str]:
-    lowered = text.lower()
-    return [token for token in FORBIDDEN_SENTINELS if token in lowered]
+    """Return high-confidence secret-bearing patterns, not ordinary prose."""
+    hits: list[str] = []
+    patterns = {
+        "private-key-block": r"-----BEGIN [^-]*PRIVATE KEY-----",
+        "bearer-token": r"(?i)\bbearer\s+[a-z0-9._~+/=-]{12,}",
+        "provider-sk": r"(?i)\b(?:sk|pk|ghp|glpat)-[a-z0-9_-]{12,}",
+        "aws-key": r"\bAKIA[A-Z0-9]{12,}\b",
+        "assignment": (
+            r"(?i)\b(?:api[_-]?key|access[_-]?token|password)\s*[:=]\s*[^,\s}\]]{4,}"
+        ),
+    }
+    for name, pattern in patterns.items():
+        if re.search(pattern, text):
+            hits.append(name)
+    return hits
 
 
 def run_command(

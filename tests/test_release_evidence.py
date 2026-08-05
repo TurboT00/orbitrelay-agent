@@ -89,14 +89,15 @@ class ReleaseEvidenceUnitTests(unittest.TestCase):
     def test_forbidden_sentinel_fails_validation(self) -> None:
         revision = "1" * 40
         record = build_record(revision=revision, gates=_passed_gates(revision))
-        record["gates"][0]["detail"] = "api_key=super-secret"
+        record["gates"][0]["detail"] = "api_key=super-secret-value"
         with self.assertRaisesRegex(EvidenceError, "forbidden"):
             validate_evidence(record, expected_revision=revision)
 
     def test_scan_forbidden_detects_common_secrets(self) -> None:
-        self.assertTrue(scan_forbidden("Authorization: Bearer abc"))
-        self.assertTrue(scan_forbidden('{"api_key":"x"}'))
+        self.assertTrue(scan_forbidden("Authorization: Bearer abcdefghijklmnop"))
+        self.assertTrue(scan_forbidden("api_key=super-secret-value"))
         self.assertFalse(scan_forbidden("status=passed exit_code=0"))
+        self.assertFalse(scan_forbidden("secret-free diagnostics for users"))
 
     def test_generate_evidence_uses_runner_and_matrix_evidence(self) -> None:
         def fake_run(command, **kwargs):

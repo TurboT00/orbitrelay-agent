@@ -1,0 +1,620 @@
+{
+  "automated_evidence": {
+    "passed_gates": [
+      "codex-lifecycle",
+      "official-check",
+      "platform-claims",
+      "privacy-workspace",
+      "provider-readiness",
+      "python-matrix",
+      "quality-policy",
+      "release-baseline",
+      "session-integrity"
+    ],
+    "record": "specs/verifications/release-evidence.json",
+    "revision": "dc94be6e0a3766273b932480b078fa2f0435a999"
+  },
+  "blockers": {
+    "critical_open": [],
+    "major_open": []
+  },
+  "counts": {
+    "accepted": 2,
+    "deferred": 2,
+    "fixed": 22,
+    "open": 0,
+    "waived": 0
+  },
+  "finding_treatments": [
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-01-current"
+      ],
+      "finding_id": "MAJ-01",
+      "rationale": "Direct reads and directory discovery classify paths under the D-01 catalog before protected names or bytes are exposed; sensitive/absolute-deny entries fail closed and listings report only an aggregate omitted count.",
+      "release_effect": "No independent release block remains for unprotected automatic sensitive reads; discovery ignore rules and one-run exceptions remain later e06 stories.",
+      "residual_risk": "Users must renew authority for sensitive session resume; absolute-deny remains non-overridable.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-02-current"
+      ],
+      "finding_id": "MAJ-02",
+      "rationale": "Unknown streamed assistant extension fields are assembled and replayed across a tool round with offline regressions.",
+      "release_effect": "No independent release block remains for the historical field-loss defect.",
+      "residual_risk": "Provider-specific streamed shapes require maintained synthetic fixtures and are not a live release gate.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-03-current"
+      ],
+      "finding_id": "MAJ-03",
+      "rationale": "Normal, verbose, streaming, and tool-round regressions keep final answers on stdout and operational output on stderr.",
+      "release_effect": "No independent release block remains for the historical stdout contamination defect.",
+      "residual_risk": "Candidate wheel behavior still requires final release verification.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-04-current"
+      ],
+      "finding_id": "MAJ-04",
+      "rationale": "cli.main translates expected connection, session, credential, provider, and validation failures into one secret-free stderr diagnostic with nonzero exit and no traceback; final-answer stdout stays empty on those failures.",
+      "release_effect": "No independent release block remains for expected CLI traceback leakage.",
+      "residual_risk": "Unexpected programming defects can still raise; only expected operational failures are translated at the CLI boundary.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-05-current"
+      ],
+      "finding_id": "MAJ-05",
+      "rationale": "Credential-store construction is lazy and metadata-only and Codex routes are regression-tested without keyring initialization.",
+      "release_effect": "The historical eager-keyring defect no longer blocks release.",
+      "residual_risk": "Native backend behavior may receive optional side testing but is not a release gate.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-06-current"
+      ],
+      "finding_id": "MAJ-06",
+      "rationale": "Delegated login now completes before metadata mutation and failed-login rollback is regression-tested.",
+      "release_effect": "The historical failed-login mutation no longer blocks release.",
+      "residual_risk": "Delegated CLI lifecycle requires maintained fake-executable regressions after e07 semantics are complete.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-07-current"
+      ],
+      "finding_id": "MAJ-07",
+      "rationale": "The selected stabilization identity is 0.6.0 across pyproject metadata, orbitrelay.__version__, both CLI entry points, and isolated-wheel command output.",
+      "release_effect": "No independent release block remains for missing post-0.5.0 identity; tagging and publication still require later release-owner approval.",
+      "residual_risk": "Untagged source can still change after identity selection; e10 remains the candidate closeout.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MAJ-08-current",
+        "MIN-01-current",
+        "MIN-07-current"
+      ],
+      "finding_id": "MAJ-08",
+      "rationale": "scripts/check.sh now fails closed on Ruff, mypy, branch coverage (fail-under 80), pip-audit, and Bandit via scripts/run_quality_policy.py (e09s01/e09s02). A passing unit suite alone cannot bypass these stages.",
+      "release_effect": "No independent release block remains for missing terminal quality gates.",
+      "residual_risk": "Quality thresholds remain policy-bound and must be re-run on each candidate revision.",
+      "severity": "major",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-01-current"
+      ],
+      "finding_id": "MED-01",
+      "rationale": "Tool outcomes emit truthful statuses (ok/error/denied). Denied calls never enter an executing phase; process/tool failures are classified without treating denials as success (e08s06).",
+      "release_effect": "No independent release block remains for false-successful tool events.",
+      "residual_risk": "Future tools must continue to return Error:/structured error shapes recognized by observers.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-02-current"
+      ],
+      "finding_id": "MED-02",
+      "rationale": "Corrupt sessions remain visible in list/show with secret-free diagnostics; inactive corrupt sessions are deletable; delete-all reports partial failures with nonzero exit (e08s03).",
+      "release_effect": "No independent release block remains for invisible corrupt sessions.",
+      "residual_risk": "Inaccessible/symlink session paths still fail closed and may need manual FS repair.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-03-current"
+      ],
+      "finding_id": "MED-03",
+      "rationale": "SessionStore acquires a kernel-backed exclusive lease before history load and holds it through the run; concurrent owners fail or boundedly wait, and crash releases the lock. List/show report secret-free active status.",
+      "release_effect": "No independent release block remains for missing exclusive session ownership.",
+      "residual_risk": "Replay-safe checkpoints and corrupt-session lifecycle remain e08s02/e08s03.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-04-current"
+      ],
+      "finding_id": "MED-04",
+      "rationale": "Session history uses pair-preserving durable segments with bounded resume memory; system instructions are current-on-resume; future history formats fail closed (e08s04).",
+      "release_effect": "No independent release block remains for unbounded session rewrite/load.",
+      "residual_risk": "Operators must keep segment/replay bounds aligned with provider context limits.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-05-current"
+      ],
+      "finding_id": "MED-05",
+      "rationale": "Python tool and Codex capture share deadlock-safe bounded drains with explicit timeout/truncation metadata; discarded content is never retained (e08s05).",
+      "release_effect": "No independent release block remains for unbounded subprocess capture.",
+      "residual_risk": "Bound constants are policy; extreme hosts may still need operator limits outside OrbitRelay.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-06-current"
+      ],
+      "finding_id": "MED-06",
+      "rationale": "Workspace writes commit via temp+os.replace with validation-to-use rechecks; interruption before replace preserves prior target bytes (e08s06).",
+      "release_effect": "No independent release block remains for non-atomic workspace writes.",
+      "residual_risk": "Cross-filesystem renames are not supported; workspace must remain one filesystem.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-07-current"
+      ],
+      "finding_id": "MED-07",
+      "rationale": "Environment credential import was removed and the obsolete command is regression-tested as unsupported.",
+      "release_effect": "The superseded environment-import defect does not block release.",
+      "residual_risk": "None for the removed environment-import route.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-08-current"
+      ],
+      "finding_id": "MED-08",
+      "rationale": "Approval records only emit executing for allowed dispositions; denied/disabled calls surface status=denied without an executing phase (e08s06).",
+      "release_effect": "No independent release block remains for denied-as-executing audit confusion.",
+      "residual_risk": "External consumers must prefer TOOL_RESULT status over phase heuristics.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-09-current"
+      ],
+      "finding_id": "MED-09",
+      "rationale": "The current character budget is explicit and preserves tool pairs; provider-specific token accounting is deferred while e08s04 first establishes conservative bounded replay and overhead rules.",
+      "release_effect": "Non-blocking only if e08s04 proves a conservative compatibility bound for the stabilization candidate.",
+      "residual_risk": "Some provider or model limits can still be exceeded despite the character bound.",
+      "severity": "medium",
+      "status": "deferred"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-10-current"
+      ],
+      "finding_id": "MED-10",
+      "rationale": "provider status reports independent offline facts (configured, selected, catalog/model, credential present/absent/unavailable) and derives only local-ready, not-ready, or unknown without network access or secret values.",
+      "release_effect": "No independent release block remains for API-provider offline readiness vocabulary.",
+      "residual_risk": "Explicit live verification remains e07s02; readiness is offline/local only.",
+      "severity": "medium",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MED-11-current"
+      ],
+      "finding_id": "MED-11",
+      "rationale": "The approved target is Python 3.12 through 3.14, but metadata must remain at 3.14 until the complete macOS matrix supplies evidence.",
+      "release_effect": "The metadata change is deferred to e09s03 and remains a candidate gate rather than authority for an early edit.",
+      "residual_risk": "Users on Python 3.12 and 3.13 cannot install the package until qualification completes.",
+      "severity": "medium",
+      "status": "deferred"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MIN-01-current"
+      ],
+      "finding_id": "MIN-01",
+      "rationale": "The exact historical F401 and F841 categories pass an offline focused Ruff run.",
+      "release_effect": "The four July hygiene findings no longer block release; terminal lint policy remains MAJ-08 and e09s01 work.",
+      "residual_risk": "No pinned full-project Ruff policy is enforced yet.",
+      "severity": "minor",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MIN-02-current"
+      ],
+      "finding_id": "MIN-02",
+      "rationale": "Pinned mypy is a terminal official-check stage over src/orbitrelay with postponed annotations enabled for 3.12+ imports (e09s01/e09s03).",
+      "release_effect": "No independent release block remains for missing terminal typing gate.",
+      "residual_risk": "Dynamic tool seams remain intentionally flexible; full disallow_untyped_defs is not required for 0.6.0.",
+      "severity": "minor",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MIN-03-current"
+      ],
+      "finding_id": "MIN-03",
+      "rationale": "Migration/provider guidance now recommends the provider command rather than the removed profile command.",
+      "release_effect": "No independent release block remains for unusable profile recovery guidance.",
+      "residual_risk": "Legacy docs outside the repo may still mention profile commands.",
+      "severity": "minor",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MIN-04-current"
+      ],
+      "finding_id": "MIN-04",
+      "rationale": "orbitrelay --version and python -m orbitrelay --version report the selected 0.6.0 identity consistently with package metadata and orbitrelay.__version__.",
+      "release_effect": "No independent release block remains for missing CLI version identity.",
+      "residual_risk": "Operators must still distinguish untagged development builds from a published tag.",
+      "severity": "minor",
+      "status": "fixed"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MIN-05-current"
+      ],
+      "finding_id": "MIN-05",
+      "rationale": "Module size alone has no demonstrated failure; the approved scope rejects cosmetic splitting and permits refactoring only when a stabilization outcome proves the seam.",
+      "release_effect": "Accepted as non-blocking for this release, with targeted deepening allowed only inside approved stories.",
+      "residual_risk": "Large orchestration modules remain harder to reason about and can increase change risk.",
+      "severity": "minor",
+      "status": "accepted"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MIN-06-current"
+      ],
+      "finding_id": "MIN-06",
+      "rationale": "EventCollector stores run-local structured events and redacts on serialization (to_dict). Release evidence and summaries consume redacted dictionaries only. Documented as serialization-time redaction rather than store-time mutation.",
+      "release_effect": "Accepted residual naming risk for 0.6.0; not a security bypass in supported sinks.",
+      "residual_risk": "Custom EventCollector sinks must call to_dict()/redaction before persistence.",
+      "severity": "minor",
+      "status": "accepted"
+    },
+    {
+      "automated_gate_links": [
+        "codex-lifecycle",
+        "official-check",
+        "platform-claims",
+        "privacy-workspace",
+        "provider-readiness",
+        "python-matrix",
+        "quality-policy",
+        "release-baseline",
+        "session-integrity"
+      ],
+      "evidence_ids": [
+        "MIN-07-current"
+      ],
+      "finding_id": "MIN-07",
+      "rationale": "pip-audit is a terminal quality-policy stage and fails closed when advisory data is unavailable; editable local package is skipped (e09s02).",
+      "release_effect": "No independent release block remains for missing dependency advisory policy.",
+      "residual_risk": "Advisory freshness depends on cache/network at check time.",
+      "severity": "minor",
+      "status": "fixed"
+    }
+  ],
+  "kind": "orbitrelay-candidate-reaudit-verdict",
+  "notes": "Verdict distinguishes automated proof, independent review, and explicit acceptance/deferral. No critical/major finding may remain open.",
+  "residual_risks": [
+    "Some provider or model limits can still be exceeded despite the character bound.",
+    "Users on Python 3.12 and 3.13 cannot install the package until qualification completes.",
+    "Large orchestration modules remain harder to reason about and can increase change risk.",
+    "Custom EventCollector sinks must call to_dict()/redaction before persistence."
+  ],
+  "reviews": {
+    "code_review_outcome": "approve_with_residual_risk",
+    "record": "specs/verifications/candidate-review.json",
+    "security_review_outcome": "approve_with_residual_risk"
+  },
+  "revision": "dc94be6e0a3766273b932480b078fa2f0435a999",
+  "verdict": "READY_WITH_EXPLICIT_ACCEPTANCE",
+  "version": 1
+}
