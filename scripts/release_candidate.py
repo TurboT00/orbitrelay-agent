@@ -24,24 +24,69 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
-
-from scripts.candidate_reaudit import ReauditError, validate_verdict  # noqa: E402
-from scripts.release_evidence import (  # noqa: E402
-    DEFAULT_RECORD as DEFAULT_RELEASE_EVIDENCE,
-    scan_forbidden,
-    validate_evidence,
-)
-
 SELECTED_VERSION = "0.6.0"
 PACKAGE_NAME = "orbitrelay-agent"
 CANDIDATE_KIND = "orbitrelay-release-candidate"
 CANDIDATE_SCHEMA_VERSION = 1
 DEFAULT_CANDIDATE = ROOT / "specs" / "verifications" / "release-candidate.json"
+DEFAULT_RELEASE_EVIDENCE = ROOT / "specs" / "verifications" / "release-evidence.json"
 DEFAULT_VERDICT = ROOT / "specs" / "verifications" / "candidate-reaudit-verdict.json"
 DEFAULT_MATRIX = ROOT / "specs" / "verifications" / "python-matrix-evidence.json"
 READY_VERDICTS = frozenset({"READY", "READY_WITH_EXPLICIT_ACCEPTANCE"})
+
+
+class CandidateError(RuntimeError):
+    """Raised when candidate production or validation fails."""
+
+
+def _ensure_scripts_path() -> None:
+    scripts_dir = str(ROOT / "scripts")
+    if scripts_dir not in sys.path:
+        sys.path.insert(0, scripts_dir)
+
+
+def _scan_forbidden(text: str) -> list[str]:
+    _ensure_scripts_path()
+    from release_evidence import scan_forbidden
+
+    return scan_forbidden(text)
+
+
+def _validate_release_evidence(
+    path: Path,
+    *,
+    expected_revision: str | None,
+    require_review: bool,
+) -> None:
+    _ensure_scripts_path()
+    from release_evidence import validate_evidence
+
+    validate_evidence(
+        path,
+        expected_revision=expected_revision,
+        required_set="automated",
+        require_review=require_review,
+    )
+
+
+def _validate_reaudit_verdict(
+    path: Path,
+    *,
+    expected_revision: str | None,
+    require_ready: bool,
+) -> None:
+    _ensure_scripts_path()
+    from candidate_reaudit import ReauditError, validate_verdict
+
+    try:
+        validate_verdict(
+            path,
+            expected_revision=expected_revision,
+            require_ready=require_ready,
+        )
+    except ReauditError as exc:
+        raise CandidateError(f"candidate re-audit invalid: {exc}") from exc
+
 
 # Path prefixes / exact basenames that must never appear inside the wheel.
 FORBIDDEN_WHEEL_PREFIXES = (
@@ -69,10 +114,6 @@ PRIVATE_RECORD_NAMES = (
     "project-review-2026-07-29.md",
     "remediation-plan-2026-07-29.md",
 )
-
-
-class CandidateError(RuntimeError):
-    """Raised when candidate production or validation fails."""
 
 
 def git_revision(repo: Path = ROOT) -> str:
@@ -246,7 +287,7 @@ def smoke_installed_wheel(wheel: Path, *, repo: Path = ROOT) -> dict[str, Any]:
             env=env,
         )
         text = completed.stdout + completed.stderr
-        hits = scan_forbidden(text)
+        hits = _scan_forbidden(text)
         if hits:
             raise CandidateError(f"installed smoke {name} leaked forbidden material: {hits}")
         if completed.returncode != 0:
@@ -315,19 +356,17 @@ def _validate_upstream_evidence(
     matrix_path: Path,
 ) -> dict[str, Any]:
     try:
-        validate_evidence(
+        _validate_release_evidence(
             release_evidence,
             expected_revision=revision,
-            required_set="automated",
             require_review=True,
         )
     except Exception as exc:  # EvidenceError and friends
         # release evidence revision may be an ancestor of HEAD when rebound later
         try:
-            validate_evidence(
+            _validate_release_evidence(
                 release_evidence,
                 expected_revision=None,
-                required_set="automated",
                 require_review=True,
             )
         except Exception as nested:
@@ -351,10 +390,11 @@ def _validate_upstream_evidence(
                 f"release evidence revision {evidence_revision} is not an ancestor of {revision}"
             )
 
-    try:
-        validate_verdict(verdict_path, expected_revision=None, require_ready=True)
-    except ReauditError as exc:
-        raise CandidateError(f"candidate re-audit invalid: {exc}") from exc
+    _validate_reaudit_verdict(
+        verdict_path,
+        expected_revision=None,
+        require_ready=True,
+    )
     verdict = _load_json(verdict_path)
     verdict_value = str(verdict.get("verdict") or "")
     if verdict_value not in READY_VERDICTS:
@@ -445,7 +485,7 @@ def build_candidate_record(
         "member_count": len(wheel_members),
     }
     serialized = json.dumps(record, sort_keys=True)
-    hits = scan_forbidden(serialized)
+    hits = _scan_forbidden(serialized)
     if hits:
         raise CandidateError(f"candidate record contains forbidden material: {hits}")
     for private in PRIVATE_RECORD_NAMES:
@@ -626,7 +666,7 @@ def validate_candidate(
         raise CandidateError("audit verdict is not READY")
 
     serialized = json.dumps(record, sort_keys=True)
-    hits = scan_forbidden(serialized)
+    hits = _scan_forbidden(serialized)
     if hits:
         raise CandidateError(f"candidate record contains forbidden material: {hits}")
     return record
