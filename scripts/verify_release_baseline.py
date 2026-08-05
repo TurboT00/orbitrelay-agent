@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSESSED_REVISION = "aedbf9f99d9d3da050e30622fd5a3333aa42c0b4"
-EXPECTED_CONTRACT_SHA256 = "96681c1099ea0f43d93e0fee644c841089600e2390ea3ccb304002d782c3824b"
+ASSESSED_REVISION = "a2409e08f36c2d6dea4658d70219defa8708b3ba"
+EXPECTED_CONTRACT_SHA256 = "36eaa7bb5683860e3a538e0333831fff52e9e1de085117a3e28dc3a16cd674c7"
 CANONICAL_FINDING_IDS = tuple(
     [f"MAJ-{number:02d}" for number in range(1, 9)]
     + [f"MED-{number:02d}" for number in range(1, 12)]
@@ -51,25 +51,25 @@ EXPECTED_FINDING_STATUSES = {
     "MAJ-05": "fixed",
     "MAJ-06": "fixed",
     "MAJ-07": "fixed",
-    "MAJ-08": "open",
-    "MED-01": "open",
-    "MED-02": "open",
+    "MAJ-08": "fixed",
+    "MED-01": "fixed",
+    "MED-02": "fixed",
     "MED-03": "fixed",
-    "MED-04": "open",
-    "MED-05": "open",
-    "MED-06": "open",
+    "MED-04": "fixed",
+    "MED-05": "fixed",
+    "MED-06": "fixed",
     "MED-07": "fixed",
-    "MED-08": "open",
+    "MED-08": "fixed",
     "MED-09": "deferred",
     "MED-10": "fixed",
     "MED-11": "deferred",
     "MIN-01": "fixed",
-    "MIN-02": "open",
-    "MIN-03": "open",
+    "MIN-02": "fixed",
+    "MIN-03": "fixed",
     "MIN-04": "fixed",
     "MIN-05": "accepted",
-    "MIN-06": "open",
-    "MIN-07": "open",
+    "MIN-06": "accepted",
+    "MIN-07": "fixed",
 }
 PRIVATE_RECORD_NAMES = {
     "project-review-2026-07-29.md",
@@ -260,8 +260,14 @@ def _validate_findings(contract: dict[str, Any], evidence: dict[str, dict[str, A
             raise ContractError(f"{finding_id} references unknown evidence")
         if status == "fixed" and not any(evidence[evidence_id]["outcome"] == "passed" for evidence_id in evidence_ids):
             raise ContractError(f"fixed finding {finding_id} lacks passed current evidence")
-    if represented_statuses != ALLOWED_STATUSES:
-        raise ContractError("the publication must contain fixed, open, accepted, and deferred outcomes")
+    # Open may be empty after candidate re-audit; fixed/accepted/deferred remain required.
+    required_statuses = {"fixed", "accepted", "deferred"}
+    if not required_statuses.issubset(represented_statuses):
+        raise ContractError(
+            "the publication must contain fixed, accepted, and deferred outcomes"
+        )
+    if not represented_statuses.issubset(ALLOWED_STATUSES):
+        raise ContractError("the publication contains an unknown disposition status")
 
 
 def _validate_summary(contract: dict[str, Any]) -> None:
