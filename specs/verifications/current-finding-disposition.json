@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+    "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -11,7 +11,7 @@
     "official_check": {
       "command": "./scripts/check.sh",
       "exit_code": 0,
-      "project_tests": 310,
+      "project_tests": 319,
       "example_tests": 9
     }
   },
@@ -40,7 +40,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "references": [
         {
@@ -138,7 +138,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -156,7 +156,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -214,7 +214,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "references": [
         {
@@ -300,7 +300,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -334,7 +334,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -376,7 +376,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "references": [
         {
@@ -441,11 +441,23 @@
         },
         {
           "path": "specs/state.yaml",
-          "locator": "python_support_target decision"
+          "locator": "e10s01 active stabilization state"
         },
         {
           "path": "specs/IMPLEMENTATION_PLAN_LATEST.md",
           "locator": "e09 complete handoff"
+        },
+        {
+          "path": "scripts/release_evidence.py",
+          "locator": "automated macOS release evidence generator/validator"
+        },
+        {
+          "path": "scripts/validate_release_evidence.py",
+          "locator": "release evidence CLI validator"
+        },
+        {
+          "path": "tests/test_release_evidence.py",
+          "locator": "evidence completeness and redaction contracts"
         }
       ],
       "command": "uv run python -m unittest tests.test_release_identity -v",
@@ -454,7 +466,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -519,18 +531,30 @@
         },
         {
           "path": "specs/state.yaml",
-          "locator": "python_support_target decision"
+          "locator": "e10s01 active stabilization state"
         },
         {
           "path": "specs/IMPLEMENTATION_PLAN_LATEST.md",
           "locator": "e09 complete handoff"
+        },
+        {
+          "path": "scripts/release_evidence.py",
+          "locator": "automated macOS release evidence generator/validator"
+        },
+        {
+          "path": "scripts/validate_release_evidence.py",
+          "locator": "release evidence CLI validator"
+        },
+        {
+          "path": "tests/test_release_evidence.py",
+          "locator": "evidence completeness and redaction contracts"
         }
       ]
     },
     {
       "id": "MED-01-current",
       "kind": "source-and-test-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -586,7 +610,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -646,7 +670,7 @@
     {
       "id": "MED-03-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "references": [
         {
@@ -740,7 +764,7 @@
     {
       "id": "MED-04-current",
       "kind": "source-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -800,7 +824,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -840,7 +864,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -872,7 +896,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -906,7 +930,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -958,7 +982,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -1010,7 +1034,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "references": [
         {
@@ -1068,7 +1092,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -1133,18 +1157,30 @@
         },
         {
           "path": "specs/state.yaml",
-          "locator": "python_support_target decision"
+          "locator": "e10s01 active stabilization state"
         },
         {
           "path": "specs/IMPLEMENTATION_PLAN_LATEST.md",
           "locator": "e09 complete handoff"
+        },
+        {
+          "path": "scripts/release_evidence.py",
+          "locator": "automated macOS release evidence generator/validator"
+        },
+        {
+          "path": "scripts/validate_release_evidence.py",
+          "locator": "release evidence CLI validator"
+        },
+        {
+          "path": "tests/test_release_evidence.py",
+          "locator": "evidence completeness and redaction contracts"
         }
       ]
     },
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -1230,7 +1266,7 @@
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -1299,18 +1335,30 @@
         },
         {
           "path": "specs/state.yaml",
-          "locator": "python_support_target decision"
+          "locator": "e10s01 active stabilization state"
         },
         {
           "path": "specs/IMPLEMENTATION_PLAN_LATEST.md",
           "locator": "e09 complete handoff"
+        },
+        {
+          "path": "scripts/release_evidence.py",
+          "locator": "automated macOS release evidence generator/validator"
+        },
+        {
+          "path": "scripts/validate_release_evidence.py",
+          "locator": "release evidence CLI validator"
+        },
+        {
+          "path": "tests/test_release_evidence.py",
+          "locator": "evidence completeness and redaction contracts"
         }
       ]
     },
     {
       "id": "MIN-03-current",
       "kind": "source-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -1398,7 +1446,7 @@
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "passed",
       "references": [
         {
@@ -1543,11 +1591,23 @@
         },
         {
           "path": "specs/state.yaml",
-          "locator": "python_support_target decision"
+          "locator": "e10s01 active stabilization state"
         },
         {
           "path": "specs/IMPLEMENTATION_PLAN_LATEST.md",
           "locator": "e09 complete handoff"
+        },
+        {
+          "path": "scripts/release_evidence.py",
+          "locator": "automated macOS release evidence generator/validator"
+        },
+        {
+          "path": "scripts/validate_release_evidence.py",
+          "locator": "release evidence CLI validator"
+        },
+        {
+          "path": "tests/test_release_evidence.py",
+          "locator": "evidence completeness and redaction contracts"
         }
       ],
       "command": "uv run python -m unittest tests.test_release_identity -v",
@@ -1556,7 +1616,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -1636,7 +1696,7 @@
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "references": [
         {
@@ -1652,7 +1712,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-review",
-      "revision": "fa198ad1314be1d0b24dde3ad06ba5f48a1d60fe",
+      "revision": "ec67b47c66bbb8687b550acbc1a78d575d1af09d",
       "outcome": "observed",
       "command": "uv lock --check --offline",
       "exit_code": 0,
@@ -1719,11 +1779,23 @@
         },
         {
           "path": "specs/state.yaml",
-          "locator": "python_support_target decision"
+          "locator": "e10s01 active stabilization state"
         },
         {
           "path": "specs/IMPLEMENTATION_PLAN_LATEST.md",
           "locator": "e09 complete handoff"
+        },
+        {
+          "path": "scripts/release_evidence.py",
+          "locator": "automated macOS release evidence generator/validator"
+        },
+        {
+          "path": "scripts/validate_release_evidence.py",
+          "locator": "release evidence CLI validator"
+        },
+        {
+          "path": "tests/test_release_evidence.py",
+          "locator": "evidence completeness and redaction contracts"
         }
       ]
     }
