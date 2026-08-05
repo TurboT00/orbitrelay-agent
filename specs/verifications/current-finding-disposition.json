@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+    "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -28,7 +28,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -126,7 +126,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -144,7 +144,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -202,7 +202,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -288,7 +288,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -322,7 +322,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -364,7 +364,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -458,7 +458,7 @@
     {
       "id": "MAJ-08-current",
       "kind": "quality-gate-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -552,7 +552,7 @@
     {
       "id": "MED-01-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -610,7 +610,7 @@
     {
       "id": "MED-02-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -672,7 +672,7 @@
     {
       "id": "MED-03-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -766,7 +766,7 @@
     {
       "id": "MED-04-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -828,7 +828,7 @@
     {
       "id": "MED-05-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -870,7 +870,7 @@
     {
       "id": "MED-06-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -904,7 +904,7 @@
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -938,7 +938,7 @@
     {
       "id": "MED-08-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -992,7 +992,7 @@
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "observed",
       "references": [
         {
@@ -1044,7 +1044,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -1102,7 +1102,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "observed",
       "references": [
         {
@@ -1194,7 +1194,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -1280,7 +1280,7 @@
     {
       "id": "MIN-02-current",
       "kind": "source-and-gate-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -1378,7 +1378,7 @@
     {
       "id": "MIN-03-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -1468,7 +1468,7 @@
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -1642,7 +1642,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "observed",
       "references": [
         {
@@ -1722,7 +1722,7 @@
     {
       "id": "MIN-06-current",
       "kind": "source-and-test-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "references": [
         {
@@ -1740,7 +1740,7 @@
     {
       "id": "MIN-07-current",
       "kind": "lock-and-gate-run",
-      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "revision": "a4f98f69c5b01c7fcde62ffcf5642a85d4a508f8",
       "outcome": "passed",
       "command": "uv run python scripts/run_quality_policy.py --only dependency_audit",
       "exit_code": 0,
