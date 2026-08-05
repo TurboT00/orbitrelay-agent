@@ -111,8 +111,9 @@ approval boundaries by default.
 ### Windows support
 
 P7 may add a native Windows development and verification path. Until then,
-macOS and Linux are the supported platforms; Windows users may use WSL or Git
-Bash for the current Bash verification script.
+**macOS is the only qualified platform**. Linux remains preview/unverified.
+Windows is deferred; users may use WSL or Git Bash for the Bash verification
+script without treating Windows as supported.
 
 ### Personal interaction and integrations
 

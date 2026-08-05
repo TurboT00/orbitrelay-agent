@@ -11,6 +11,12 @@ Future interaction surfaces may add voice, device actions, and user-authorized
 service integrations without weakening the provider, approval, or local-state
 boundaries below.
 
+## Platform support
+
+macOS is the qualified platform for Python 3.12 through 3.14. Linux is
+preview/unverified. Native Windows support is deferred. Do not broaden these
+claims without accepted matrix evidence.
+
 ## Command boundary
 
 `orbitrelay` runs a prompt in a workspace. It accepts one-run controls for the

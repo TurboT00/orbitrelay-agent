@@ -11,9 +11,21 @@ Project and coding work are supported use cases, not the product boundary.
 Voice interaction, device actions, service integrations, and local LLM servers
 are future direction rather than current features.
 
+## Supported platforms
+
+| Surface | Status |
+| --- | --- |
+| macOS + Python 3.12, 3.13, and 3.14 | **Qualified** (automated matrix evidence) |
+| Linux | **Preview / unverified** — may run, not a release claim |
+| Native Windows | **Deferred** — use WSL or Git Bash only for the Bash check script |
+
+Package metadata requires `Python >=3.12`. Do not describe Linux or Windows as
+qualified platforms until accepted evidence exists.
+
 ## Setup
 
-Install the locked dependencies and the project command:
+Requirements: **macOS** with **Python 3.12+** (3.12–3.14 qualified). Install
+the locked dependencies and the project command:
 
 ```bash
 uv sync --locked
@@ -255,6 +267,7 @@ suites, checks package imports and CLI entry points, builds the distributions,
 and starts the command from an isolated wheel installation. Build artifacts are
 created in a temporary directory and removed automatically.
 
-The current script targets Bash on macOS and Linux, including Arch and Ubuntu.
-A native Windows check can be added when Windows 11 becomes an explicitly
-supported development platform; until then, Git Bash or WSL can run this script.
+The official check targets Bash on **qualified macOS**. The same script may run
+on Linux for preview/development, but Linux is not a qualified release platform.
+Native Windows is deferred; Git Bash or WSL can run the Bash script without
+implying Windows support.

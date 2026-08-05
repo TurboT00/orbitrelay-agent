@@ -154,5 +154,84 @@ class ReleaseIdentityWheelTests(unittest.TestCase):
             self.assertIn(SELECTED_VERSION, text)
 
 
+
+class PlatformSupportClaimTests(unittest.TestCase):
+    """e09s04: package metadata, docs, and state must agree on support claims."""
+
+    def _read(self, relative: str) -> str:
+        return (REPO_ROOT / relative).read_text(encoding="utf-8")
+
+    def test_python_floor_matches_package_metadata_and_docs(self) -> None:
+        data = tomllib.loads(self._read("pyproject.toml"))
+        requires = data["project"]["requires-python"]
+        self.assertEqual(requires, ">=3.12")
+        classifiers = set(data["project"]["classifiers"])
+        for minor in ("3.12", "3.13", "3.14"):
+            self.assertIn(f"Programming Language :: Python :: {minor}", classifiers)
+        self.assertIn("Operating System :: MacOS", classifiers)
+        # Do not claim OS Independent / Windows / Linux as qualified OS classifiers.
+        for forbidden in (
+            "Operating System :: Microsoft :: Windows",
+            "Operating System :: POSIX :: Linux",
+            "Operating System :: OS Independent",
+        ):
+            self.assertNotIn(forbidden, classifiers)
+
+        readme = self._read("README.md")
+        roadmap = self._read("docs/project-roadmap.md")
+        agents = self._read("AGENTS.md")
+        state = self._read("specs/state.yaml")
+        for text in (readme, roadmap, agents, state):
+            self.assertRegex(text, r"3\.12")
+            self.assertRegex(text.lower(), r"macos")
+
+        self.assertIn("Qualified", readme)
+        self.assertRegex(readme, r"Preview\s*/\s*unverified|preview/unverified")
+        self.assertRegex(readme.lower(), r"windows.*deferred|deferred.*windows")
+
+    def test_linux_and_windows_are_not_described_as_qualified(self) -> None:
+        surfaces = {
+            "README.md": self._read("README.md"),
+            "docs/project-roadmap.md": self._read("docs/project-roadmap.md"),
+            "AGENTS.md": self._read("AGENTS.md"),
+            "docs/architecture.md": self._read("docs/architecture.md"),
+        }
+        # Forbidden phrasing that overstates unqualified platforms.
+        forbidden = [
+            r"linux is (the )?qualified",
+            r"linux is (a )?supported platform",
+            r"windows is (the )?qualified",
+            r"windows is (a )?supported platform",
+            r"macos and linux are the supported platforms",
+            r"qualified on linux",
+            r"qualified on windows",
+        ]
+        for name, text in surfaces.items():
+            lowered = text.lower()
+            for pattern in forbidden:
+                self.assertIsNone(
+                    __import__("re").search(pattern, lowered),
+                    f"{name} overstates support via /{pattern}/",
+                )
+            # Positive required claims
+            if name != "docs/architecture.md":
+                self.assertIn("preview", lowered)
+                self.assertIn("deferred", lowered)
+
+    def test_state_python_support_decision_matches_metadata(self) -> None:
+        state = self._read("specs/state.yaml")
+        self.assertIn("Python 3.12 through 3.14 is qualified on macOS", state)
+        self.assertIn("Linux is preview", state)
+        self.assertIn("Windows remains deferred", state)
+        self.assertIn(">=3.12", state)
+
+    def test_matrix_evidence_exists_for_qualified_minors(self) -> None:
+        from scripts.python_matrix import validate_matrix_evidence
+
+        evidence = REPO_ROOT / "specs" / "verifications" / "python-matrix-evidence.json"
+        self.assertTrue(evidence.is_file())
+        validate_matrix_evidence(evidence)
+
+
 if __name__ == "__main__":
     unittest.main()
