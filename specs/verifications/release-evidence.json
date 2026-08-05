@@ -1,0 +1,196 @@
+{
+  "gates": [
+    {
+      "category": "privacy",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_workspace_privacy",
+        "-q"
+      ],
+      "contract": "D-01 protected workspace I/O fail-closed",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "privacy-workspace",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "provider",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_connection_service",
+        "tests.test_provider_cli",
+        "tests.test_provider_verification",
+        "-q"
+      ],
+      "contract": "D-02 offline provider readiness and verification boundaries",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "provider-readiness",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "codex",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_codex_bridge",
+        "-q"
+      ],
+      "contract": "D-05 Codex readiness and disconnect ownership",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "codex-lifecycle",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "session",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_sessions",
+        "tests.test_session_concurrency",
+        "tests.test_session_transactions",
+        "-q"
+      ],
+      "contract": "D-03 session ownership, checkpoints, corrupt lifecycle, bounds",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "session-integrity",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "quality",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/run_quality_policy.py",
+        "--only",
+        "dependency_audit",
+        "--only",
+        "source_security"
+      ],
+      "contract": "e09 coverage dependency and source-security policy",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "quality-policy",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "release",
+      "command": [
+        "./scripts/check.sh"
+      ],
+      "contract": "official local release check (ruff/mypy/quality/tests/build/wheel)",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "official-check",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "python",
+      "command": [
+        "./scripts/check-python-matrix.sh",
+        "--automated-only"
+      ],
+      "contract": "D-04 macOS Python 3.12-3.14 matrix",
+      "detail": "validated specs/verifications/python-matrix-evidence.json (embedded_revision=a2bb41c1ff4f1d9ccb239fbd6057a4d282e545d5)",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "python-matrix",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "platform",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "-m",
+        "unittest",
+        "tests.test_release_identity.PlatformSupportClaimTests",
+        "-q"
+      ],
+      "contract": "truthful macOS-qualified platform claims",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "platform-claims",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    },
+    {
+      "category": "release",
+      "command": [
+        "uv",
+        "run",
+        "python",
+        "scripts/verify_release_baseline.py"
+      ],
+      "contract": "revision-bound finding disposition oracle",
+      "detail": "exit_code=0",
+      "environment": "macos-automated",
+      "exit_code": 0,
+      "id": "release-baseline",
+      "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+      "status": "passed"
+    }
+  ],
+  "kind": "orbitrelay-release-evidence",
+  "platform": {
+    "deferred": [
+      "windows"
+    ],
+    "notes": "Only macOS is qualified. Linux is preview/unverified. Native Windows is deferred.",
+    "preview": [
+      "linux"
+    ],
+    "qualified": [
+      "macos"
+    ]
+  },
+  "python": {
+    "qualified_minors": [
+      "3.12",
+      "3.13",
+      "3.14"
+    ],
+    "qualified_os": "macos",
+    "requires": ">=3.12"
+  },
+  "required_set": "automated",
+  "residual_risks": [
+    "Linux remains preview/unverified without accepted matrix evidence.",
+    "Native Windows support remains deferred.",
+    "Open disposition findings remain tracked separately in the July registry."
+  ],
+  "revision": "3d87520905b22453b971f6f2e1e7529a45831fa4",
+  "version": 1
+}
