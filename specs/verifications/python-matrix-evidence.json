@@ -23,7 +23,7 @@
       "status": "passed"
     }
   ],
-  "revision": "3d2f5670d73ef6f82990acf9186e465a150de63e",
+  "revision": "0f52b8d41522fa821579db85c41a072c1ef09a59",
   "tracked_requires_python": ">=3.12",
   "version": 1
 }
