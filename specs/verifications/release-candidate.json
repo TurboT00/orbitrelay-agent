@@ -3,8 +3,8 @@
     "filename": "orbitrelay_agent-0.6.0-py3-none-any.whl",
     "path": null,
     "retained": false,
-    "sha256": "1eaab90eb999905f06c268f208858b07a68f003e976a19053b549b4bf436809d",
-    "size_bytes": 75494
+    "sha256": "22f61cc63120340f7a181a4e70ade3a7fa7de0b93179a2ab6ddf585144248403",
+    "size_bytes": 75563
   },
   "audit_verdict": {
     "path": "specs/verifications/candidate-reaudit-verdict.json",
@@ -88,7 +88,7 @@
     "Explicit release-owner approval is still required before tag/push/publish.",
     "Accepted and deferred disposition findings remain residual risk under READY_WITH_EXPLICIT_ACCEPTANCE."
   ],
-  "revision": "eaab0429dc0333780fd22c630c90c4e310f96487",
+  "revision": "9d71a11467e9f77d1aafda8f0cb6b07813162900",
   "schema_version": 1,
   "status": "accepted"
 }
