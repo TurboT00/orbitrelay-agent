@@ -1920,42 +1920,42 @@
       "id": "MAJ-08",
       "severity": "major",
       "title": "The official quality gate passes while quality gates fail",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MAJ-08-current",
         "MIN-01-current",
         "MIN-07-current"
       ],
-      "rationale": "Ruff and mypy are now terminal in the official check, but coverage, dependency auditing, and security scanning remain outside scripts/check.sh.",
-      "release_effect": "Blocks release until e09 establishes and enforces the approved terminal gates.",
+      "rationale": "scripts/check.sh now fails closed on Ruff, mypy, branch coverage (fail-under 80), pip-audit, and Bandit via scripts/run_quality_policy.py (e09s01/e09s02). A passing unit suite alone cannot bypass these stages.",
+      "release_effect": "No independent release block remains for missing terminal quality gates.",
       "owner": "e09-quality-platform-qualification",
-      "residual_risk": "The official check can report success while coverage or supply-chain policy is unverified."
+      "residual_risk": "Quality thresholds remain policy-bound and must be re-run on each candidate revision."
     },
     {
       "id": "MED-01",
       "severity": "medium",
       "title": "Tool failures are reported as successful events",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-01-current"
       ],
-      "rationale": "Plain-text error recognition improved, but nonzero process exits can still bypass string-based failure inference.",
-      "release_effect": "Blocks truthful tool outcomes in e08s06.",
+      "rationale": "Tool outcomes emit truthful statuses (ok/error/denied). Denied calls never enter an executing phase; process/tool failures are classified without treating denials as success (e08s06).",
+      "release_effect": "No independent release block remains for false-successful tool events.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "Summaries and persisted events can count a failed tool as successful."
+      "residual_risk": "Future tools must continue to return Error:/structured error shapes recognized by observers."
     },
     {
       "id": "MED-02",
       "severity": "medium",
       "title": "Corrupt sessions disappear and survive delete-all",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-02-current"
       ],
-      "rationale": "Corrupt metadata remains suppressed by listing and therefore omitted from delete-all.",
-      "release_effect": "Blocks e08s03 and candidate session-corruption evidence.",
+      "rationale": "Corrupt sessions remain visible in list/show with secret-free diagnostics; inactive corrupt sessions are deletable; delete-all reports partial failures with nonzero exit (e08s03).",
+      "release_effect": "No independent release block remains for invisible corrupt sessions.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "Users can neither diagnose nor remove some corrupt sessions through supported commands."
+      "residual_risk": "Inaccessible/symlink session paths still fail closed and may need manual FS repair."
     },
     {
       "id": "MED-03",
@@ -1974,40 +1974,40 @@
       "id": "MED-04",
       "severity": "medium",
       "title": "Session history is unbounded and rewritten repeatedly",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-04-current"
       ],
-      "rationale": "Resume still loads all persisted messages and callbacks replace the complete history; outbound trimming does not bound local replay work.",
-      "release_effect": "Blocks e08s04 bounded history and migration outcomes.",
+      "rationale": "Session history uses pair-preserving durable segments with bounded resume memory; system instructions are current-on-resume; future history formats fail closed (e08s04).",
+      "release_effect": "No independent release block remains for unbounded session rewrite/load.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "Long sessions can create unbounded memory and repeated write amplification."
+      "residual_risk": "Operators must keep segment/replay bounds aligned with provider context limits."
     },
     {
       "id": "MED-05",
       "severity": "medium",
       "title": "Subprocess output capture is unbounded",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-05-current"
       ],
-      "rationale": "Python and Codex execution still retain process output without a byte limit.",
-      "release_effect": "Blocks e08s05 bounded process-output behavior.",
+      "rationale": "Python tool and Codex capture share deadlock-safe bounded drains with explicit timeout/truncation metadata; discarded content is never retained (e08s05).",
+      "release_effect": "No independent release block remains for unbounded subprocess capture.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "A local process can exhaust memory before timeout or completion."
+      "residual_risk": "Bound constants are policy; extreme hosts may still need operator limits outside OrbitRelay."
     },
     {
       "id": "MED-06",
       "severity": "medium",
       "title": "File writes are non-atomic and have a path race",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-06-current"
       ],
-      "rationale": "Workspace writes still truncate the destination directly and do not commit through a crash-safe descriptor-level boundary.",
-      "release_effect": "Blocks the write portion of e08s06.",
+      "rationale": "Workspace writes commit via temp+os.replace with validation-to-use rechecks; interruption before replace preserves prior target bytes (e08s06).",
+      "release_effect": "No independent release block remains for non-atomic workspace writes.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "Interrupted or raced writes can lose data or violate the validated path assumption."
+      "residual_risk": "Cross-filesystem renames are not supported; workspace must remain one filesystem."
     },
     {
       "id": "MED-07",
@@ -2026,14 +2026,14 @@
       "id": "MED-08",
       "severity": "medium",
       "title": "Denied tools emit an executing phase",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MED-08-current"
       ],
-      "rationale": "The event phase is still emitted for every approval record, including denial.",
-      "release_effect": "Blocks truthful denial outcomes in e08s06.",
+      "rationale": "Approval records only emit executing for allowed dispositions; denied/disabled calls surface status=denied without an executing phase (e08s06).",
+      "release_effect": "No independent release block remains for denied-as-executing audit confusion.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "Audit consumers can infer that denied side effects executed."
+      "residual_risk": "External consumers must prefer TOOL_RESULT status over phase heuristics."
     },
     {
       "id": "MED-09",
@@ -2091,27 +2091,27 @@
       "id": "MIN-02",
       "severity": "minor",
       "title": "Static typing is incomplete",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MIN-02-current"
       ],
-      "rationale": "A pinned terminal mypy gate now runs over src/orbitrelay, but public tool seams remain largely unannotated and the policy is not fully strict.",
-      "release_effect": "Gates e09s01 but is not independently a security blocker.",
+      "rationale": "Pinned mypy is a terminal official-check stage over src/orbitrelay with postponed annotations enabled for 3.12+ imports (e09s01/e09s03).",
+      "release_effect": "No independent release block remains for missing terminal typing gate.",
       "owner": "e09-quality-platform-qualification",
-      "residual_risk": "Dynamic interfaces can regress without an executable typing policy."
+      "residual_risk": "Dynamic tool seams remain intentionally flexible; full disallow_untyped_defs is not required for 0.6.0."
     },
     {
       "id": "MIN-03",
       "severity": "minor",
       "title": "A removed command is still recommended",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MIN-03-current"
       ],
-      "rationale": "A migration error still recommends the rejected legacy profile command.",
-      "release_effect": "Must be corrected with provider lifecycle work before candidate documentation is final.",
+      "rationale": "Migration/provider guidance now recommends the provider command rather than the removed profile command.",
+      "release_effect": "No independent release block remains for unusable profile recovery guidance.",
       "owner": "e07-provider-codex-lifecycle",
-      "residual_risk": "Users can receive unusable recovery guidance."
+      "residual_risk": "Legacy docs outside the repo may still mention profile commands."
     },
     {
       "id": "MIN-04",
@@ -2143,27 +2143,27 @@
       "id": "MIN-06",
       "severity": "minor",
       "title": "Event redaction naming overstates its guarantee",
-      "status": "open",
+      "status": "accepted",
       "evidence_ids": [
         "MIN-06-current"
       ],
-      "rationale": "EventCollector still retains raw event values while redaction occurs during dictionary conversion.",
-      "release_effect": "Requires a truthful interface or documentation outcome before release evidence relies on collector-level redaction.",
+      "rationale": "EventCollector stores run-local structured events and redacts on serialization (to_dict). Release evidence and summaries consume redacted dictionaries only. Documented as serialization-time redaction rather than store-time mutation.",
+      "release_effect": "Accepted residual naming risk for 0.6.0; not a security bypass in supported sinks.",
       "owner": "e08-session-execution-integrity",
-      "residual_risk": "Future sinks can assume redaction occurs earlier than it actually does."
+      "residual_risk": "Custom EventCollector sinks must call to_dict()/redaction before persistence."
     },
     {
       "id": "MIN-07",
       "severity": "minor",
       "title": "Several dependencies are behind current releases",
-      "status": "open",
+      "status": "fixed",
       "evidence_ids": [
         "MIN-07-current"
       ],
-      "rationale": "The vulnerable July idna lock is no longer current, but no pinned dependency freshness and advisory policy is part of the official gate.",
-      "release_effect": "Gates the dependency-policy portion of e09s02; being behind latest alone is not a defect.",
+      "rationale": "pip-audit is a terminal quality-policy stage and fails closed when advisory data is unavailable; editable local package is skipped (e09s02).",
+      "release_effect": "No independent release block remains for missing dependency advisory policy.",
       "owner": "e09-quality-platform-qualification",
-      "residual_risk": "Dependency advisories or unsupported versions can escape the official check."
+      "residual_risk": "Advisory freshness depends on cache/network at check time."
     }
   ],
   "release_version": {

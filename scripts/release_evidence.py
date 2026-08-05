@@ -428,6 +428,9 @@ def validate_evidence(
     *,
     expected_revision: str | None = None,
     required_set: str = REQUIRED_SET_AUTOMATED,
+    require_review: bool = False,
+    review_path: Path | None = None,
+    verdict_path: Path | None = None,
 ) -> None:
     if isinstance(record, Path):
         if not record.is_file():
@@ -512,6 +515,35 @@ def validate_evidence(
     if missing:
         raise EvidenceError(f"missing required gates: {sorted(missing)}")
 
+    if require_review:
+        review_file = review_path or (ROOT / "specs/verifications/candidate-review.json")
+        verdict_file = verdict_path or (
+            ROOT / "specs/verifications/candidate-reaudit-verdict.json"
+        )
+        if not review_file.is_file():
+            raise EvidenceError(f"require-review missing review record: {review_file}")
+        if not verdict_file.is_file():
+            raise EvidenceError(f"require-review missing verdict record: {verdict_file}")
+        # Local import avoids circular startup cost.
+        try:
+            from scripts.candidate_reaudit import (
+                ReauditError,
+                validate_verdict,
+            )
+        except ImportError:
+            from candidate_reaudit import ReauditError, validate_verdict  # type: ignore
+        try:
+            review_payload = json.loads(review_file.read_text(encoding="utf-8"))
+            if review_payload.get("kind") != "orbitrelay-candidate-review":
+                raise EvidenceError("review record kind mismatch")
+            for key in ("code_review", "security_review"):
+                block = review_payload.get(key)
+                if not isinstance(block, dict) or block.get("status") != "completed":
+                    raise EvidenceError(f"review {key} incomplete")
+            validate_verdict(verdict_file, expected_revision=expected_revision, require_ready=True)
+        except ReauditError as exc:
+            raise EvidenceError(str(exc)) from exc
+
 
 def write_record(path: Path, record: Mapping[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -544,6 +576,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     val.add_argument("--record", type=Path, default=DEFAULT_RECORD)
     val.add_argument("--revision", default=None)
     val.add_argument("--required-set", default=REQUIRED_SET_AUTOMATED)
+    val.add_argument(
+        "--require-review",
+        action="store_true",
+        help="Require independent code/security review and READY candidate verdict",
+    )
 
     args = parser.parse_args(list(argv) if argv is not None else None)
     try:
@@ -574,6 +611,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.record,
                 expected_revision=args.revision,
                 required_set=args.required_set,
+                require_review=bool(getattr(args, "require_review", False)),
             )
             print(f"release-evidence: valid {args.record}")
             return 0

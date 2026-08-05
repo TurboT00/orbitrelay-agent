@@ -248,7 +248,7 @@ class ConnectionService:
         if len(matches) > 1:
             raise ConnectionError(
                 f'Provider "{definition.identifier.value}" has multiple legacy profiles; '
-                "select one with the profile command before migration"
+                "select one with the provider command before migration"
             )
         return matches[0]
 
