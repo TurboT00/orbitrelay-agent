@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSESSED_REVISION = "a2409e08f36c2d6dea4658d70219defa8708b3ba"
-EXPECTED_CONTRACT_SHA256 = "36eaa7bb5683860e3a538e0333831fff52e9e1de085117a3e28dc3a16cd674c7"
+ASSESSED_REVISION = "50d6b513d0614490f9e15bddac35d42ece58c2f3"
+EXPECTED_CONTRACT_SHA256 = "11dabf21ab2a1bf3b6c5612ea63d9f89d6f163fbb1e9133c330fb9a743676a17"
 CANONICAL_FINDING_IDS = tuple(
     [f"MAJ-{number:02d}" for number in range(1, 9)]
     + [f"MED-{number:02d}" for number in range(1, 12)]
@@ -26,16 +26,28 @@ APPROVED_PASSED_COMMANDS = {
     "uv run python -m unittest tests.test_cli_errors -v",
     "uv run python -m unittest tests.test_provider_cli tests.test_connection_service -v",
     "uv run python -m unittest tests.test_codex_bridge tests.test_provider_cli -v",
-        "uv run python -m unittest tests.test_session_concurrency tests.test_session_transactions -v",
+    "uv run python -m unittest tests.test_session_concurrency tests.test_session_transactions -v",
+    "uv run python -m unittest tests.test_agent tests.test_events -v",
+    "uv run python -m unittest tests.test_sessions -v",
+    "uv run python -m unittest tests.test_sessions tests.test_context_budget -v",
+    "uv run python -m unittest tests.test_process_bounds -v",
+    "uv run python -m unittest tests.test_tools tests.test_agent -v",
+    "uv run python -m unittest tests.test_connection_service -q",
+    "uv run python -m unittest tests.test_events tests.test_redaction -v",
     "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
     "uv run ruff check .",
     "uv run mypy src/orbitrelay",
+    "./scripts/check.sh",
+    "uv run python scripts/run_quality_policy.py --only dependency_audit",
 }
 ALLOWED_EVIDENCE_KINDS = {
     "lock-and-gate-review",
     "offline-lint-run",
     "package-metadata-review",
     "quality-gate-review",
+    "quality-gate-run",
+    "lock-and-gate-run",
+    "source-and-gate-run",
     "release-behavior-review",
     "source-and-gate-review",
     "source-and-scope-review",

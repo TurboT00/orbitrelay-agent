@@ -2,7 +2,7 @@
   "schema_version": 1,
   "story_id": "e05s01",
   "assessment": {
-    "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+    "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
     "date": "2026-08-03",
     "tree_state": "clean",
     "registry": "july-review-2026-07-29",
@@ -28,7 +28,7 @@
     {
       "id": "MAJ-01-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "references": [
         {
@@ -126,7 +126,7 @@
     {
       "id": "MAJ-02-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -144,7 +144,7 @@
     {
       "id": "MAJ-03-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -202,7 +202,7 @@
     {
       "id": "MAJ-04-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "references": [
         {
@@ -288,7 +288,7 @@
     {
       "id": "MAJ-05-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -322,7 +322,7 @@
     {
       "id": "MAJ-06-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -364,7 +364,7 @@
     {
       "id": "MAJ-07-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "references": [
         {
@@ -457,9 +457,9 @@
     },
     {
       "id": "MAJ-08-current",
-      "kind": "quality-gate-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "quality-gate-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "scripts/check.sh",
@@ -545,13 +545,15 @@
           "path": "specs/verifications/release-evidence.json",
           "locator": "revision-bound automated gate record"
         }
-      ]
+      ],
+      "command": "./scripts/check.sh",
+      "exit_code": 0
     },
     {
       "id": "MED-01-current",
-      "kind": "source-and-test-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/agent.py",
@@ -601,13 +603,15 @@
           "path": "tests/test_tools.py",
           "locator": "atomic interrupt and symlink race"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_agent tests.test_events -v",
+      "exit_code": 0
     },
     {
       "id": "MED-02-current",
-      "kind": "source-and-test-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
@@ -661,12 +665,14 @@
           "path": "tests/test_tools.py",
           "locator": "atomic interrupt and symlink race"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_sessions -v",
+      "exit_code": 0
     },
     {
       "id": "MED-03-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "references": [
         {
@@ -759,9 +765,9 @@
     },
     {
       "id": "MED-04-current",
-      "kind": "source-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/sessions.py",
@@ -815,13 +821,15 @@
           "path": "tests/test_tools.py",
           "locator": "atomic interrupt and symlink race"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_sessions tests.test_context_budget -v",
+      "exit_code": 0
     },
     {
       "id": "MED-05-current",
-      "kind": "source-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/tools/run_python_file.py",
@@ -855,13 +863,15 @@
           "path": "tests/test_process_bounds.py",
           "locator": "large output timeout and sentinel omission"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_process_bounds -v",
+      "exit_code": 0
     },
     {
       "id": "MED-06-current",
-      "kind": "source-and-test-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/tools/write_file.py",
@@ -887,12 +897,14 @@
           "path": "tests/test_tools.py",
           "locator": "atomic interrupt and symlink race"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_tools tests.test_agent -v",
+      "exit_code": 0
     },
     {
       "id": "MED-07-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "command": "uv run python -m unittest tests.test_streaming tests.test_run_summary tests.test_connection_service tests.test_provider_cli -v",
       "exit_code": 0,
@@ -925,9 +937,9 @@
     },
     {
       "id": "MED-08-current",
-      "kind": "source-and-test-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/agent.py",
@@ -973,12 +985,14 @@
           "path": "tests/test_tools.py",
           "locator": "atomic interrupt and symlink race"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_agent tests.test_events -v",
+      "exit_code": 0
     },
     {
       "id": "MED-09-current",
       "kind": "source-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "observed",
       "references": [
         {
@@ -1030,7 +1044,7 @@
     {
       "id": "MED-10-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "references": [
         {
@@ -1088,7 +1102,7 @@
     {
       "id": "MED-11-current",
       "kind": "package-metadata-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "observed",
       "references": [
         {
@@ -1180,7 +1194,7 @@
     {
       "id": "MIN-01-current",
       "kind": "offline-lint-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "command": "uvx --offline --from ruff==0.16.1 ruff check . --select F401,F841",
       "exit_code": 0,
@@ -1265,9 +1279,9 @@
     },
     {
       "id": "MIN-02-current",
-      "kind": "source-and-gate-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-gate-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/tools/get_file_content.py",
@@ -1357,13 +1371,15 @@
           "path": "specs/verifications/release-evidence.json",
           "locator": "revision-bound automated gate record"
         }
-      ]
+      ],
+      "command": "uv run mypy src/orbitrelay",
+      "exit_code": 0
     },
     {
       "id": "MIN-03-current",
-      "kind": "source-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/connection_service.py",
@@ -1445,12 +1461,14 @@
           "path": "tests/test_tools.py",
           "locator": "atomic interrupt and symlink race"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_connection_service -q",
+      "exit_code": 0
     },
     {
       "id": "MIN-04-current",
       "kind": "source-and-test-run",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "passed",
       "references": [
         {
@@ -1624,7 +1642,7 @@
     {
       "id": "MIN-05-current",
       "kind": "source-and-scope-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
       "outcome": "observed",
       "references": [
         {
@@ -1703,9 +1721,9 @@
     },
     {
       "id": "MIN-06-current",
-      "kind": "source-and-test-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
+      "kind": "source-and-test-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
       "references": [
         {
           "path": "src/orbitrelay/events.py",
@@ -1715,14 +1733,16 @@
           "path": "tests/test_events.py",
           "locator": "dictionary redaction coverage"
         }
-      ]
+      ],
+      "command": "uv run python -m unittest tests.test_events tests.test_redaction -v",
+      "exit_code": 0
     },
     {
       "id": "MIN-07-current",
-      "kind": "lock-and-gate-review",
-      "revision": "a2409e08f36c2d6dea4658d70219defa8708b3ba",
-      "outcome": "observed",
-      "command": "uv lock --check --offline",
+      "kind": "lock-and-gate-run",
+      "revision": "50d6b513d0614490f9e15bddac35d42ece58c2f3",
+      "outcome": "passed",
+      "command": "uv run python scripts/run_quality_policy.py --only dependency_audit",
       "exit_code": 0,
       "references": [
         {
