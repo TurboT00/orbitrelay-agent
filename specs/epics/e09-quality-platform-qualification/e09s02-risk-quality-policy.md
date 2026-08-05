@@ -2,7 +2,7 @@ STORY KEY: e09s02
 TITLE:     Enforce coverage dependency and security policy
 TYPE:      Story
 PARENT:    e09
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      L

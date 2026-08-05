@@ -7,7 +7,7 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** Wave 0 complete; e06, e07, and e08 epics complete; 54 tasks passing and 18 tasks failing;
+**Implementation status:** Wave 0 complete; e06–e08 epics complete; e09s01/s02 complete; 57 tasks passing and 15 tasks failing;
 release identity 0.6.0 applied; next-story approval required before later work
 
 ## Purpose
@@ -249,13 +249,13 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**Wave 0 plus the full e06, e07, and e08 epics are complete.**
+**Wave 0 plus e06–e08 epics and e09s01/s02 are complete.**
 The disposition oracle remains at `specs/verifications/current-finding-disposition.json`
-and records selected identity **0.6.0** with crash-safe tool outcomes. Do not
-proceed to later stories until the next story is explicitly approved.
+and records selected identity **0.6.0** with risk-based quality policy gates. Do
+not proceed to later stories until the next story is explicitly approved.
 
 ## Handoff
 
-Next action: hold the next-story checkpoint. Recommended next story is e09s02
-(risk-based quality policy). Obtain explicit story approval before beginning
-e09s02 or any later stabilization work.
+Next action: hold the next-story checkpoint. Recommended next story is e09s03
+(macOS Python 3.12–3.14 matrix). Obtain explicit story approval before beginning
+e09s03 or any later stabilization work.

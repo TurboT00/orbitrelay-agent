@@ -16,7 +16,7 @@ stories:
   - id: e09s02
     title: Enforce coverage dependency and security policy
     bcps: 8
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e09s02-risk-quality-policy.md
     tasks: e09s02-tasks.yaml
