@@ -11,6 +11,8 @@
 # story: e04s03
 # story: e04s06
 
+from __future__ import annotations
+
 import argparse
 import getpass
 import math

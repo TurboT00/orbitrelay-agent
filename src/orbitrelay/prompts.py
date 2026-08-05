@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 system_prompt = """
 You are a helpful AI personal agent.
 

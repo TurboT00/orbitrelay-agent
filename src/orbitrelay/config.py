@@ -1,5 +1,7 @@
 # story: e03s01
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 MAX_CHARS = 10000

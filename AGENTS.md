@@ -18,10 +18,9 @@ the current codebase, but source and tests remain authoritative.
 
 ## Project at a glance
 
-OrbitRelay is currently a Python 3.14+ general-purpose, text-first personal
+OrbitRelay is currently a Python 3.12+ general-purpose, text-first personal
 assistant for hosted, OpenAI-compatible providers. Python 3.12 through 3.14 is
-the approved stabilization target, but package metadata must not change until
-the macOS matrix passes. macOS is qualified; Linux is preview/unverified and
+the approved and package-declared support range on macOS. macOS is qualified; Linux is preview/unverified and
 Windows remains deferred. Its current interface is a CLI with optional workspace
 file and Python tools. Coding is one supported use case, not the product boundary.
 

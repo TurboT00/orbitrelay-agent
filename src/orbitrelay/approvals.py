@@ -4,6 +4,8 @@
 # story: e02s05
 # story: e02s06
 
+from __future__ import annotations
+
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import StrEnum

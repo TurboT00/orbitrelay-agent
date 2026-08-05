@@ -5,6 +5,8 @@
 # story: e04s03
 # story: e04s05
 
+from __future__ import annotations
+
 import json
 import sys
 from collections.abc import Callable, Iterator, Sequence

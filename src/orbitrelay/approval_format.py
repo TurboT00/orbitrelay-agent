@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Protocol
 
 SafeValue = str | int | tuple[str, ...]

@@ -1,6 +1,6 @@
-active_flow: none
-active_epic_id: null
-active_story_id: null
+active_flow: build_epic
+active_epic_id: e09
+active_story_id: e09s03
 release:
   current_version: 0.6.0
   last_completed_release: 0.5.0
@@ -14,7 +14,7 @@ verification:
   example_tests: 9
 planning:
   phase: build
-  status: e09s02_complete_next_story_checkpoint
+  status: e09s03_in_progress
   entry_skill: kickoff-branch
   next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]
@@ -93,9 +93,8 @@ decisions:
     provider request unless a bounded wait is explicit. Persist only complete
     replay-safe groups with durable atomic replacement.
   python_support_target: >-
-    Qualify Python 3.12 through 3.14 on macOS as a stabilization release gate.
-    Linux is preview until qualified; Windows remains deferred. Keep current
-    package metadata until the matrix passes.
+    Python 3.12 through 3.14 is qualified on macOS; package metadata requires
+    >=3.12. Linux is preview until qualified; Windows remains deferred.
   codex_disconnect: >-
     Provider disconnect removes OrbitRelay metadata only. Delegated logout is
     separate, with an explicit logout-first --disconnect combination. Never

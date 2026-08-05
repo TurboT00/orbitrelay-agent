@@ -1,6 +1,8 @@
 # story: e02s04
 # story: e02s06
 
+from __future__ import annotations
+
 import selectors
 from typing import Any, Protocol, TextIO, cast
 
