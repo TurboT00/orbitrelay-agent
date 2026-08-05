@@ -1,0 +1,4 @@
+# Explicit, versioned quality-policy waivers. Empty means no waivers.
+# Each waiver must include id, gate, reason, expires_on (ISO date), and owner.
+version: 1
+waivers: []

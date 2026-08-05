@@ -36,7 +36,10 @@ packages = ["src/orbitrelay"]
 
 [dependency-groups]
 dev = [
+    "bandit>=1.8,<2",
+    "coverage>=7.6,<8",
     "mypy>=1.17,<3",
+    "pip-audit>=2.7,<3",
     "ruff>=0.12,<1",
 ]
 
@@ -84,3 +87,22 @@ check_untyped_defs = true
 disallow_incomplete_defs = true
 pretty = true
 show_error_codes = true
+
+[tool.coverage.run]
+branch = true
+source = ["orbitrelay"]
+omit = [
+    "*/orbitrelay/__main__.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_empty = true
+precision = 1
+exclude_lines = [
+    "pragma: no cover",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

@@ -22,3 +22,10 @@ examples/**/tmp/
 # Local project review records
 /docs/project-review-2026-07-29.md
 /docs/remediation-plan-2026-07-29.md
+
+# Quality-gate artifacts
+.coverage
+coverage.xml
+htmlcov/
+.cache/
+.pytest_cache/

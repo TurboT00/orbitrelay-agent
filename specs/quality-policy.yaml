@@ -1,0 +1,32 @@
+# Risk-based release quality policy (e09s02).
+# Thresholds are measured from the accepted post-e08 baseline (~84% branch
+# coverage on src/orbitrelay) and enforced as named fail-closed gates.
+
+version: 1
+source: src/orbitrelay
+tools:
+  coverage:
+    package: coverage
+    min_version: "7.6"
+    branch: true
+    # Measured accepted baseline was ~84% total with branch tracking.
+    # Fail-under leaves a small buffer for non-functional churn while remaining
+    # a real release gate.
+    fail_under: 80
+  dependency_audit:
+    package: pip-audit
+    min_version: "2.7"
+    # Fail closed when advisory data cannot be obtained or cached.
+    fail_on_unavailable: true
+    # Any known vulnerability is a release blocker unless explicitly waived
+    # in specs/quality-waivers.yaml (none today).
+    fail_on_vuln: true
+  source_security:
+    package: bandit
+    min_version: "1.8"
+    # Medium severity and medium confidence are terminal for release.
+    severity: medium
+    confidence: medium
+    paths:
+      - src/orbitrelay
+waivers_file: specs/quality-waivers.yaml

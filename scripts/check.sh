@@ -31,8 +31,10 @@ uv run ruff check .
 section "Running mypy"
 uv run mypy src/orbitrelay
 
-section "Running OrbitRelay tests"
-uv run python -m unittest discover -s tests -v
+section "Running risk-based quality policy"
+# Coverage stage executes the project unit suite under coverage.py and fails
+# closed on threshold or test failure. Dependency-audit and Bandit follow.
+uv run python scripts/run_quality_policy.py
 
 section "Running calculator example tests"
 uv run python examples/calculator/tests.py

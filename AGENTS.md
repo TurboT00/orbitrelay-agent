@@ -167,11 +167,10 @@ smoke-tests imports and both CLI entry points, builds distributions, and runs
 the command from an isolated wheel. It requires Bash and `uv` and may need
 network/cache access on a clean machine.
 
-`scripts/check.sh` now runs locked Ruff and mypy as terminal stages, then tests,
-imports, build, and isolated-wheel smoke. It still does not run coverage,
-dependency auditing, or security scanning; do not describe it as proving those
-later e09 gates. The current project suite contains 192 tests and the calculator
-example contains 9 tests.
+`scripts/check.sh` runs locked Ruff and mypy, the risk-based quality policy
+(coverage with unit suite, dependency audit, Bandit), calculator example tests,
+imports, build, and isolated-wheel smoke. Dependency audit may need network or a
+warm advisory cache on a clean machine.
 
 ## Known baseline and scope controls
 
