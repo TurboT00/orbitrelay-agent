@@ -264,7 +264,7 @@ API. Run the complete local check from any working directory:
 
 The script validates the lockfile, synchronizes dependencies, runs both test
 suites, checks package imports and CLI entry points, builds the distributions,
-and starts the command from an isolated wheel installation. Build artifacts are
+and starts the command from an isolated wheel installation. The standalone 0.6.0 candidate is recorded by `uv run python scripts/release_candidate.py produce` into `specs/verifications/release-candidate.json` without tagging or publishing. Build artifacts are
 created in a temporary directory and removed automatically.
 
 The official check targets Bash on **qualified macOS**. The same script may run

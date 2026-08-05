@@ -7,8 +7,8 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** Wave 0 complete; e06–e09 epics complete; e10s01/s02 complete; 69 tasks passing and 3 tasks failing;
-release identity 0.6.0 applied; next-story approval required before later work
+**Implementation status:** Wave 0 complete; e06–e10 epics complete; 72 tasks passing;
+release identity 0.6.0 candidate accepted; release-owner publish approval still required
 
 ## Purpose
 
@@ -249,13 +249,12 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**Wave 0 plus e06–e09 epics and e10s01/s02 are complete.**
+**Wave 0 plus e06–e10 epics are complete.**
 The disposition oracle remains at `specs/verifications/current-finding-disposition.json`
-and records selected identity **0.6.0** with READY_WITH_EXPLICIT_ACCEPTANCE. Do
-not proceed to later stories until the next story is explicitly approved.
+and records selected identity **0.6.0** with READY_WITH_EXPLICIT_ACCEPTANCE. The
+standalone candidate record is at `specs/verifications/release-candidate.json`.
 
 ## Handoff
 
-Next action: hold the next-story checkpoint. Recommended next story is e10s03
-(standalone release candidate). Obtain explicit story approval before beginning
-e10s03 or any later stabilization work.
+Next action: hold the release-owner publish checkpoint. Candidate production is
+not tag/push/publish authorization. Keep P5 blocked until separately approved.

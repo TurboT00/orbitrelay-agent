@@ -2,7 +2,7 @@ id: e10
 title: Release Evidence and Readiness
 wsjf: 3.6
 total_bcps: 15
-status: todo
+status: done
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.6.0"
 stories:
@@ -23,7 +23,7 @@ stories:
   - id: e10s03
     title: Produce a reproducible standalone release candidate
     bcps: 5
-    status: in_progress
+    status: done
     delta: ADDED
     spec: e10s03-standalone-release-candidate.md
     tasks: e10s03-tasks.yaml

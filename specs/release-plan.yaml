@@ -1,7 +1,7 @@
 release:
   version: "0.6.0"
   codename: Trustworthy Stabilization
-  status: planning
+  status: candidate_ready
   semantic_release: false
   bump_hint: minor
   baseline_version: "0.5.0"
@@ -10,8 +10,9 @@ release:
   note: >-
     Release-owner decision on 2026-08-03: ship this stabilization as 0.6.0 and
     reserve 1.0.0 for a later milestone. Post-0.5.0 breaking provider commits
-    remain in scope; they do not force a major bump for this release. Package
-    metadata stays 0.5.0 until e05s02 applies the selected identity.
+    remain in scope; they do not force a major bump for this release. Package,
+    module, CLI, and wheel identity report 0.6.0. The standalone candidate is
+    accepted; tag/push/publish still require separate release-owner approval.
 
 previous_release:
   version: "0.5.0"
@@ -32,7 +33,7 @@ epics:
   - id: e06
     title: Workspace Privacy and CLI Trust
     capsule_dir: epics/e06-workspace-privacy-cli-trust
-    status: todo
+    status: done
     wsjf: 6.0
     bcps: 34
     note: >-
@@ -41,7 +42,7 @@ epics:
   - id: e07
     title: Provider and Codex Lifecycle
     capsule_dir: epics/e07-provider-codex-lifecycle
-    status: todo
+    status: done
     wsjf: 4.8
     bcps: 26
     note: >-
@@ -50,7 +51,7 @@ epics:
   - id: e08
     title: Session and Execution Integrity
     capsule_dir: epics/e08-session-execution-integrity
-    status: todo
+    status: done
     wsjf: 4.6
     bcps: 42
     note: >-
@@ -59,7 +60,7 @@ epics:
   - id: e09
     title: Quality and Platform Qualification
     capsule_dir: epics/e09-quality-platform-qualification
-    status: todo
+    status: done
     wsjf: 4.2
     bcps: 24
     note: >-
@@ -68,12 +69,12 @@ epics:
   - id: e10
     title: Release Evidence and Readiness
     capsule_dir: epics/e10-release-evidence-readiness
-    status: todo
+    status: done
     wsjf: 3.6
     bcps: 15
     note: >-
-      Produces the standalone candidate and closes evidence after e05 through
-      e09. Its lower ordering reflects those dependencies.
+      Automated macOS evidence, candidate re-audit, and standalone candidate
+      production are complete. Publish remains separately authorized.
 
 bugs:
   total: 0

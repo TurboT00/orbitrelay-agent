@@ -1,0 +1,94 @@
+{
+  "artifact": {
+    "filename": "orbitrelay_agent-0.6.0-py3-none-any.whl",
+    "path": null,
+    "retained": false,
+    "sha256": "1eaab90eb999905f06c268f208858b07a68f003e976a19053b549b4bf436809d",
+    "size_bytes": 75494
+  },
+  "audit_verdict": {
+    "path": "specs/verifications/candidate-reaudit-verdict.json",
+    "status": "passed",
+    "verdict": "READY_WITH_EXPLICIT_ACCEPTANCE"
+  },
+  "content_inspection": {
+    "dist_info_member_count": 5,
+    "forbidden_hits": [],
+    "member_count": 38,
+    "package_member_count": 33,
+    "sample_members": [
+      "orbitrelay/__init__.py",
+      "orbitrelay/__main__.py",
+      "orbitrelay/agent.py",
+      "orbitrelay/approval_format.py",
+      "orbitrelay/approvals.py",
+      "orbitrelay/cli.py",
+      "orbitrelay/codex_bridge.py",
+      "orbitrelay/codex_cli.py",
+      "orbitrelay/config.py",
+      "orbitrelay/connection_service.py",
+      "orbitrelay/context_budget.py",
+      "orbitrelay/credentials.py"
+    ],
+    "status": "passed"
+  },
+  "gates": {
+    "gates": {
+      "codex-lifecycle": "passed",
+      "official-check": "passed",
+      "platform-claims": "passed",
+      "privacy-workspace": "passed",
+      "provider-readiness": "passed",
+      "python-matrix": "passed",
+      "quality-policy": "passed",
+      "release-baseline": "passed",
+      "session-integrity": "passed"
+    },
+    "path": "specs/verifications/release-evidence.json",
+    "revision": "dc94be6e0a3766273b932480b078fa2f0435a999",
+    "status": "passed"
+  },
+  "identity": {
+    "module_version": "0.6.0",
+    "package_name": "orbitrelay-agent",
+    "package_version": "0.6.0",
+    "version": "0.6.0"
+  },
+  "installed_smoke": {
+    "help": {
+      "exit_code": 0,
+      "reports_identity": null,
+      "status": "passed"
+    },
+    "module_version": {
+      "exit_code": 0,
+      "reports_identity": true,
+      "status": "passed"
+    },
+    "version": {
+      "exit_code": 0,
+      "reports_identity": true,
+      "status": "passed"
+    }
+  },
+  "kind": "orbitrelay-release-candidate",
+  "matrix": {
+    "path": "specs/verifications/python-matrix-evidence.json",
+    "status": "present"
+  },
+  "member_count": 38,
+  "publish_authority": {
+    "hosted_release": false,
+    "note": "Candidate production is not publish authorization.",
+    "publish": false,
+    "push": false,
+    "tag": false
+  },
+  "residual_risks": [
+    "Explicit release-owner approval is still required before tag/push/publish.",
+    "Accepted and deferred disposition findings remain residual risk under READY_WITH_EXPLICIT_ACCEPTANCE."
+  ],
+  "revision": "eaab0429dc0333780fd22c630c90c4e310f96487",
+  "schema_version": 1,
+  "status": "accepted"
+}

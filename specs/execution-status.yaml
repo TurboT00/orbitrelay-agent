@@ -28,7 +28,7 @@ development_status:
   e10: todo
   e10s01: done
   e10s02: done
-  e10s03: in_progress
+  e10s03: done
 
 epics:
   e05:

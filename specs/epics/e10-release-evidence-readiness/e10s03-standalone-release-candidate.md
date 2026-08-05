@@ -2,7 +2,7 @@ STORY KEY: e10s03
 TITLE:     Produce a reproducible standalone release candidate
 TYPE:      Story
 PARENT:    e10
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M
