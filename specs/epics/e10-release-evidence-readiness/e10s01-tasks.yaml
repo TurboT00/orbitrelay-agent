@@ -4,7 +4,7 @@ spec: e10s01-automated-macos-evidence.md
 type: feat
 context: infra
 risk: P0
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_evidence -v"
     risk: P1
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: high
@@ -22,7 +22,7 @@ tasks:
     verify: "uv run python scripts/validate_release_evidence.py --record specs/verifications/release-evidence.json --revision \"$(git rev-parse HEAD)\" --required-set automated"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -32,7 +32,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_evidence tests.test_redaction -v"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical

@@ -1,6 +1,6 @@
-active_flow: build_epic
-active_epic_id: e10
-active_story_id: e10s01
+active_flow: none
+active_epic_id: null
+active_story_id: null
 release:
   current_version: 0.6.0
   last_completed_release: 0.5.0
@@ -10,11 +10,11 @@ release:
 verification:
   command: ./scripts/check.sh
   result: passed
-  project_tests: 310
+  project_tests: 50
   example_tests: 9
 planning:
   phase: build
-  status: e10s01_in_progress
+  status: e10s01_complete_next_story_checkpoint
   entry_skill: kickoff-branch
   next_skill: human-checkpoint
   epic_ids: [e05, e06, e07, e08, e09, e10]
@@ -26,9 +26,9 @@ planning:
     report: specs/IMPACT_LATEST.md
     risk: high
   next_action: >-
-    e09s04 is complete (e09 epic complete). Explicitly approve the next automated
-    story before implementation. Recommended next: e10s01 (automated macOS
-    evidence). Do not begin later stories or P5 without explicit approval.
+    e10s01 is complete. Explicitly approve the next automated story before
+    implementation. Recommended next: e10s02 (candidate re-audit).
+    Do not begin later stories or P5 without explicit approval.
 handoff:
   required_reading:
     - README.md
@@ -41,13 +41,13 @@ handoff:
     - specs/IMPACT_LATEST.md
     - specs/IMPLEMENTATION_PLAN_LATEST.md
   open_decisions:
-    - Explicitly approve the next automated stabilization story (recommended: e10s01).
+    - Explicitly approve the next automated stabilization story (recommended: e10s02).
     - Select and qualify a local model before claiming local-provider support.
     - Determine whether Gemini OAuth passes the documented integration probe.
   next_action: >-
     Release identity 0.6.0 is applied. e06–e08 epics and e09s01/s02 are complete.
     Automated verification is the release gate; user-run side testing is optional
-    and non-blocking. Approve the next story (recommended: e10s01), then begin
+    and non-blocking. Approve the next story (recommended: e10s02), then begin
     only that story. Keep P5 blocked. Tagging/publishing still require separate
     approval.
   next_skill: human-checkpoint

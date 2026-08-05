@@ -7,7 +7,7 @@
 **Stories:** 24  
 **Tasks:** 72  
 **BCP:** 151  
-**Implementation status:** Wave 0 complete; e06–e09 epics complete; 63 tasks passing and 9 tasks failing;
+**Implementation status:** Wave 0 complete; e06–e09 epics complete; e10s01 complete; 66 tasks passing and 6 tasks failing;
 release identity 0.6.0 applied; next-story approval required before later work
 
 ## Purpose
@@ -249,13 +249,13 @@ candidate passes; candidate production is not publish authorization.
 
 ## First implementation target
 
-**Wave 0 plus e06–e09 epics are complete.**
+**Wave 0 plus e06–e09 epics and e10s01 are complete.**
 The disposition oracle remains at `specs/verifications/current-finding-disposition.json`
-and records selected identity **0.6.0** with truthful platform claims. Do not
-proceed to later stories until the next story is explicitly approved.
+and records selected identity **0.6.0** with automated macOS release evidence. Do
+not proceed to later stories until the next story is explicitly approved.
 
 ## Handoff
 
-Next action: hold the next-story checkpoint. Recommended next story is e10s01
-(automated macOS evidence). Obtain explicit story approval before beginning
-e10s01 or any later stabilization work.
+Next action: hold the next-story checkpoint. Recommended next story is e10s02
+(candidate re-audit). Obtain explicit story approval before beginning e10s02 or
+any later stabilization work.

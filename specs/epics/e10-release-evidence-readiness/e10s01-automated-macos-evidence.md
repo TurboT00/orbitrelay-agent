@@ -2,7 +2,7 @@ STORY KEY: e10s01
 TITLE:     Record automated macOS readiness evidence
 TYPE:      Story
 PARENT:    e10
-STATUS:    Planned
+STATUS:    Complete
 AUTHOR:    OrbitRelay team           DATE: 2026-08-03
 MATURITY:  3
 SIZE:      M
