@@ -2,7 +2,7 @@
 
 **Last reviewed:** 2026-08-03
 **Latest tagged release:** 0.5.0
-**Development status:** post-0.5.0 stabilization at identity 0.6.0; e09s02 complete; next story approval required
+**Development status:** post-0.5.0 stabilization at identity 0.6.0; e09s03 complete; next story approval required
 
 ## Current baseline
 
@@ -31,17 +31,18 @@ coupled correctness work. It is sliced into 24 vertical stories across epics e05
 through e10. A full impact assessment rates the cross-epic blast radius High and
 records shared-module, migration, test, and sequencing constraints. Detailed
 plans define 72 tasks across the 24 stories. Wave 0 plus the full e06 and e07
-epics, the full e08 epic, and e09s01/s02 are complete with 57 passing tasks; the
-revision-bound disposition still covers all 26 July findings; the remaining 15
-tasks are failing. Automated verification is the release gate; user-run side
+epics, the full e08 epic, and e09s01/s02/s03 are complete with 60 passing tasks;
+the revision-bound disposition still covers all 26 July findings; the remaining
+12 tasks are failing. Automated verification is the release gate; user-run side
 testing remains optional and non-blocking.
 Release identity 0.6.0 is applied; protected I/O fails closed with optional
 one-run exceptions and gated sensitive-session resume; expected CLI failures are
 concise; provider/Codex lifecycle ownership is explicit; sessions have exclusive
 owners, replay-safe checkpoints, visible corrupt lifecycle handling, bounded
 segmented history, bounded process output, crash-safe tool outcomes, and
-risk-based coverage/dependency/security gates. The project is paused only for
-explicit next-story approval (recommended: e09s03).
+risk-based coverage/dependency/security gates and a qualified macOS Python
+3.12-3.14 matrix. The project is paused only for explicit next-story approval
+(recommended: e09s04).
 No later remediation task or P5 work is approved for execution yet.
 
 ## Completed capabilities

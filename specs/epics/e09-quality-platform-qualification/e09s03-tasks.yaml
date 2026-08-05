@@ -4,7 +4,7 @@ spec: e09s03-macos-python-matrix.md
 type: feat
 context: infra
 risk: P0
-status: failing
+status: passing
 bcps: 8
 tasks:
   - id: 1
@@ -12,7 +12,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_python_matrix -v"
     risk: P0
     security: medium
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -22,7 +22,7 @@ tasks:
     verify: "./scripts/check-python-matrix.sh --candidate-floor 3.12 --automated-only"
     risk: P0
     security: high
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical
@@ -32,7 +32,7 @@ tasks:
     verify: "uv run python -m unittest tests.test_release_identity tests.test_python_matrix -v && ./scripts/check-python-matrix.sh --automated-only"
     risk: P0
     security: medium
-    status: failing
+    status: passing
     security_acceptance: "no new security findings in affected paths"
     allure:
       severity: critical

@@ -23,7 +23,7 @@ stories:
   - id: e09s03
     title: Install and run OrbitRelay on Python 3.12 through 3.14
     bcps: 8
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e09s03-macos-python-matrix.md
     tasks: e09s03-tasks.yaml
