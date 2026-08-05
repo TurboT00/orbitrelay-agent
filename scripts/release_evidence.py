@@ -19,6 +19,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+if str(ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(ROOT / "scripts"))
 DEFAULT_RECORD = ROOT / "specs" / "verifications" / "release-evidence.json"
 MATRIX_EVIDENCE = ROOT / "specs" / "verifications" / "python-matrix-evidence.json"
 
@@ -248,7 +252,10 @@ def _matrix_evidence_gate(
     repo: Path,
 ) -> GateResult:
     """Accept only a validated, secret-free matrix evidence file."""
-    from scripts.python_matrix import MatrixError, validate_matrix_evidence
+    try:
+        from scripts.python_matrix import MatrixError, validate_matrix_evidence
+    except ImportError:  # running as scripts/release_evidence.py
+        from python_matrix import MatrixError, validate_matrix_evidence
 
     spec = next(item for item in AUTOMATED_GATE_SPECS if item["id"] == "python-matrix")
     path = repo / "specs/verifications/python-matrix-evidence.json"
@@ -445,13 +452,16 @@ def validate_evidence(
     revision = payload.get("revision")
     if not isinstance(revision, str) or not re.fullmatch(r"[0-9a-f]{40}", revision):
         raise EvidenceError("evidence revision must be a full git SHA")
-    if expected_revision is not None and revision != expected_revision:
+    if (
+        expected_revision is not None
+        and revision != expected_revision
+        and not _revision_is_ancestor(revision, expected_revision)
+    ):
         # Allow validating at HEAD when evidence was produced on an ancestor
         # commit (common when the evidence file is committed after generation).
-        if not _revision_is_ancestor(revision, expected_revision):
-            raise EvidenceError(
-                f"evidence revision mismatch: {revision} != {expected_revision}"
-            )
+        raise EvidenceError(
+            f"evidence revision mismatch: {revision} != {expected_revision}"
+        )
 
     platform = payload.get("platform")
     if not isinstance(platform, Mapping):
