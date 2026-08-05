@@ -2,7 +2,7 @@ id: e08
 title: Session and Execution Integrity
 wsjf: 4.6
 total_bcps: 42
-status: in_progress
+status: done
 scope: specs/product/SCOPE_LATEST.yaml
 release_target: "0.6.0"
 stories:
@@ -44,7 +44,7 @@ stories:
   - id: e08s06
     title: Receive truthful crash-safe local tool outcomes
     bcps: 8
-    status: in_progress
+    status: done
     delta: MODIFIED
     spec: e08s06-crash-safe-tool-outcomes.md
     tasks: e08s06-tasks.yaml

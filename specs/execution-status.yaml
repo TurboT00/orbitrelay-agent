@@ -13,13 +13,13 @@ development_status:
   e07s02: done
   e07s03: done
   e07s04: done
-  e08: in_progress
+  e08: done
   e08s01: done
   e08s02: done
   e08s03: done
   e08s04: done
   e08s05: done
-  e08s06: in_progress
+  e08s06: done
   e09: in_progress
   e09s01: done
   e09s02: todo
@@ -44,13 +44,13 @@ epics:
     total_bcps: 34
     capsule_dir: specs/epics/e06-workspace-privacy-cli-trust
   e07:
-    status: in_progress
+    status: done
     title: Provider and Codex Lifecycle
     wsjf: 4.8
     total_bcps: 26
     capsule_dir: specs/epics/e07-provider-codex-lifecycle
   e08:
-    status: in_progress
+    status: done
     title: Session and Execution Integrity
     wsjf: 4.6
     total_bcps: 42
