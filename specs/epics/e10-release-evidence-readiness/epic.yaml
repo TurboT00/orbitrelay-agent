@@ -23,7 +23,7 @@ stories:
   - id: e10s03
     title: Produce a reproducible standalone release candidate
     bcps: 5
-    status: todo
+    status: in_progress
     delta: ADDED
     spec: e10s03-standalone-release-candidate.md
     tasks: e10s03-tasks.yaml
