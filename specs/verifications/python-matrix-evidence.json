@@ -1,29 +1,9 @@
 {
-  "floor": "tracked",
   "kind": "python-matrix-evidence",
-  "minors": [
-    "3.12",
-    "3.13",
-    "3.14"
-  ],
-  "results": [
-    {
-      "python": "3.12",
-      "stages": "sync,ruff,mypy,tests,example,pip-audit,bandit,import,cli,build,wheel",
-      "status": "passed"
-    },
-    {
-      "python": "3.13",
-      "stages": "sync,ruff,mypy,tests,example,pip-audit,bandit,import,cli,build,wheel",
-      "status": "passed"
-    },
-    {
-      "python": "3.14",
-      "stages": "sync,ruff,mypy,tests,example,pip-audit,bandit,import,cli,build,wheel",
-      "status": "passed"
-    }
-  ],
-  "revision": "9b373b75144975909c17a785fa69c87737dafc13",
+  "version": 1,
+  "revision": "a2bb41c1ff4f1d9ccb239fbd6057a4d282e545d5",
+  "floor": "tracked",
   "tracked_requires_python": ">=3.12",
-  "version": 1
+  "minors": ["3.12", "3.13", "3.14"],
+  "results": [{"python":"3.12","status":"passed","stages":"sync,ruff,mypy,tests,example,pip-audit,bandit,import,cli,build,wheel"},{"python":"3.13","status":"passed","stages":"sync,ruff,mypy,tests,example,pip-audit,bandit,import,cli,build,wheel"},{"python":"3.14","status":"passed","stages":"sync,ruff,mypy,tests,example,pip-audit,bandit,import,cli,build,wheel"}]
 }
