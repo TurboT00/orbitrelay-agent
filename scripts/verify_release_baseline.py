@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSESSED_REVISION = "bb0f68effb3e23cfc882ad61d1e68ef640bd41d9"
-EXPECTED_CONTRACT_SHA256 = "97f9a8ebc19b886c26c228a16dcb3ed515dc65485af64942b59efa750c0ab1d8"
+ASSESSED_REVISION = "077f5f56781aa1828015f57f1292c0c990912c9a"
+EXPECTED_CONTRACT_SHA256 = "3d891be4a71a5e00526b6488db6a87d1c555008aaea611af015f9e6db929f464"
 CANONICAL_FINDING_IDS = tuple(
     [f"MAJ-{number:02d}" for number in range(1, 9)]
     + [f"MED-{number:02d}" for number in range(1, 12)]
