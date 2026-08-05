@@ -16,7 +16,7 @@ stories:
   - id: e10s02
     title: Re-audit the stabilization candidate
     bcps: 5
-    status: in_progress
+    status: done
     delta: ADDED
     spec: e10s02-candidate-reaudit.md
     tasks: e10s02-tasks.yaml
